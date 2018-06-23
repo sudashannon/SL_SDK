@@ -12,18 +12,25 @@ RTE框架如下：
 --SL_BSP
 
 ---包含任何Chip必有的三个部分：按键、串口、LED以方便用户对运行于SL_RTE下的代码进行调试。
+
 --SL_ThirdParty
+
 ---包含使用到的第三方代码。
+
 --Board_Collection
+
 ---针对具体使用的开发板所搜集或编写的代码目前包含以下部分：
+
 ---STM32F103：ADC、BH1750、CRC、DHT11、E2PROM、ESP8266、片内Flash模拟E2PROM、GSMA9、I2C、LCD、PM25、PWM
               RC522、IO模拟串口、SPI、SR501、GPIO。
    STM32F407：类似F1。
    IOTL475：移植官方驱动。
    STM32F767:待上传。
    STM32H743：待上传。
+   
 --Example
 ---KEIL环境下本RTE使用的DEMO。
+
 --Docs
 ---包含TXT格式的版本历史纪录和DOC格式的用户手册。
 # 版本历史
