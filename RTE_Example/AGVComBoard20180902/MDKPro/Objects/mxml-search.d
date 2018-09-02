@@ -1,0 +1,9 @@
+.\objects\mxml-search.o: ..\XML_Lib\mxml-search.c
+.\objects\mxml-search.o: ..\XML_Lib\config.h
+.\objects\mxml-search.o: C:\Profession\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+.\objects\mxml-search.o: C:\Profession\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
+.\objects\mxml-search.o: C:\Profession\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
+.\objects\mxml-search.o: C:\Profession\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
+.\objects\mxml-search.o: C:\Profession\Keil_v5\ARM\ARMCC\Bin\..\include\ctype.h
+.\objects\mxml-search.o: ..\XML_Lib\mxml.h
+.\objects\mxml-search.o: C:\Profession\Keil_v5\ARM\ARMCC\Bin\..\include\errno.h

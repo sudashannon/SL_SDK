@@ -1,0 +1,13 @@
+.\objects\eeprom.o: ..\TI_DriveLib\src\eeprom.c
+.\objects\eeprom.o: C:\Profession\Keil_v5\ARM\ARMCC\Bin\..\include\stdbool.h
+.\objects\eeprom.o: C:\Profession\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+.\objects\eeprom.o: ..\TI_DriveLib\inc\hw_eeprom.h
+.\objects\eeprom.o: ..\TI_DriveLib\inc\hw_flash.h
+.\objects\eeprom.o: ..\TI_DriveLib\inc\hw_ints.h
+.\objects\eeprom.o: ..\TI_DriveLib\inc\hw_sysctl.h
+.\objects\eeprom.o: ..\TI_DriveLib\inc\hw_types.h
+.\objects\eeprom.o: ..\TI_DriveLib\inc\debug.h
+.\objects\eeprom.o: ..\TI_DriveLib\inc\flash.h
+.\objects\eeprom.o: ..\TI_DriveLib\inc\interrupt.h
+.\objects\eeprom.o: ..\TI_DriveLib\inc\sysctl.h
+.\objects\eeprom.o: ..\TI_DriveLib\inc\eeprom.h

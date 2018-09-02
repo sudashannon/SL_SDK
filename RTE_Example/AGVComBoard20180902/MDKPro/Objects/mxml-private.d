@@ -1,0 +1,10 @@
+.\objects\mxml-private.o: ..\XML_Lib\mxml-private.c
+.\objects\mxml-private.o: ..\XML_Lib\mxml-private.h
+.\objects\mxml-private.o: ..\XML_Lib\config.h
+.\objects\mxml-private.o: C:\Profession\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+.\objects\mxml-private.o: C:\Profession\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
+.\objects\mxml-private.o: C:\Profession\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
+.\objects\mxml-private.o: C:\Profession\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
+.\objects\mxml-private.o: C:\Profession\Keil_v5\ARM\ARMCC\Bin\..\include\ctype.h
+.\objects\mxml-private.o: ..\XML_Lib\mxml.h
+.\objects\mxml-private.o: C:\Profession\Keil_v5\ARM\ARMCC\Bin\..\include\errno.h

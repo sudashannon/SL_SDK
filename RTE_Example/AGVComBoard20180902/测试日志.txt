@@ -1,0 +1,258 @@
+20180829
+1、断电，开机；
+*********************************
+---------------------------------
+---- Welcome to use SL-RTE ! ----
+----- Type "Help" for help. -----
+------- Version:2.1.0826 --------
+---------------------------------
+*********************************
+[KVDB]    KVDB start address is 0x00020000, size is 131072 bytes.
+[KVDB]    Calculate ENV CRC32 number is 0x568F5B6A.
+[KVDB]    Verify ENV CRC32 result is OK.
+[KVDB]    系统第 473 次启动
+[KVDB]    上一次的任务ID为 0
+[KVDB]    Calculate ENV CRC32 number is 0x8A08221C.
+[KVDB]    Erased ENV OK.
+[KVDB]    Saved ENV OK.
+[RL-Net]    等待MAC配置完成...
+[RL-Net]    MAC配置成功!
+[RL-Net]    当前设备MAC地址:0-1a-b6-2-d5-df
+[RL-Net]    等待网络连接...
+[RL-Net]    网络连接建立!
+[SERVER]    创建服务器Socket:1 监听:1
+[ELE]    准备进入自动模式...
+[CANSEND]    任务控制 失败！(使用指令时忽略此消息)
+[ELE]    当前电梯门状态更新：1
+
+现象：
+自动进入AGV模式，更新TASKID。
+2、手动、自动模式切换
+[SHELL]    准备进入手动模式...
+[CANSEND]    任务控制 失败！(使用指令时忽略此消息)
+[ELE]    电梯开门！
+[ELE]    当前电梯门状态更新：0
+[ELE]    电梯关门！
+[ELE]    当前电梯门状态更新：1
+
+现象：
+电梯进入手动模式。
+
+[SHELL]    准备进入自动模式...
+[CANSEND]    任务控制 失败！(使用指令时忽略此消息)
+
+现象：
+电梯进入自动模式。
+
+3、申请任务
+问题1：回复申请成功早了
+原因：手自动切换的时候 门ready被置位
+修改：AGVSM发送CAN指令前 清空所有标志位
+问题日志：
+[AGV]    有新的任务申请!
+[KVDB]    Calculate ENV CRC32 number is 0x17CB09CB.
+[KVDB]    Erased ENV OK.
+[KVDB]    Saved ENV OK.
+[AGV]    符合条件，开始申请！
+[CANSEND]    任务申请 当前AGV所在楼层:3 目标楼层:1.
+[CANRec]    Time:184624 电梯Apply成功！
+[ELE]    电梯上行！
+[AGV]    任务申请成功，电梯在AGV所在楼层开门！
+[AGV]    任务申请完毕，AGV所在楼层门已经打开！
+[ELE]    电梯到站！
+[ELE]    电梯开门！
+[ELE]    电梯开门！
+[ELE]    当前电梯门状态更新：0
+[WebService]    Time:205535 解析调用函数结果:cs2:ApplyResource
+[APPLY]    ApplyTempInfor.MsgTypeCode:cmd_ApplyResource
+[APPLY]    ApplyTempInfor.LiftId:001
+[APPLY]    ApplyTempInfor.TaskDetailKey:1234566_TPS
+[APPLY]    ApplyTempInfor.Destination:1
+[APPLY]    ApplyTempInfor.InstantLocation:3
+[AGV]    已有相同任务在申请！
+[ELE]    当前电梯楼层：3
+[ELE]    AGV所在楼层：3
+[AGV]    申请已完成！
+复现：没有复现
+[AGV]    有新的任务申请!
+[KVDB]    Calculate ENV CRC32 number is 0xFA017BB1.
+[KVDB]    Erased ENV OK.
+[KVDB]    Saved ENV OK.
+[AGV]    符合条件，开始申请！
+[CANSEND]    任务申请 当前AGV所在楼层:3 目标楼层:1.
+[CANRec]    Time:201983 电梯Apply成功！
+[ELE]    电梯开门！
+[ELE]    电梯开门！
+[AGV]    任务申请成功，电梯在AGV所在楼层开门！
+[ELE]    当前电梯门状态更新：0
+[AGV]    任务申请完毕，AGV所在楼层门已经打开！
+
+3.1、申请成功后重复申请
+[AGV]    已有相同任务在申请！
+[ELE]    当前电梯楼层：3
+[ELE]    AGV所在楼层：3
+[AGV]    申请已完成！
+
+[AGV]    电梯已被占用，忙碌中！
+
+现象：正确回复
+
+3.2、申请成功后断电 再申请
+[AGV]    电梯已被占用，忙碌中！
+
+[AGV]    已有相同任务在申请！
+[ELE]    当前电梯楼层：3
+[ELE]    AGV所在楼层：3
+[AGV]    申请已完成！
+现象：正确回复
+
+4、任务执行
+4.1、不一致ID执行
+[AGV]    请求执行的任务与当前任务ID不一致！
+现象：正确回复
+4.2、复位后不一致ID执行
+[AGV]    请求执行的任务与当前任务ID不一致！
+现象：正确回复 
+4.3、复位后执行
+这里can回复失败 因为没有apply
+手动改变状态后 执行成功
+[AGV]    有任务请求执行!
+[ELE]    当前电梯楼层：3
+[ELE]    AGV目标楼层：1
+[WEBSERVICE]    准备回复错误NoError
+[AGV]    信息一致，开始执行!
+[AGV]    符合条件，开始执行！
+[CANSEND]    任务执行 当前AGV所在楼层:3 目标楼层:1.
+[CANRec]    Time:151332 任务执行失败：3
+[CANSEND]    任务执行 失败(使用指令时忽略此消息)！
+[WEBSERVICE]    准备回复错误CanExcuteFail
+[SERVER]    连接断开
+[SHELL]    Apply目的楼层：1 当前楼层：3
+[CANSEND]    任务申请 当前AGV所在楼层:3 目标楼层:1.
+[CANSEND]    任务申请 失败(使用指令时忽略此消息)！
+[ELE]    当前电梯门状态更新：0
+[SERVER]    有客户端连接 IP: 172.30.211.90 端口号:54377
+[SERVER]    连接建立
+[WebService]    Time:175151 解析调用函数结果:cs2:ExcuteTask
+[EXCUTE]    ExcuteTempInfor.MsgTypeCode:cdm_ApplyForExecution_main
+[EXCUTE]    ExcuteTempInfor.OldLiftId:001
+[EXCUTE]    ExcuteTempInfor.TaskDetailKey:1234566_TPS
+[EXCUTE]    ExcuteTempInfor.Destination:1
+[EXCUTE]    ApplyTempInfor.InstantLocation:3
+[EXCUTE]    ExcuteTempInfor.AGVServerIP:172.30.211.90
+[EXCUTE]    ExcuteTempInfor.AGVServerPortNum:7999
+[AGV]    有任务请求执行!
+[ELE]    当前电梯楼层：3
+[ELE]    AGV目标楼层：1
+[WEBSERVICE]    准备回复错误NoError
+[AGV]    信息一致，开始执行!
+[AGV]    符合条件，开始执行！
+[CANSEND]    任务执行 当前AGV所在楼层:3 目标楼层:1.
+[CANRec]    Time:175167 任务执行开始！
+[AGV]    第一次连接服务器！
+[ELE]    电梯关门！
+[CLIENT]    创建客户禰CLIENT]    连接建立
+薙ocket:2 连接:1
+[ELE]    电梯下行！
+[ELE]    当前电梯门状态更新：1
+[AGV]    电梯门状态有变！
+[ELE]    电梯到站！
+[AGV]    电梯已到达目的楼层！
+[SERVER]    连接断开
+[CANRec]    Time:197749 任务结束！
+[AGV]    任务上下行结束 电梯已到达目的楼层 准备告知AGV！
+[ELE]    电梯开门！
+[ELE]    当前电梯门状态更新：0
+[AGV]    电梯门状态有变！
+[AGV]    告知AGV服务器Finish信号 服务器信息：172.30.211.90:7999 第二次连接
+[WEBSERVICE]    准备回复错误NoError
+HTTP/1.1 200 OK
+Server: gSOAP/2.8
+Content-Type: text/xml; charset=utf-8
+Content-Length: 605
+Connection: close
+
+<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tpsms="urn:tpsms"><SOAP-ENV:Header></SOAP-ENV:Header><SOAP-ENV:Body><TaskFiniRes><result-str>&lt;FinishTask&gt;&lt;msgTypeCode&gt;cdm_FinishTask_main&lt;/msgTypeCode&gt;&lt;result&gt;0&lt;/result&gt;&lt;resultMsg&gt;sucess&lt;/resultMsg&gt;&lt;/FinishTask&gt;</result-str></TaskFiniRes></SOAP-ENV:Body></SOAP-ENV:Envelope>
+#隙 722
+[CLIENT]    连接被关闭
+
+4.4、此时再发
+ok
+[AGV]    有任务请求执行!
+[ELE]    当前电梯楼层：1
+[ELE]    AGV目标楼层：1
+[WEBSERVICE]    准备回复错误NoError
+[AGV]    执行已完成！
+[AGV]    电梯门状态有变！
+[AGV]    告知AGV服务器Finish信号 服务器信息：172.30.211.90:7999 第二次连接
+[CLIENT]    创建客户端Socket[CLIENT]    连接建立
+:2 连接:1
+[WEBSERVICE]    准备回复错误NoError
+HTTP/1.1 200 OK
+Server: gSOAP/2.8
+Content-Type: text/xml; charset=utf-8
+Content-Length: 605
+Connection: close
+
+<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tpsms="urn:tpsms"><SOAP-ENV:Header></SOAP-ENV:Header><SOAP-ENV:Body><TaskFiniRes><result-str>&lt;FinishTask&gt;&lt;msgTypeCode&gt;cdm_FinishTask_main&lt;/msgTypeCode&gt;&lt;result&gt;0&lt;/result&gt;&lt;resultMsg&gt;sucess&lt;/resultMsg&gt;&lt;/FinishTask&gt;</result-str></TaskFiniRes></SOAP-ENV:Body></SOAP-ENV:Envelope>
+鼋D? 722
+[CLIENT]    连接被关闭
+
+4.5、此时断电再发
+
+这里逻辑上没问题 但是电梯门是关闭的 需要重走一遍APPLY才对
+同时释放后由于门没有动 所以卡在释放状态里了 
+重启后手动清任务即可
+
+
+5、任务释放
+释放时发APPLY
+[WebService]    Time:131302 解析调用函数结果:cs2:ReleaseResource
+[RELEASE]    ReleaseTempInfor.MsgTypeCode:cdm_ApplyUnLock_main
+[RELEASE]    ReleaseTempInfor.LiftId:001
+[RELEASE]    ReleaseTempInfor.TaskDetailKey:1234566_TPS
+[AGV]    有任务请求释放!
+[WEBSERVICE]    准备回复错误NoError
+[AGV]    符合条件，开始释放！
+[CANSEND]    任务释放 当前AGV所在楼层:3 目标楼层:1.
+[CANRec]    Time:131320 电梯释放成功！
+[ELE]    电梯关门！
+[AGV]    释放关门！
+[SERVER]    连接断开
+[SERVER]    有客户端连接 IP: 172.30.211.90 端口号:54439
+[SERVER]    连接建立
+[WebService]    Time:135744 解析调用函数结果:cs2:ApplyResource
+[APPLY]    ApplyTempInfor.MsgTypeCode:cmd_ApplyResource
+[APPLY]    ApplyTempInfor.LiftId:001
+[APPLY]    ApplyTempInfor.TaskDetailKey:12345616_TPS
+[APPLY]    ApplyTempInfor.Destination:1
+[APPLY]    ApplyTempInfor.InstantLocation:3
+[SERVER]    连接断开
+[SERVER]    有客户端连接 IP: 172.30.211.90 端口号:54440
+[SERVER]    连接建立
+[ELE]    当前电梯门状态更新：1
+[AGV]    电梯门状态有变！
+[AGV]    任务大流程结束！
+[KVDB]    Calculate ENV CRC32 number is 0x06919AAE.
+[KVDB]    Erased ENV OK.
+[KVDB]    Saved ENV OK.
+[WEBSERVICE]    准备回复错误NoError
+[AGV]    有新的任务申请!
+[KVDB]    Calculate ENV CRC32 number is 0x98CFE459.
+[KVDB]    Erased ENV OK.
+[KVDB]    Saved ENV OK.
+[AGV]    符合条件，开始申请！
+[CANSEND]    任务申请 当前AGV所在楼层:3 目标楼层:1.
+[CANRec]    Time:143743 电梯Apply成功！
+[ELE]    电梯上行！
+[ELE]    电梯到站！
+[AGV]    电梯已到达AGV所在楼层！
+[ELE]    电梯开门！
+[ELE]    电梯开门！
+[AGV]    任务申请成功，电梯在AGV所在楼层开门！
+[ELE]    当前电梯门状态更新：0
+[AGV]    任务申请完毕，AGV所在楼层门已经打开！
+
+任务释放完毕后立刻apply
