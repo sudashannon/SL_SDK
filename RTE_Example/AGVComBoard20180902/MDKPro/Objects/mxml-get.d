@@ -1,9 +1,0 @@
-.\objects\mxml-get.o: ..\XML_Lib\mxml-get.c
-.\objects\mxml-get.o: ..\XML_Lib\config.h
-.\objects\mxml-get.o: C:\Profession\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
-.\objects\mxml-get.o: C:\Profession\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
-.\objects\mxml-get.o: C:\Profession\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
-.\objects\mxml-get.o: C:\Profession\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
-.\objects\mxml-get.o: C:\Profession\Keil_v5\ARM\ARMCC\Bin\..\include\ctype.h
-.\objects\mxml-get.o: ..\XML_Lib\mxml.h
-.\objects\mxml-get.o: C:\Profession\Keil_v5\ARM\ARMCC\Bin\..\include\errno.h

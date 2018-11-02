@@ -1,10 +1,15 @@
-#include "RTE_Include.h"
+#include "RTE_KVDB.h"
 /*****************************************************************************
 *** Author: Shannon
-*** Version: 1.0 2018.8.26
-*** History: 1.0 ¥¥Ω®£¨–ﬁ∏ƒ◊‘easy_flash
+*** Version: 1.1 2018.10.06
+*** History: 1.0 ÂàõÂª∫Ôºå‰øÆÊîπËá™easy_flash
+*** History: 1.1 ‰øÆÂ§ç‰∏Ä‰∏™Â∞èwarning
 *****************************************************************************/
 #if RTE_USE_KVDB == 1
+#define KVDB_STR "[KVDB]"
+#if RTE_USE_OS == 1
+	osMutexId_t MutexIDKVDB;
+#endif
 /* flash ENV parameters index and size in system section */
 enum {
     /* data section ENV end address index in system section */
@@ -57,7 +62,9 @@ static size_t get_env_user_used_size(void);
 static EfErrCode create_env(const char *key, const char *value);
 static uint32_t calc_env_crc(void);
 static bool env_crc_is_ok(void);
+#if KVDB_USE_AUTO_UPDATE== 1
 static EfErrCode env_auto_update(void);
+#endif
 static const uint32_t crc32_table[] =
 {
     0x00000000, 0x77073096, 0xee0e612c, 0x990951ba, 0x076dc419, 0x706af48f,
@@ -139,6 +146,9 @@ static uint32_t ef_calc_crc32(uint32_t crc, const void *buf, size_t size)
  * @return result
  */
 EfErrCode ef_env_init(ef_env const *default_env, size_t default_env_size) {
+#if RTE_USE_OS == 1
+	MutexIDKVDB = osMutexNew(NULL);
+#endif
 	EfErrCode result = EF_NO_ERR;
 	RTE_AssertParam(KVDB_ERASE_MIN_SIZE);
 	RTE_AssertParam(KVDB_SIZE);
@@ -175,7 +185,7 @@ EfErrCode ef_env_init(ef_env const *default_env, size_t default_env_size) {
 	default_env_set = default_env;
 	default_env_set_size = default_env_size;
 
-	RTE_Printf("[KVDB]    KVDB start address is 0x%08X, size is %d bytes.\r\n", env_start_addr, KVDB_SIZE);
+	RTE_Printf("%10s    KVDB start address is 0x%08X, size is %d bytes.\r\n",KVDB_STR, env_start_addr, KVDB_SIZE);
 
 	result = ef_load_env();
 
@@ -380,7 +390,7 @@ static char *find_env(const char *key) {
     size_t key_len = strlen(key), env_len;
 
     if ((key == NULL) || *key == '\0') {
-        RTE_Printf("[KVDB]    Flash ENV name must be not empty!\r\n");
+        RTE_Printf("%10s    Flash ENV name must be not empty!\r\n",KVDB_STR);
         return NULL;
     }
 
@@ -429,18 +439,18 @@ static EfErrCode create_env(const char *key, const char *value) {
     RTE_AssertParam(value);
 
     if ((key == NULL) || *key == '\0') {
-        RTE_Printf("[KVDB]    Flash ENV name must be not empty!\r\n");
+        RTE_Printf("%10s    Flash ENV name must be not empty!\r\n",KVDB_STR);
         return EF_ENV_NAME_ERR;
     }
 
     if (strchr(key, '=')) {
-        RTE_Printf("[KVDB]    Flash ENV name can't contain '='.\r\n");
+        RTE_Printf("%10s    Flash ENV name can't contain '='.\r\n",KVDB_STR);
         return EF_ENV_NAME_ERR;
     }
 
     /* find ENV */
     if (find_env(key)) {
-        RTE_Printf("[KVDB]    The name of \"%s\" is already exist.\r\n", key);
+        RTE_Printf("%10s    The name of \"%s\" is already exist.\r\n",KVDB_STR, key);
         return EF_ENV_NAME_EXIST;
     }
     /* write ENV at the end of cache */
@@ -464,12 +474,12 @@ static EfErrCode del_env(const char *key) {
     RTE_AssertParam(key);
 
     if ((key == NULL) || *key == '\0') {
-        RTE_Printf("[KVDB]    Flash ENV name must be not NULL!\r\n");
+        RTE_Printf("%10s    Flash ENV name must be not NULL!\r\n",KVDB_STR);
         return EF_ENV_NAME_ERR;
     }
 
     if (strchr(key, '=')) {
-        RTE_Printf("[KVDB]    Flash ENV name or value can't contain '='.\r\n");
+        RTE_Printf("%10s    Flash ENV name or value can't contain '='.\r\n",KVDB_STR);
         return EF_ENV_NAME_ERR;
     }
 
@@ -477,7 +487,7 @@ static EfErrCode del_env(const char *key) {
     del_env = find_env(key);
 
     if (!del_env) {
-        RTE_Printf("[KVDB]    Not find \"%s\" in ENV.\r\n", key);
+        RTE_Printf("%10s    Not find \"%s\" in ENV.\r\n",KVDB_STR, key);
         return EF_ENV_NAME_ERR;
     }
     del_env_length = strlen(del_env);
@@ -514,7 +524,7 @@ EfErrCode ef_set_env(const char *key, const char *value) {
     char *old_env, *old_value;
 
     if (!init_ok) {
-        RTE_Printf("[KVDB]    ENV isn't initialize OK.\r\n");
+        RTE_Printf("%10s    ENV isn't initialize OK.\r\n",KVDB_STR);
         return EF_ENV_INIT_FAILED;
     }
 
@@ -560,7 +570,7 @@ EfErrCode ef_del_env(const char *key) {
     EfErrCode result = EF_NO_ERR;
 
     if (!init_ok) {
-        RTE_Printf("[KVDB]    ENV isn't initialize OK.\r\n");
+        RTE_Printf("%10s    ENV isn't initialize OK.\r\n",KVDB_STR);
         return EF_ENV_INIT_FAILED;
     }
 
@@ -586,7 +596,7 @@ char *ef_get_env(const char *key) {
     char *env = NULL, *value = NULL;
 
     if (!init_ok) {
-        RTE_Printf("[KVDB]    ENV isn't initialize OK.\r\n");
+        RTE_Printf("%10s    ENV isn't initialize OK.\r\n",KVDB_STR);
         return NULL;
     }
 
@@ -615,33 +625,34 @@ void ef_print_env(void) {
     char c;
 
     if (!init_ok) {
-        RTE_Printf("[KVDB]    ENV isn't initialize OK.\r\n");
+        RTE_Printf("%10s    ENV isn't initialize OK.\r\n",KVDB_STR);
         return;
     }
 
     for (; env_cache_data_addr < env_cache_end_addr; env_cache_data_addr += 1) {
+				RTE_Printf("%10s    ",KVDB_STR);
         for (j = 0; j < 4; j++) {
             c = (*env_cache_data_addr) >> (8 * j);
-            RTE_Printf("[KVDB]    %c", c);
+            RTE_Printf(" %c", c);
             if (c == '\0') {
-                RTE_Printf("[KVDB]    \r\n");
+                RTE_Printf("\r\n");
                 break;
             }
         }
     }
 
 #if KVDB_USE_PFS == 0
-    RTE_Printf("[KVDB]    \nmode: normal\r\n");
-    RTE_Printf("[KVDB]    size: %ld/%ld bytes.\r\n", get_env_user_used_size(), KVDB_USER_SETTING_SIZE);
+    RTE_Printf("%10s    \nmode: normal\r\n",KVDB_STR);
+    RTE_Printf("%10s    size: %ld/%ld bytes.\r\n",KVDB_STR, get_env_user_used_size(), KVDB_USER_SETTING_SIZE);
 #else
-    RTE_Printf("[KVDB]    \nmode: power fail safeguard\r\n");
-    RTE_Printf("[KVDB]    size: %ld/%ld bytes, write bytes %ld/%ld.\r\n", get_env_user_used_size(),
+    RTE_Printf("%10s    \nmode: power fail safeguard\r\n",KVDB_STR);
+    RTE_Printf("%10s    size: %ld/%ld bytes, write bytes %ld/%ld.\r\n",KVDB_STR, get_env_user_used_size(),
              KVDB_USER_SETTING_SIZE, ef_get_env_write_bytes(), KVDB_SIZE);
-    RTE_Printf("[KVDB]    saved count: %ld\r\n", env_cache[ENV_PARAM_INDEX_SAVED_COUNT]);
+    RTE_Printf("%10s    saved count: %ld\r\n",KVDB_STR, env_cache[ENV_PARAM_INDEX_SAVED_COUNT]);
 #endif
 
 #if KVDB_USE_AUTO_UPDATE== 1
-    RTE_Printf("[KVDB]    ver num: %d\r\n", env_cache[ENV_PARAM_INDEX_VER_NUM]);
+    RTE_Printf("%10s    ver num: %d\r\n", env_cache[ENV_PARAM_INDEX_VER_NUM]);
 #endif
 }
 /**
@@ -672,7 +683,7 @@ EfErrCode ef_load_env(void) {
                      &env_cache[ENV_PARAM_INDEX_DATA_CRC] , 4);
         /* if ENV CRC32 check is fault, set default for it */
         if (!env_crc_is_ok()) {
-            RTE_Printf("[KVDB]    Warning: ENV CRC check failed. Set it to default.\r\n");
+            RTE_Printf("%10s    Warning: ENV CRC check failed. Set it to default.\r\n",KVDB_STR);
             result = ef_env_set_default();
         }
     }
@@ -791,11 +802,11 @@ EfErrCode ef_save_env(void) {
     result = ef_port_erase(write_addr, write_size);
     switch (result) {
     case EF_NO_ERR: {
-        RTE_Printf("[KVDB]    Erased ENV OK.\r\n");
+        RTE_Printf("%10s    Erased ENV OK.\r\n",KVDB_STR);
         break;
     }
     case EF_ERASE_ERR: {
-        RTE_Printf("[KVDB]    Error: Erased ENV fault! Start address is 0x%08X, size is %ld.\r\n", write_addr, write_size);
+        RTE_Printf("%10s    Error: Erased ENV fault! Start address is 0x%08X, size is %ld.\r\n",KVDB_STR, write_addr, write_size);
         /* will return when erase fault */
         return result;
 		default:
@@ -807,11 +818,11 @@ EfErrCode ef_save_env(void) {
     result = ef_port_write(write_addr, env_cache, write_size);
     switch (result) {
     case EF_NO_ERR: {
-        RTE_Printf("[KVDB]    Saved ENV OK.\r\n");
+        RTE_Printf("%10s    Saved ENV OK.\r\n",KVDB_STR);
         break;
     }
     case EF_WRITE_ERR: {
-        RTE_Printf("[KVDB]    Error: Saved ENV fault! Start address is 0x%08X, size is %ld.\r\n", write_addr, write_size);
+        RTE_Printf("%10s    Error: Saved ENV fault! Start address is 0x%08X, size is %ld.\r\n",KVDB_STR, write_addr, write_size);
         break;
 		default:
 			break;
@@ -842,7 +853,7 @@ static uint32_t calc_env_crc(void) {
     /* Calculate the all ENV data CRC32. */
     crc32 = ef_calc_crc32(crc32, &env_cache[ENV_PARAM_WORD_SIZE], get_env_data_size());
 
-    RTE_Printf("[KVDB]    Calculate ENV CRC32 number is 0x%08X.\r\n", crc32);
+    RTE_Printf("%10s    Calculate ENV CRC32 number is 0x%08X.\r\n",KVDB_STR, crc32);
 
     return crc32;
 }
@@ -854,7 +865,7 @@ static uint32_t calc_env_crc(void) {
  */
 static bool env_crc_is_ok(void) {
     if (calc_env_crc() == env_cache[ENV_PARAM_INDEX_DATA_CRC]) {
-        RTE_Printf("[KVDB]    Verify ENV CRC32 result is OK.\r\n");
+        RTE_Printf("%10s    Verify ENV CRC32 result is OK.\r\n",KVDB_STR);
         return true;
     } else {
         return false;

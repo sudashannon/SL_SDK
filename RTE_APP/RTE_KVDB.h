@@ -4,8 +4,12 @@
 extern "C" {
 #endif
 	#include "RTE_Include.h"
+	#if RTE_USE_KVDB
+	#if RTE_USE_OS
+		extern osMutexId_t MutexIDKVDB;
+	#endif
 	// <o> KVDB_SIZE
-	// <i> KVDB»·¾³±äÁ¿×Ü´óĞ¡(ÒÔKVDB_ERASE_MIN_SIZEÎª×îĞ¡µ¥Î» µ¥Î»£ºK)
+	// <i> KVDBç¯å¢ƒå˜é‡æ€»å¤§å°(ä»¥KVDB_ERASE_MIN_SIZEä¸ºæœ€å°å•ä½ å•ä½ï¼šK)
 	#ifndef KVDB_SIZE
 	#if KVDB_USE_PFS == 0
 		/* ENV area total bytes size in normal mode. */
@@ -50,6 +54,7 @@ extern "C" {
 	extern EfErrCode ef_port_write(uint32_t addr, const uint32_t *buf, size_t size);
 	extern void ef_port_env_lock(void);
 	extern void ef_port_env_unlock(void);
+	#endif
 #ifdef __cplusplus
 }
 #endif

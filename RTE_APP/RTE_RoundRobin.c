@@ -1,242 +1,294 @@
-#include "RTE_Include.h"
+#include "RTE_RoundRobin.h"
 /*****************************************************************************
 *** Author: Shannon
-*** Version: 2.1 2018.8.31
-*** History: 1.0 ´´½¨£¬ĞŞ¸Ä×Ôtivaware
-             2.0 ÎªRTEµÄÉı¼¶×öÊÊÅä£¬¸ü¸ÄÄ£¿éÃû³Æ
-						 2.1 ¶¯¾²Ì¬½áºÏ·½Ê½¹ÜÀí
+*** Version: 2.4 2018.10.8
+*** History: 1.0 åˆ›å»ºï¼Œä¿®æ”¹è‡ªtivaware
+             2.0 ä¸ºRTEçš„å‡çº§åšé€‚é…ï¼Œæ›´æ”¹æ¨¡å—åç§°
+						 2.1 åŠ¨é™æ€ç»“åˆæ–¹å¼ç®¡ç†
+						 2.2 å¼•å…¥RTE_Vecè¿›è¡Œç»Ÿä¸€ç®¡ç†
+						 2.3 å¤šçº¿ç¨‹ç¯å¢ƒä¸‹å¼•å…¥ALONEæœºåˆ¶ï¼Œç¡®ä¿æŸäº›å…³é”®timerå¯ä»¥åœ¨ç‹¬ç«‹å¾—çº¿ç¨‹ä¸­è¿è¡Œ
+						 2.4 å¼•å…¥å¤šçº¿ç¨‹å¤šTimeræœºåˆ¶ï¼Œä¸åŒçº¿ç¨‹çš„TimeræŒ‰ä¸åŒçº¿ç¨‹è¿›è¡Œç®¡ç†ï¼Œç®€åŒ–å·²æœ‰çš„æŸ¥è¯¢timeræœºåˆ¶
 *****************************************************************************/
 #if RTE_USE_ROUNDROBIN == 1
-#if RTE_USE_OS == 1
+#define RTE_DEBUG_TXT "[RR]"
 #include "RTE_Components.h"
 #include CMSIS_device_header
-#endif
 /*************************************************
-*** ¹ÜÀíRoundRobinµÄ½á¹¹Ìå±äÁ¿£¬¶¯Ì¬¹ÜÀí
+*** ç®¡ç†RoundRobinçš„ç»“æ„ä½“å˜é‡ï¼ŒåŠ¨æ€ç®¡ç†
 *************************************************/
-static RTE_RoundRobin_t RoundRobinHandle = 
-{
-	.SoftTimerCnt = 0,
-	.RoundRobinRunTick = 0,
-	.SoftTimerTable = (void *)0,
-};
+static RTE_RoundRobin_t RoundRobinHandle = {0};
 /*************************************************
-*** Args:   Timer ´ı´¦Àí¶¨Ê±Æ÷
-*** Function: SoftTimer°´Ê±´¦Àí
+*** Args:   NULL
+*** Function: RoundRobinåˆå§‹åŒ–
 *************************************************/
-static void RTE_RoundRobin_CheckTimer(uint8_t Timer)
+void RTE_RoundRobin_Init(void)
 {
-	/* Check if count is zero */
-	if (RoundRobinHandle.SoftTimerTable[Timer].CNT == 0) {
-		/* Call user callback function */
-		RoundRobinHandle.SoftTimerTable[Timer].Callback(RoundRobinHandle.SoftTimerTable[Timer].UserParameters);
-		/* Set new counter value */
-		RoundRobinHandle.SoftTimerTable[Timer].CNT = RoundRobinHandle.SoftTimerTable[Timer].ARR;
-		/* Remove timer if auto reload feature is not used */
-		if (!RoundRobinHandle.SoftTimerTable[Timer].AREN) {
-			RoundRobinHandle.SoftTimerTable[Timer].CNTEN = 0;
-		}
-	}
-}
-/*************************************************
-*** Args:   Null
-*** Function: RoundRobinÊ±»ùº¯Êı
-*************************************************/
-void RTE_RoundRobin_TickHandler(void)
-{
-  RoundRobinHandle.RoundRobinRunTick++;
-	// Loop through each task in the task table.
-	for(uint8_t i = 0; i < RoundRobinHandle.SoftTimerCnt; i++)
-	{
-    if(RoundRobinHandle.SoftTimerTable[i].CNTEN)
-		{
-			/* Decrease counter if needed */
-			if (RoundRobinHandle.SoftTimerTable[i].CNT)
-				RoundRobinHandle.SoftTimerTable[i].CNT--;
-#if RTE_USE_OS == 1
-			RTE_RoundRobin_CheckTimer(i);
-#endif
-		}
-	}
-}
+	RoundRobinHandle.TimerGroup = (RTE_RoundRobin_TimerGroup_t *)
+	RTE_MEM_Alloc0(MEM_RTE,sizeof(RTE_RoundRobin_TimerGroup_t)*ROUNDROBIN_MAX_GROUP_NUM);
 #if RTE_USE_OS == 0
-/*************************************************
-*** Args:   Null
-*** Function: RoundRobinÔËĞĞº¯Êı ÔÚ·Ç²Ù×÷ÏµÍ³»·¾³ÏÂµ÷ÓÃ
-*************************************************/
-void RTE_RoundRobin_Run(void)
-{
-	// Loop through each task in the task table.
-	for(uint8_t i = 0; i < RoundRobinHandle.SoftTimerCnt; i++)
-	{
-		RTE_RoundRobin_CheckTimer(i);
-	}
-}
+	RoundRobinHandle.RoundRobinRunTick = 0;
 #endif
+	RoundRobinHandle.TimerGroupCnt = 0;
+	/* Enable TRC */
+	CoreDebug->DEMCR &= ~0x01000000;
+	CoreDebug->DEMCR |=  0x01000000;
+	/* Enable counter */
+	DWT->CTRL &= ~0x00000001;
+	DWT->CTRL |=  0x00000001;
+	/* Reset counter */
+	DWT->CYCCNT = 0;	
+	/* 2 dummys */
+	__ASM volatile ("NOP");
+	__ASM volatile ("NOP");
+}
+/*************************************************
+*** Args:   NULL
+*** Function: RoundRobin TimerGroupåˆå§‹åŒ–
+*************************************************/
+RTE_RoundRobin_Err_e RTE_RoundRobin_CreateGroup(const char *GroupName)
+{
+	if(RoundRobinHandle.TimerGroupCnt>=ROUNDROBIN_MAX_GROUP_NUM)
+		return RR_NOSPACEFORNEW;
+	for(uint8_t i = 0;i<RoundRobinHandle.TimerGroupCnt;i++)
+	{
+		if(!strcmp(GroupName,RoundRobinHandle.TimerGroup[i].TimerGroupName))
+			return RR_ALREADYEXIST;
+	}
+	RoundRobinHandle.TimerGroup[RoundRobinHandle.TimerGroupCnt].TimerGroupID = RoundRobinHandle.TimerGroupCnt;
+	RoundRobinHandle.TimerGroup[RoundRobinHandle.TimerGroupCnt].TimerGroupName = GroupName;
+	vec_init(&RoundRobinHandle.TimerGroup[RoundRobinHandle.TimerGroupCnt].SoftTimerTable);
+	RoundRobinHandle.TimerGroupCnt++;
+	return RR_NOERR;
+}
+/*************************************************
+*** Args:   NULL
+*** Function: è·å–RoundRobin TimerGroup ID
+*************************************************/
+int8_t RTE_RoundRobin_GetGroupID(const char *GroupName)
+{
+	int8_t idx = -1;
+	for(uint8_t i = 0;i<RoundRobinHandle.TimerGroupCnt;i++)
+	{
+		if(!ustrcmp(GroupName,RoundRobinHandle.TimerGroup[i].TimerGroupName))
+		{
+			idx = i;
+			break;
+		}
+	}
+	return idx;
+}
 /*************************************************
 *** Args:   
-					*Name ´ıÌí¼Ó¶¨Ê±Æ÷Ãû³Æ
-					ReloadValue ÖØ×°ÔØÖµ
-          ReloadEnable ÖØ×°ÔØÊ¹ÄÜ
-          ReloadEnable ¶¨Ê±Æ÷ÔËĞĞÊ¹ÄÜ
-          *TimerCallback ¶¨Ê±Æ÷»Øµ÷º¯Êı
-          *UserParameters »Øµ÷º¯ÊıÊäÈë²ÎÊı
-*** Function: Îªµ±Ç°RoundRobin»·¾³Ìí¼ÓÒ»¸öÈí¶¨Ê±Æ÷
+          GroupID å®šæ—¶å™¨æ‰€å±Groupçš„ID
+					*TimerName å¾…æ·»åŠ å®šæ—¶å™¨åç§°
+					ReloadValue é‡è£…è½½å€¼
+          ReloadEnable é‡è£…è½½ä½¿èƒ½
+          ReloadEnable å®šæ—¶å™¨è¿è¡Œä½¿èƒ½
+          *TimerCallback å®šæ—¶å™¨å›è°ƒå‡½æ•°
+          *UserParameters å›è°ƒå‡½æ•°è¾“å…¥å‚æ•°
+*** Function: ä¸ºå½“å‰RoundRobinç¯å¢ƒçš„æŸä¸€Groupæ·»åŠ ä¸€ä¸ªè½¯å®šæ—¶å™¨
 *************************************************/
-RTE_RoundRobin_Err_e RTE_RoundRobin_CreateTimer(const char *Name,
+extern RTE_RoundRobin_Err_e RTE_RoundRobin_CreateTimer(
+	uint8_t GroupID,
+	const char *TimerName,
 	uint32_t ReloadValue, 
 	uint8_t ReloadEnable, 
-	uint8_t RunEnable, 
+	uint8_t RunEnable,
 	void (*TimerCallback)(void *), 
 	void* UserParameters)
 {
-	if(RoundRobinHandle.SoftTimerTable == (void*)0)
-		return RR_HANDLEUNINIT;
-	if(RoundRobinHandle.SoftTimerCnt >= HI_ROUNDROBIN_MAX_NUM)
+	if(RoundRobinHandle.TimerGroup[GroupID].SoftTimerTable.length >= ROUNDROBIN_MAX_NUM)
 		return RR_NOSPACEFORNEW;
-	for(uint8_t i = 0;i<RoundRobinHandle.SoftTimerCnt;i++)
+	for(uint8_t i = 0;i<RoundRobinHandle.TimerGroup[GroupID].SoftTimerTable.length;i++)
 	{
-		if(!strcmp(Name,RoundRobinHandle.SoftTimerTable[i].TimerName))
+		if(!strcmp(TimerName,RoundRobinHandle.TimerGroup[GroupID].SoftTimerTable.data[i].TimerName))
 			return RR_ALREADYEXIST;
 	}
-	RoundRobinHandle.SoftTimerTable[RoundRobinHandle.SoftTimerCnt].TimerName = Name;
-	RoundRobinHandle.SoftTimerTable[RoundRobinHandle.SoftTimerCnt].AREN = ReloadEnable;
-	RoundRobinHandle.SoftTimerTable[RoundRobinHandle.SoftTimerCnt].CNTEN = RunEnable;
-	RoundRobinHandle.SoftTimerTable[RoundRobinHandle.SoftTimerCnt].ARR = ReloadValue;
-	RoundRobinHandle.SoftTimerTable[RoundRobinHandle.SoftTimerCnt].CNT = ReloadValue;
-	RoundRobinHandle.SoftTimerTable[RoundRobinHandle.SoftTimerCnt].Callback = TimerCallback;
-	RoundRobinHandle.SoftTimerTable[RoundRobinHandle.SoftTimerCnt].UserParameters = UserParameters;
-	RoundRobinHandle.SoftTimerCnt++;
+	RTE_SoftTimer_t v = {0};
+	v.TimerID = RoundRobinHandle.TimerGroup[GroupID].SoftTimerTable.length;
+	v.TimerName = TimerName;
+	v.Flags.F.AREN = ReloadEnable;
+	v.Flags.F.CNTEN = RunEnable;
+	v.ARR = ReloadValue;
+	v.CNT = ReloadValue;
+	v.Callback = TimerCallback;
+	v.UserParameters = UserParameters;
+	vec_push(&RoundRobinHandle.TimerGroup[GroupID].SoftTimerTable, v);
+	return RR_NOERR;
+}
+/*************************************************
+*** Args:   NULL
+*** Function: è·å–RoundRobin Timer ID
+*************************************************/
+int8_t RTE_RoundRobin_GetTimerID(uint8_t GroupID,const char *TimerName)
+{
+	int8_t idx = -1;
+	for(uint8_t i = 0;i<RoundRobinHandle.TimerGroup[GroupID].SoftTimerTable.length;i++)
+	{
+		if(!ustrcmp(TimerName,RoundRobinHandle.TimerGroup[GroupID].SoftTimerTable.data[i].TimerName))
+		{
+			idx = i;
+			break;
+		}
+	}
+	return idx;
+}
+/*************************************************
+*** Args:   
+					*Name å¾…åˆ é™¤å®šæ—¶å™¨åç§°
+*** Function: ä¸ºå½“å‰RoundRobinç¯å¢ƒåˆ é™¤ä¸€ä¸ªè½¯å®šæ—¶å™¨
+*************************************************/
+RTE_RoundRobin_Err_e RTE_RoundRobin_RemoveTimer(uint8_t GroupID,uint8_t TimerID)
+{
+	vec_splice(&RoundRobinHandle.TimerGroup[GroupID].SoftTimerTable, TimerID, 1);
+	return RR_NOERR;
+}
+
+/*************************************************
+*** Args:   Timer å¾…å¤„ç†å®šæ—¶å™¨
+*** Function: SoftTimeræŒ‰æ—¶å¤„ç†
+*************************************************/
+inline static void RTE_RoundRobin_CheckTimer(uint8_t GroupID,uint8_t TimerID)
+{
+	/* Check if count is zero */
+	if(RoundRobinHandle.TimerGroup[GroupID].SoftTimerTable.data[TimerID].CNT == 0) 
+	{
+		/* Call user callback function */
+		RoundRobinHandle.TimerGroup[GroupID].SoftTimerTable.data[TimerID].Callback(RoundRobinHandle.TimerGroup[GroupID].SoftTimerTable.data[TimerID].UserParameters);
+		/* Set new counter value */
+		RoundRobinHandle.TimerGroup[GroupID].SoftTimerTable.data[TimerID].CNT = RoundRobinHandle.TimerGroup[GroupID].SoftTimerTable.data[TimerID].ARR;
+		/* Disable timer if auto reload feature is not used */
+		if (!RoundRobinHandle.TimerGroup[GroupID].SoftTimerTable.data[TimerID].Flags.F.AREN)
+			/* Disable counter */
+			RoundRobinHandle.TimerGroup[GroupID].SoftTimerTable.data[TimerID].Flags.F.CNTEN = 0;
+	}
+}
+/*************************************************
+*** Args:   Null
+*** Function: RoundRobinæ—¶åŸºå‡½æ•°
+*************************************************/
+void RTE_RoundRobin_TickHandler(void)
+{
+#if RTE_USE_OS == 0
+	RoundRobinHandle.RoundRobinRunTick++;
+#endif
+	// Loop through each group in the group table.
+	for(uint8_t i = 0; i < RoundRobinHandle.TimerGroupCnt; i++)
+	{
+		// Loop through each task in the task table.
+		for(uint8_t j = 0; j < RoundRobinHandle.TimerGroup[i].SoftTimerTable.length; j++)
+		{
+			/* Check if timer is enabled */
+			if (RoundRobinHandle.TimerGroup[i].SoftTimerTable.data[j].Flags.F.CNTEN)  /*!< Timer is enabled */
+			{
+				/* Decrease counter if needed */
+				if (RoundRobinHandle.TimerGroup[i].SoftTimerTable.data[j].CNT) 
+					RoundRobinHandle.TimerGroup[i].SoftTimerTable.data[j].CNT--;
+			}
+		}
+	}
+#if RTE_USE_OS == 1
+	RTE_RoundRobin_Run(0);
+#endif
+}
+/*************************************************
+*** Args:   Null
+*** Function: RoundRobinè¿è¡Œå‡½æ•° åœ¨éæ“ä½œç³»ç»Ÿç¯å¢ƒä¸‹è°ƒç”¨
+*************************************************/
+void RTE_RoundRobin_Run(uint8_t GroupID)
+{
+	// Loop through each task in the task table.
+	for(uint8_t i = 0; i < RoundRobinHandle.TimerGroup[GroupID].SoftTimerTable.length; i++)
+	{
+		RTE_RoundRobin_CheckTimer(GroupID,i);
+	}
+}
+/*************************************************
+*** Args:   
+					*Name å¾…å°±ç»ªå®šæ—¶å™¨åç§°
+*** Function: å¤ä½å½“å‰RoundRobinç¯å¢ƒä¸­çš„ä¸€ä¸ªè½¯å®šæ—¶å™¨
+*************************************************/
+RTE_RoundRobin_Err_e RTE_RoundRobin_ReadyTimer(uint8_t GroupID,uint8_t TimerID)
+{
+	RoundRobinHandle.TimerGroup[GroupID].SoftTimerTable.data[TimerID].CNT = 0;
+	RoundRobinHandle.TimerGroup[GroupID].SoftTimerTable.data[TimerID].Flags.F.CNTEN = 1;
 	return RR_NOERR;
 }
 /*************************************************
 *** Args:   
-					*Name ´ıÉ¾³ı¶¨Ê±Æ÷Ãû³Æ
-*** Function: Îªµ±Ç°RoundRobin»·¾³É¾³ıÒ»¸öÈí¶¨Ê±Æ÷
+					*Name å¾…å¤ä½å®šæ—¶å™¨åç§°
+*** Function: å¤ä½å½“å‰RoundRobinç¯å¢ƒä¸­çš„ä¸€ä¸ªè½¯å®šæ—¶å™¨
 *************************************************/
-RTE_RoundRobin_Err_e RTE_RoundRobin_RemoveTimer(const char *Name)
+RTE_RoundRobin_Err_e RTE_RoundRobin_ResetTimer(uint8_t GroupID,uint8_t TimerID)
 {
-	int8_t idx = -1;
-	for(uint8_t i = 0;i<RoundRobinHandle.SoftTimerCnt;i++)
-	{
-		if(!ustrcmp(Name,RoundRobinHandle.SoftTimerTable[i].TimerName))
-		{
-			idx = i;
-			break;
-		}
-	}
-	if(idx!=-1)
-	{
-		for(uint8_t i = idx;i<RoundRobinHandle.SoftTimerCnt-1;i++)
-		{
-			RoundRobinHandle.SoftTimerTable[RoundRobinHandle.SoftTimerCnt].TimerName 
-				= RoundRobinHandle.SoftTimerTable[RoundRobinHandle.SoftTimerCnt+1].TimerName ;
-			RoundRobinHandle.SoftTimerTable[RoundRobinHandle.SoftTimerCnt].AREN 
-				= RoundRobinHandle.SoftTimerTable[RoundRobinHandle.SoftTimerCnt+1].AREN ;
-			RoundRobinHandle.SoftTimerTable[RoundRobinHandle.SoftTimerCnt].CNTEN 
-				= RoundRobinHandle.SoftTimerTable[RoundRobinHandle.SoftTimerCnt+1].CNTEN ;
-			RoundRobinHandle.SoftTimerTable[RoundRobinHandle.SoftTimerCnt].ARR 
-				= RoundRobinHandle.SoftTimerTable[RoundRobinHandle.SoftTimerCnt+1].ARR ;
-			RoundRobinHandle.SoftTimerTable[RoundRobinHandle.SoftTimerCnt].CNT 
-				= RoundRobinHandle.SoftTimerTable[RoundRobinHandle.SoftTimerCnt+1].CNT ;
-			RoundRobinHandle.SoftTimerTable[RoundRobinHandle.SoftTimerCnt].Callback 
-				= RoundRobinHandle.SoftTimerTable[RoundRobinHandle.SoftTimerCnt+1].Callback ;
-			RoundRobinHandle.SoftTimerTable[RoundRobinHandle.SoftTimerCnt].UserParameters 
-				= RoundRobinHandle.SoftTimerTable[RoundRobinHandle.SoftTimerCnt+1].UserParameters ;
-		}
-		RoundRobinHandle.SoftTimerTable[RoundRobinHandle.SoftTimerCnt].TimerName = (void*)0;
-		RoundRobinHandle.SoftTimerTable[RoundRobinHandle.SoftTimerCnt].AREN = 0;
-		RoundRobinHandle.SoftTimerTable[RoundRobinHandle.SoftTimerCnt].CNTEN = 0;
-		RoundRobinHandle.SoftTimerTable[RoundRobinHandle.SoftTimerCnt].ARR = 0;
-		RoundRobinHandle.SoftTimerTable[RoundRobinHandle.SoftTimerCnt].CNT = 0;
-		RoundRobinHandle.SoftTimerTable[RoundRobinHandle.SoftTimerCnt].Callback = (void*)0;
-		RoundRobinHandle.SoftTimerTable[RoundRobinHandle.SoftTimerCnt].UserParameters = (void*)0;
-		RoundRobinHandle.SoftTimerCnt--;
-		return RR_NOERR;
-	}
-	return RR_NOSUCHTIMER;
+	RoundRobinHandle.TimerGroup[GroupID].SoftTimerTable.data[TimerID].CNT = RoundRobinHandle.TimerGroup[GroupID].SoftTimerTable.data[TimerID].ARR;
+	RoundRobinHandle.TimerGroup[GroupID].SoftTimerTable.data[TimerID].Flags.F.CNTEN = 1;
+	return RR_NOERR;
 }
 /*************************************************
 *** Args:   
-					*Name ´ıÔİÍ£¶¨Ê±Æ÷Ãû³Æ
-*** Function: ÔİÍ£µ±Ç°RoundRobin»·¾³ÖĞµÄÒ»¸öÈí¶¨Ê±Æ÷
+					*Name å¾…æš‚åœå®šæ—¶å™¨åç§°
+*** Function: æš‚åœå½“å‰RoundRobinç¯å¢ƒä¸­çš„ä¸€ä¸ªè½¯å®šæ—¶å™¨
 *************************************************/
-RTE_RoundRobin_Err_e RTE_RoundRobin_PauseTimer(const char *Name) 
+RTE_RoundRobin_Err_e RTE_RoundRobin_PauseTimer(uint8_t GroupID,uint8_t TimerID)
 {
-	int8_t idx = -1;
-	for(uint8_t i = 0;i<RoundRobinHandle.SoftTimerCnt;i++)
-	{
-		if(!ustrcmp(Name,RoundRobinHandle.SoftTimerTable[i].TimerName))
-		{
-			idx = i;
-			break;
-		}
-	}
-	if(idx!=-1)
-	{
-		RoundRobinHandle.SoftTimerTable[idx].CNTEN = 0;
-		return RR_NOERR;
-	}
-	return RR_NOSUCHTIMER;
+	RoundRobinHandle.TimerGroup[GroupID].SoftTimerTable.data[TimerID].Flags.F.CNTEN = 0;
+	return RR_NOERR;
 }
 /*************************************************
 *** Args:   
-					*Name ´ıÔİÍ£¶¨Ê±Æ÷Ãû³Æ
-*** Function: »Ö¸´µ±Ç°RoundRobin»·¾³ÖĞµÄÒ»¸öÈí¶¨Ê±Æ÷
+					*Name å¾…æš‚åœå®šæ—¶å™¨åç§°
+*** Function: æ¢å¤å½“å‰RoundRobinç¯å¢ƒä¸­çš„ä¸€ä¸ªè½¯å®šæ—¶å™¨
 *************************************************/
-RTE_RoundRobin_Err_e RTE_RoundRobin_ResumeTimer(const char *Name) 
+RTE_RoundRobin_Err_e RTE_RoundRobin_ResumeTimer(uint8_t GroupID,uint8_t TimerID)
 {
-	int8_t idx = -1;
-	for(uint8_t i = 0;i<RoundRobinHandle.SoftTimerCnt;i++)
-	{
-		if(!ustrcmp(Name,RoundRobinHandle.SoftTimerTable[i].TimerName))
-		{
-			idx = i;
-			break;
-		}
-	}
-	if(idx!=-1)
-	{
-		RoundRobinHandle.SoftTimerTable[idx].CNTEN = 1;
-		return RR_NOERR;
-	}
-	return RR_NOSUCHTIMER;
+	RoundRobinHandle.TimerGroup[GroupID].SoftTimerTable.data[TimerID].Flags.F.CNTEN = 1;
+	return RR_NOERR;
 }
 /*************************************************
 *** Args:   
 					Null
-*** Function: »ñÈ¡µ±Ç°RoundRobin»·¾³ĞÅÏ¢
+*** Function: è·å–å½“å‰RoundRobinç¯å¢ƒä¿¡æ¯
 *************************************************/
 void RTE_RoundRobin_Demon(void)
 {
-	RTE_Printf("[RR]    µ±Ç°ÂÖ×ªµ÷¶ÈTIMERÊ¹ÓÃÊıÄ¿£º%d ×î´óÊıÄ¿£º%d\r\n",RoundRobinHandle.SoftTimerCnt,HI_ROUNDROBIN_MAX_NUM);
-	for(uint8_t i = 0;i<RoundRobinHandle.SoftTimerCnt;i++)
+	RTE_Printf("--------------------------------------------------\r\n");
+	for(uint8_t i=0;i<RoundRobinHandle.TimerGroupCnt;i++)
 	{
-		RTE_Printf("[RR]    TIMER:%16s----×Ô¶¯ÖØÔØ£º%x ÖØÔØÖµ£º%6d µ±Ç°¼ÆÊı£º%6d ÔËĞĞ£º%x\r\n",
-			RoundRobinHandle.SoftTimerTable[i].TimerName,RoundRobinHandle.SoftTimerTable[i].AREN,RoundRobinHandle.SoftTimerTable[i].ARR
-			,RoundRobinHandle.SoftTimerTable[i].CNT,RoundRobinHandle.SoftTimerTable[i].CNTEN);
+		RTE_Printf("-------------------------\r\n");
+		RTE_Printf("%10s    Group:%02d %16s Using Timer Count:%d Max Num:%d VEC Capbility:%d\r\n",
+		RTE_DEBUG_TXT,
+		RoundRobinHandle.TimerGroup[i].TimerGroupID,
+		RoundRobinHandle.TimerGroup[i].TimerGroupName,
+		RoundRobinHandle.TimerGroup[i].SoftTimerTable.length,
+		ROUNDROBIN_MAX_NUM,
+		RoundRobinHandle.TimerGroup[i].SoftTimerTable.capacity);
+		for(uint8_t j=0;j<RoundRobinHandle.TimerGroup[i].SoftTimerTable.length;j++)
+		{
+			RTE_Printf("%10s    %02d.TIMER:%16s----AutoReload Enable:%x AutoReload Val:%6d Now Val:%6d Run Enable:%x\r\n",
+			RTE_DEBUG_TXT,
+			RoundRobinHandle.TimerGroup[i].SoftTimerTable.data[j].TimerID,
+			RoundRobinHandle.TimerGroup[i].SoftTimerTable.data[j].TimerName,
+			RoundRobinHandle.TimerGroup[i].SoftTimerTable.data[j].Flags.F.AREN,
+			RoundRobinHandle.TimerGroup[i].SoftTimerTable.data[j].ARR,
+			RoundRobinHandle.TimerGroup[i].SoftTimerTable.data[j].CNT,
+			RoundRobinHandle.TimerGroup[i].SoftTimerTable.data[j].Flags.F.CNTEN);
+		}
 	}
 }
 /*************************************************
 *** Args:   
 					Null
-*** Function: »ñÈ¡µ±Ç°RoundRobin»·¾³ÔËĞĞÊ±¼ä
+*** Function: è·å–å½“å‰RoundRobinç¯å¢ƒè¿è¡Œæ—¶é—´
 *************************************************/
 uint32_t RTE_RoundRobin_GetTick(void) 
 {
 	/* Return current time in milliseconds */
 #if RTE_USE_OS == 1
-	#ifdef RTE_CMSIS_RTOS
-	if (osKernelRunning () == true) 
-	{
-    return APPSysRunTime;
-  }
-	#else
 	if (osKernelGetState () == osKernelRunning) 
 	{
     return osKernelGetTickCount();
   }
-	#endif
 	else
 	{
 		static uint32_t ticks = 0U;
@@ -253,38 +305,60 @@ uint32_t RTE_RoundRobin_GetTick(void)
 	return RoundRobinHandle.RoundRobinRunTick;
 #endif 
 }
-#endif
-/*************************************************
-*** Args:   NULL
-*** Function: RoundRobin³õÊ¼»¯
-*************************************************/
-void RTE_RoundRobin_Init(void)
-{
-	RoundRobinHandle.SoftTimerTable = (RTE_SoftTimer_t *)RTE_BGetz(MEM_RTE,(HI_ROUNDROBIN_MAX_NUM + 1) * sizeof(RTE_SoftTimer_t));
-	RTE_AssertParam(RoundRobinHandle.SoftTimerTable);
-}
 /*************************************************
 *** Args:   
-					*Name ´ı¸´Î»¶¨Ê±Æ÷Ãû³Æ
-*** Function: ¸´Î»µ±Ç°RoundRobin»·¾³ÖĞµÄÒ»¸öÈí¶¨Ê±Æ÷
+					prev_tick a previous time stamp (return value of systick_get() )
+*** Function: è·å–ä¸¤æ¬¡tickä¹‹é—´æ—¶é—´å·®
 *************************************************/
-RTE_RoundRobin_Err_e RTE_RoundRobin_ResetTimer(const char *Name) 
+uint32_t RTE_RoundRobin_TickElaps(uint32_t prev_tick)
 {
-	int8_t idx = -1;
-	for(uint8_t i = 0;i<RoundRobinHandle.SoftTimerCnt;i++)
-	{
-		if(!ustrcmp(Name,RoundRobinHandle.SoftTimerTable[i].TimerName))
-		{
-			idx = i;
-			break;
+	uint32_t act_time = RTE_RoundRobin_GetTick();
+	/*If there is no overflow in sys_time simple subtract*/
+	if(act_time >= prev_tick) {
+		prev_tick = act_time - prev_tick;
+	} else {
+		prev_tick = UINT32_MAX - prev_tick + 1;
+		prev_tick += act_time;
+	}
+	return prev_tick;
+}
+/*************************************************
+*** Args:   Delay
+					Null
+*** Function: å»¶æ—¶ä¸€æ®µæ¯«ç§’
+*************************************************/
+void RTE_RoundRobin_DelayMS(uint32_t Delay) {
+	/* Delay for amount of milliseconds */
+	/* Check if we are called from ISR */
+	if (__get_IPSR() == 0) {
+		/* Called from thread mode */
+		uint32_t tickstart = RTE_RoundRobin_GetTick();
+		/* Count interrupts */
+		while ((RTE_RoundRobin_GetTick() - tickstart) < Delay) {
+#if RTE_USE_OS == 0
+			/* Go sleep, wait systick interrupt */
+			__WFI();
+#endif
+		}
+	} else {
+		/* Called from interrupt mode */
+		while (Delay) {
+			/* Check if timer reached zero after we last checked COUNTFLAG bit */
+			if (SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk) {
+				Delay--;
+			}
 		}
 	}
-	if(idx!=-1)
-	{
-		RoundRobinHandle.SoftTimerTable[idx].CNT = RoundRobinHandle.SoftTimerTable[idx].ARR;
-		RoundRobinHandle.SoftTimerTable[idx].CNTEN = 1;
-	}
-	else
-		return RR_NOSUCHTIMER;
-	return RR_NOERR;
 }
+/*************************************************
+*** Args:   micros å¾®ç§’
+*** Function: å»¶æ—¶å¾®ç§’ï¼Œä¸å½±å“ç³»ç»Ÿè°ƒåº¦
+*************************************************/
+__inline void RTE_RoundRobin_DelayUS(volatile uint32_t micros) {
+	uint32_t start = DWT->CYCCNT;
+	/* Go to number of cycles for system */
+	micros *= (SystemCoreClock / 1000000);
+	/* Delay till end */
+	while ((DWT->CYCCNT - start) < micros);
+}
+#endif

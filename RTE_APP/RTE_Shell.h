@@ -4,6 +4,7 @@
 extern "C" {
 #endif
 	#include "RTE_Include.h"
+	#if RTE_USE_SHELL
 	typedef enum
 	{
 		SHELL_NOERR = 0,
@@ -24,17 +25,19 @@ extern "C" {
 		const char *pcHelp;
 	}RTE_Shell_t;
 	
+	typedef vec_t(RTE_Shell_t) sh_vec_t;
+	
 	typedef struct
 	{
-		char *CmdBuffer;
-		uint8_t CmdCnt;
-		RTE_Shell_t *g_psCmdTable;
-		char *g_ppcArgv[HI_SHELL_MAX_ARGS + 1];
+		char *g_ppcArgv[SHELL_MAX_ARGS + 1];
+		sh_vec_t g_psCmdTable;
 	}RTE_Shell_Control_t;
+	
 	extern RTE_Shell_Err_e RTE_Shell_AddCommand(const char *cmd,RTE_Shell_Err_e (*func)(int argc, char *argv[]),const char *help);
 	extern RTE_Shell_Err_e RTE_Shell_DeleteCommand(const char *cmd);
 	extern void RTE_Shell_Init(void);
-  extern void RTE_Shell_Poll(void);
+  extern void RTE_Shell_Poll(char *ShellBuffer);
+	#endif
 #ifdef __cplusplus
 }
 #endif

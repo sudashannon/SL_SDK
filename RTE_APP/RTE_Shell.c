@@ -1,24 +1,21 @@
-#include "RTE_Include.h"
+#include "RTE_Shell.h"
 /*****************************************************************************
 *** Author: Shannon
-*** Version: 2.1 2018.8.31
-*** History: 1.0 ´´½¨£¬ĞŞ¸Ä×Ôtivaware
-             2.0 ÎªRTEµÄÉı¼¶×öÊÊÅä£¬¸ü¸ÄÄ£¿éÃû³Æ
-						 2.1 ¶¯¾²Ì¬½áºÏ·½Ê½¹ÜÀí
+*** Version: 2.2 2018.9.30
+*** History: 1.0 åˆ›å»ºï¼Œä¿®æ”¹è‡ªtivaware
+             2.0 ä¸ºRTEçš„å‡çº§åšé€‚é…ï¼Œæ›´æ”¹æ¨¡å—åç§°
+						 2.1 åŠ¨é™æ€ç»“åˆæ–¹å¼ç®¡ç†
+						 2.2 å¼•å…¥RTE_Vecè¿›è¡Œç»Ÿä¸€ç®¡ç†
 *****************************************************************************/
-#if HI_USE_SHELL == 1
+#if RTE_USE_SHELL == 1
+#define RTE_DEBUG_TXT "[SHELL]"
 /*************************************************
-*** ¹ÜÀíShellµÄ½á¹¹Ìå±äÁ¿£¬¶¯Ì¬¹ÜÀí
+*** ç®¡ç†Shellçš„ç»“æ„ä½“å˜é‡ï¼ŒåŠ¨æ€ç®¡ç†
 *************************************************/
-static RTE_Shell_Control_t ShellHandle = 
-{
-	.CmdCnt = 0,
-	.CmdBuffer = (void *)0,
-	.g_psCmdTable = (void *)0,
-};
+static RTE_Shell_Control_t ShellHandle = {0};
 /*************************************************
-*** Args:   *pcCmdLine ´ı´¦ÀíÃüÁîĞĞ
-*** Function: ShellÃüÁîĞĞ´¦Àí
+*** Args:   *pcCmdLine å¾…å¤„ç†å‘½ä»¤è¡Œ
+*** Function: Shellå‘½ä»¤è¡Œå¤„ç†
 *************************************************/
 static RTE_Shell_Err_e RTE_Shell_CommandProcess(char *pcCmdLine)
 {
@@ -50,7 +47,7 @@ static RTE_Shell_Err_e RTE_Shell_CommandProcess(char *pcCmdLine)
 				// As long as the maximum number of arguments has not been
 				// reached, then save the pointer to the start of this new arg
 				// in the argv array, and increment the count of args, argc.
-				if(ui8Argc < HI_SHELL_MAX_ARGS)
+				if(ui8Argc < SHELL_MAX_ARGS)
 				{
 						ShellHandle.g_ppcArgv[ui8Argc] = pcChar;
 						ui8Argc++;
@@ -68,59 +65,56 @@ static RTE_Shell_Err_e RTE_Shell_CommandProcess(char *pcCmdLine)
 		pcChar++;
 	}
 	// If one or more arguments was found, then process the command.
-	if(ui8Argc)
+	for(uint8_t i = 0;i<ShellHandle.g_psCmdTable.length;i++)
 	{
-		for(uint8_t i = 0;i<ShellHandle.CmdCnt;i++)
+		// If this command entry command string matches argv[0], then call
+		// the function for this command, passing the command line
+		// arguments.
+		if(!ustrcmp(ShellHandle.g_ppcArgv[0], ShellHandle.g_psCmdTable.data[i].pcCmd))
 		{
-			// If this command entry command string matches argv[0], then call
-			// the function for this command, passing the command line
-			// arguments.
-			if(!strcmp(ShellHandle.g_ppcArgv[0], ShellHandle.g_psCmdTable[i].pcCmd))
+			
+			RTE_Shell_Err_e retval;
+			if(ShellHandle.g_psCmdTable.data[i].pfnCmdLine !=(void *)0)
 			{
-				RTE_Shell_Err_e retval;
-				if(ShellHandle.g_psCmdTable[i].pfnCmdLine !=(void *)0)
-				{
-					retval = (RTE_Shell_Err_e)ShellHandle.g_psCmdTable[i].pfnCmdLine(ui8Argc, ShellHandle.g_ppcArgv);
-				}
-				return retval;
+				retval = (RTE_Shell_Err_e)ShellHandle.g_psCmdTable.data[i].pfnCmdLine(ui8Argc, ShellHandle.g_ppcArgv);
 			}
+			return retval;
 		}
 	}
 	return(SHELL_NOVALIDCMD);
 }
 /*************************************************
-*** Args:   *cmd ÃüÁîĞĞ×Ö·û´®
-            *func ÃüÁîĞĞÖ´ĞĞº¯Êı
-            *help °ïÖú×Ö·û´®
-*** Function: Ôö¼ÓÒ»ÌõShellÃüÁîĞĞ´¦Àí
+*** Args:   *cmd å‘½ä»¤è¡Œå­—ç¬¦ä¸²
+            *func å‘½ä»¤è¡Œæ‰§è¡Œå‡½æ•°
+            *help å¸®åŠ©å­—ç¬¦ä¸²
+*** Function: å¢åŠ ä¸€æ¡Shellå‘½ä»¤è¡Œå¤„ç†
 *************************************************/
 RTE_Shell_Err_e RTE_Shell_AddCommand(const char *cmd,RTE_Shell_Err_e (*func)(int argc, char *argv[]),const char *help)
 {
-	if(ShellHandle.g_psCmdTable == (void*)0)
-		return SHELL_UNINITHANDLE;
-	if(ShellHandle.CmdCnt >= HI_SHELL_MAX_NUM)
+	if(ShellHandle.g_psCmdTable.length >= SHELL_MAX_NUM)
 		return SHELL_NOSPACEFORNEW;
-	for(uint8_t i = 0;i<ShellHandle.CmdCnt;i++)
+	for(uint8_t i = 0;i<ShellHandle.g_psCmdTable.length;i++)
 	{
-		if(!strcmp(cmd,ShellHandle.g_psCmdTable[i].pcCmd))
+		if(!ustrcmp(cmd,ShellHandle.g_psCmdTable.data[i].pcCmd))
 			return SHELL_ALREADYEXIST;
 	}
-	ShellHandle.g_psCmdTable[ShellHandle.CmdCnt].pcCmd = cmd;
-	ShellHandle.g_psCmdTable[ShellHandle.CmdCnt].pfnCmdLine = func;
-	ShellHandle.g_psCmdTable[ShellHandle.CmdCnt].pcHelp = help;
-	ShellHandle.CmdCnt++;
+	RTE_Shell_t v;
+	v.pcCmd = cmd;
+	v.pfnCmdLine = func;
+	v.pcHelp = help;
+	vec_push(&ShellHandle.g_psCmdTable, v);
 	return SHELL_NOERR;
 }
 /*************************************************
-*** Args:   *pcCmdLine ´ı´¦ÀíÃüÁîĞĞ
-*** Function: É¾³ıÒ»ÌõShellÃüÁîĞĞ´¦Àí
+*** Args:   *pcCmdLine å¾…å¤„ç†å‘½ä»¤è¡Œ
+*** Function: åˆ é™¤ä¸€æ¡Shellå‘½ä»¤è¡Œå¤„ç†
 *************************************************/
 RTE_Shell_Err_e RTE_Shell_DeleteCommand(const char *cmd)
 {
 	int8_t idx = -1;
-	for(uint8_t i = 0;i<ShellHandle.CmdCnt;i++)
+	for(uint8_t i = 0;i<ShellHandle.g_psCmdTable.length;i++)
 	{
-		if(!strcmp(cmd,ShellHandle.g_psCmdTable[i].pcCmd))
+		if(!ustrcmp(cmd,ShellHandle.g_psCmdTable.data[i].pcCmd))
 		{
 			idx = i;
 			break;
@@ -128,105 +122,82 @@ RTE_Shell_Err_e RTE_Shell_DeleteCommand(const char *cmd)
 	}
 	if(idx!=-1)
 	{
-		for(uint8_t i = idx;i<ShellHandle.CmdCnt-1;i++)
-		{
-			ShellHandle.g_psCmdTable[i].pcCmd = 
-				ShellHandle.g_psCmdTable[i+1].pcCmd;
-			ShellHandle.g_psCmdTable[i].pfnCmdLine = 
-				ShellHandle.g_psCmdTable[i+1].pfnCmdLine;
-			ShellHandle.g_psCmdTable[i].pcHelp = 
-				ShellHandle.g_psCmdTable[i+1].pcHelp;
-		}
-		ShellHandle.g_psCmdTable[ShellHandle.CmdCnt].pcCmd = (void *)0;
-		ShellHandle.g_psCmdTable[ShellHandle.CmdCnt].pfnCmdLine = (void *)0;
-		ShellHandle.g_psCmdTable[ShellHandle.CmdCnt].pcHelp = (void *)0;
-		ShellHandle.CmdCnt--;
+		vec_splice(&ShellHandle.g_psCmdTable, idx, 1);
 		return SHELL_NOERR;
 	}
 	return SHELL_NOSUCHCMD;
 }
 /*************************************************
 *** Args:   NULL
-*** Function: shell×Ô´øµÄ°ïÖúº¯Êı
+*** Function: shellè‡ªå¸¦çš„å¸®åŠ©å‡½æ•°
 *************************************************/
 static RTE_Shell_Err_e RTE_Shell_CMD_Help(int argc, char *argv[])
 {
-	RTE_Printf("*********************************\r\n");
-	RTE_Printf("[SHELL]    ¿ÉÓÃÖ¸Áî\r\n");
-	RTE_Printf("[SHELL]    ------------------\r\n");
-	for(uint8_t i = 0;i<ShellHandle.CmdCnt;i++)
+	RTE_Printf("--------------------------------------------------\r\n");
+	RTE_Printf("%10s    Available Command\r\n",RTE_DEBUG_TXT);
+	for(uint8_t i = 0;i<ShellHandle.g_psCmdTable.length;i++)
 	{
-		RTE_Printf("[SHELL]    ComandName:%16s----¹¦ÄÜ:%s\r\n", ShellHandle.g_psCmdTable[i].pcCmd
-					,ShellHandle.g_psCmdTable[i].pcHelp);
+		RTE_Printf("%10s    Name:%16s  Function:%s\r\n", 
+			RTE_DEBUG_TXT,
+			ShellHandle.g_psCmdTable.data[i].pcCmd,
+			ShellHandle.g_psCmdTable.data[i].pcHelp);
 	}
 	return(SHELL_NOERR);
 }
-#if RTE_USE_BGET == 1
 /*************************************************
 *** Args:   NULL
-*** Function: shell×Ô´øµÄĞÅÏ¢º¯Êı
+*** Function: shellè‡ªå¸¦çš„ä¿¡æ¯å‡½æ•°
 *************************************************/
 static RTE_Shell_Err_e RTE_Shell_CMD_RTEInfor(int argc, char *argv[])
 {
-	RTE_BGet_Monitor_t mon_infor = {0};
-	RET_BGet_Monitor(MEM_RTE,&mon_infor);
-	RTE_Printf("*********************************\r\n");
-	RTE_Printf("[SHELL]    RTE°æ±¾ºÅ£º%s\r\n",RTE_VERSION);
-	RTE_Printf("[SHELL]    ÏµÍ³ÏêÏ¸ĞÅÏ¢\r\n");
-	RTE_Printf("[SHELL]    ------------------\r\n");
-	RTE_Printf("[MEM]    µ±Ç°ÄÚ´æÊ¹ÓÃÇé¿ö ÒÑÓÃ/È«²¿:%d%%/%d ×î´ó¿ÕÓà/¿ÕÓà:%d/%d ËéÆ¬±ÈÀı:%d%%\r\n",
-			mon_infor.pct_used,
-			mon_infor.size_total,
-	    mon_infor.size_free,
-			mon_infor.size_free_big,
-			mon_infor.pct_frag);
-	RTE_Printf("[SHELL]    ------------------\r\n");
-	RTE_Printf("[SHELL]    µ±Ç°SHELLÖ¸ÁîÊ¹ÓÃÊıÄ¿£º%d ×î´óÊıÄ¿£º%d\r\n",ShellHandle.CmdCnt,HI_SHELL_MAX_NUM);
-	RTE_Printf("[SHELL]    ------------------\r\n");
+	RTE_Printf("--------------------------------------------------\r\n");
+	RTE_Printf("RTE Version:%s\r\n",RTE_VERSION);
+	RTE_Printf("--------------------------------------------------\r\n");
+	RTE_Printf("%10s    Using SHELL Nums:%d Allow Max:%d VEC Capbility:%d\r\n",
+		RTE_DEBUG_TXT,
+		ShellHandle.g_psCmdTable.length,
+		SHELL_MAX_NUM,
+		ShellHandle.g_psCmdTable.capacity);
+	RTE_MEM_Monitor_t mon_infor = {0};
+	RTE_MEM_Monitor(MEM_RTE,&mon_infor);
+	RTE_Printf("--------------------------------------------------\r\n");
+	RTE_Printf("%10s    Memery Bank:%d Infor Use/All:%d%%/%d Max Free/Free:%d/%d Percent of Frag:%d%%\r\n",
+			RTE_DEBUG_TXT,
+			MEM_RTE,
+			mon_infor.used_pct,
+			mon_infor.total_size,
+			mon_infor.free_biggest_size,
+			mon_infor.free_size,
+			mon_infor.frag_pct);
 	RTE_RoundRobin_Demon();
 	return(SHELL_NOERR);
 }
-#endif
 /*************************************************
 *** Args:   NULL
-*** Function: ³õÊ¼»¯shell¹¤¾ß
+*** Function: åˆå§‹åŒ–shellå·¥å…·
 *************************************************/
 void RTE_Shell_Init(void)
 {
-	ShellHandle.CmdBuffer = (char *)RTE_BGetz(MEM_RTE,HI_SHELL_MAX_BUFSIZE);
-	RTE_AssertParam(ShellHandle.CmdBuffer);
-	ShellHandle.g_psCmdTable = (RTE_Shell_t *)RTE_BGetz(MEM_RTE,(HI_SHELL_MAX_NUM + 1) * sizeof(RTE_Shell_t));
-	ShellHandle.g_psCmdTable[HI_SHELL_MAX_NUM].pcCmd = (void *)0;
-	ShellHandle.g_psCmdTable[HI_SHELL_MAX_NUM].pfnCmdLine = (void *)0;
-	ShellHandle.g_psCmdTable[HI_SHELL_MAX_NUM].pcHelp = (void *)0;
-	RTE_AssertParam(ShellHandle.g_psCmdTable);
-	RTE_AssertParam(RTE_Shell_AddCommand("°ïÖú",RTE_Shell_CMD_Help,"SHELLÊ¹ÓÃ°ïÖú") == SHELL_NOERR);
-	RTE_AssertParam(RTE_Shell_AddCommand("ÏµÍ³ĞÅÏ¢",RTE_Shell_CMD_RTEInfor,"ÏÔÊ¾RTEÏµÍ³ĞÅÏ¢") == SHELL_NOERR);
+	vec_init(&ShellHandle.g_psCmdTable);
+	RTE_AssertParam(RTE_Shell_AddCommand("Help",RTE_Shell_CMD_Help,"Available help when using Shell") == SHELL_NOERR);
+	RTE_AssertParam(RTE_Shell_AddCommand("System",RTE_Shell_CMD_RTEInfor,"Information about running SL_RTE") == SHELL_NOERR);
 }
 /*************************************************
 *** Args:   NULL
-*** Function: ³õÊ¼»¯shell¹¤¾ß
+*** Function: shellè½®è¯¢
 *************************************************/
-#include "BSP_Com.h"
-void RTE_Shell_Poll(void)
+void RTE_Shell_Poll(char *ShellBuffer)
 {
 	int iStatus;
-	uint16_t lenth;
-	BSP_COM_Data_t *debugdata;
-	debugdata = BSP_COM_ReturnQue(COM_1);
-	if(RTE_MessageQuene_Out(&debugdata->ComQuene,(uint8_t *)ShellHandle.CmdBuffer,&lenth)!=MSG_NO_ERR)
-	{
-		return;
-	}
-	iStatus = RTE_Shell_CommandProcess(ShellHandle.CmdBuffer);
+	iStatus = RTE_Shell_CommandProcess(ShellBuffer);
 	if(iStatus == SHELL_NOVALIDCMD)
 	{
-		RTE_Printf("[SHELL]    ²»ÄÜÊ¶±ğµÄCMD!\r\n");
+		RTE_Printf("%10s    Can't identify such command:%s!\r\n",RTE_DEBUG_TXT,ShellBuffer);
 	}
 	else if(iStatus == SHELL_TOOMANYARGS)
 	{
-		RTE_Printf("[SHELL]    ÊäÈë²ÎÊıÊıÄ¿³¬ÏŞ!\r\n");
+		RTE_Printf("%10s    Input command's args' count is more than max!\r\n",RTE_DEBUG_TXT);
 	}
-	memset(ShellHandle.CmdBuffer,0,HI_SHELL_MAX_BUFSIZE);
+	memset(ShellBuffer,0,strlen(ShellBuffer));
 }
 #endif

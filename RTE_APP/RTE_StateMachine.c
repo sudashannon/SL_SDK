@@ -1,52 +1,74 @@
-#include "RTE_Include.h"
+#include "RTE_StateMachine.h"
 /*****************************************************************************
 *** Author: Shannon
-*** Version: 2.0 2018.8.11
-*** History: 1.0 ´´½¨
-             2.0 ÎªRTEµÄÉý¼¶×öÊÊÅä£¬¸ü¸ÄÄ£¿éÃû³Æ
+*** Version: 2.2 2018.9.30
+*** History: 1.0 åˆ›å»º
+             2.0 ä¸ºRTEçš„å‡çº§åšé€‚é…ï¼Œæ›´æ”¹æ¨¡å—åç§°
+						 2.1 å¢žåŠ äº†æ“ä½œç³»ç»ŸçŽ¯å¢ƒä¸‹çš„äº’æ–¥é”ï¼ˆå·²åˆ é™¤ï¼‰
+						 2.2 å¼•å…¥RTE_Vecè¿›è¡Œç»Ÿä¸€ç®¡ç†
 *****************************************************************************/
-#if RTE_USE_STATEMACHINE == 1
+#if RTE_USE_SM == 1
 /*************************************************
 *** Args:   
-					thisStateMachine ´ý´¦Àí×´Ì¬»ú
-					State ×´Ì¬±àºÅ
-					thisFunction ×´Ì¬º¯Êý
-*** Function: Îª×´Ì¬»úµÄ²»Í¬×´Ì¬ÉèÖÃ×´Ì¬º¯Êý
+					thisStateMachine å¾…å¤„ç†çŠ¶æ€æœº
+					State çŠ¶æ€ç¼–å·
+					thisFunction çŠ¶æ€å‡½æ•°
+*** Function: ä¸ºçŠ¶æ€æœºçš„ä¸åŒçŠ¶æ€è®¾ç½®çŠ¶æ€å‡½æ•°
 *************************************************/
-void StateMachine_SetFuction(StateMachine_t *thisStateMachine,uint8_t State,StateFunction thisFunction)
+RTE_SM_Err_e StateMachine_Add(RTE_StateMachine_t *thisStateMachine,uint8_t State, uint8_t(*StateFunction)(void *))
 {
-	if(thisStateMachine!=(void *)0&&thisStateMachine->FunctionListTable!=(void *)0&&State<thisStateMachine->StateNum)
-		thisStateMachine->FunctionListTable[State] = thisFunction;
+	for(uint8_t i = 0;i<thisStateMachine->SMTable.length;i++)
+	{
+		if(thisStateMachine->SMTable.data[i].StateName == State)
+			return SM_ALREADYEXIST;
+	}
+	RTE_State_t v;
+	v.StateName = State;
+	v.StateFunction = StateFunction;
+	vec_push(&thisStateMachine->SMTable,v);
+	return SM_NOERR;
 }
 /*************************************************
 *** Args:   
-					thisStateMachine ´ý´¦Àí×´Ì¬»ú
-					InputArgs ×´Ì¬»ú¹²Ïí²ÎÊý
-*** Function: ÔËÐÐÒ»¸ö×´Ì¬»ú
+					thisStateMachine å¾…å¤„ç†çŠ¶æ€æœº
+					InputArgs çŠ¶æ€æœºå…±äº«å‚æ•°
+*** Function: è¿è¡Œä¸€ä¸ªçŠ¶æ€æœº
 *************************************************/
-void StateMachine_Run(StateMachine_t *thisStateMachine,void * InputArgs)
+void StateMachine_Run(RTE_StateMachine_t *thisStateMachine,void * InputArgs)
 {
-	thisStateMachine->RunningState = thisStateMachine->FunctionListTable[thisStateMachine->RunningState](InputArgs);
+	thisStateMachine->RunningState = thisStateMachine->SMTable.data[thisStateMachine->RunningState].StateFunction(InputArgs);
 }
 /*************************************************
 *** Args:   
-					thisStateMachine ´ý´¦Àí×´Ì¬»ú
-*** Function: É¾³ýÒ»¸ö×´Ì¬»ú
+					thisStateMachine å¾…å¤„ç†çŠ¶æ€æœº
+*** Function: åˆ é™¤ä¸€ä¸ªçŠ¶æ€æœº
 *************************************************/
-void StateMachine_Delete(StateMachine_t *thisStateMachine)
+RTE_SM_Err_e StateMachine_Remove(RTE_StateMachine_t *thisStateMachine,uint8_t State)
 {
-	thisStateMachine->StateNum = 0;
-	RTE_BRel(MEM_RTE,thisStateMachine->FunctionListTable);
+	int8_t idx = -1;
+	for(uint8_t i = 0;i<thisStateMachine->SMTable.length;i++)
+	{
+		if(thisStateMachine->SMTable.data[i].StateName == State)
+		{
+			idx = i;
+			break;
+		}
+	}
+	if(idx!=-1)
+	{
+		vec_splice(&thisStateMachine->SMTable, idx, 1);
+		return SM_NOERR;
+	}
+	return SM_NOSUCHSM;
 }
 /*************************************************
 *** Args:   
-					thisStateMachine ´ý´¦Àí×´Ì¬»ú
-					StateNum ×´Ì¬ÊýÄ¿
-*** Function: ³õÊ¼»¯Ò»¸ö×´Ì¬»ú
+					thisStateMachine å¾…å¤„ç†çŠ¶æ€æœº
+					StateNum çŠ¶æ€æ•°ç›®
+*** Function: åˆå§‹åŒ–ä¸€ä¸ªçŠ¶æ€æœº
 *************************************************/
-void StateMachine_Init(StateMachine_t *thisStateMachine,uint8_t StateNum)
+void StateMachine_Init(RTE_StateMachine_t *thisStateMachine)
 {
-	thisStateMachine->StateNum = StateNum;
-	thisStateMachine->FunctionListTable = (StateFunction*)RTE_BGetz(MEM_RTE,StateNum*sizeof(StateFunction));
+	vec_init(&thisStateMachine->SMTable);
 }
 #endif

@@ -1,20 +1,20 @@
-#include "RTE_Include.h"
+#include "RTE_RingQuene.h"
 /*****************************************************************************
 *** Author: Shannon
 *** Version: 2.0 2018.8.7
-*** History: 1.0 ´´½¨£¬ĞŞ¸Ä×Ôtivaware
-             2.0 ÎªRTEµÄÉı¼¶×öÊÊÅä
+*** History: 1.0 åˆ›å»ºï¼Œä¿®æ”¹è‡ªtivaware
+             2.0 ä¸ºRTEçš„å‡çº§åšé€‚é…
 *****************************************************************************/
-#if RTE_USE_RINGBUF == 1
+#if RTE_USE_RINGQUENE == 1
 #define RB_INDH(rb)                ((rb)->head & ((rb)->count - 1))
 #define RB_INDT(rb)                ((rb)->tail & ((rb)->count - 1))
 /*************************************************
 *** Args:   
-			*RingBuff ´ı´¦Àí»·ĞÎ¶ÓÁĞ
-			*buffer Êµ¼ÊÕ¼ÓÃµÄÄÚ´æ¿Õ¼ä
-			itemSize µ¥¸ö´æ´¢µ¥Ôª´óĞ¡
-			count ¶ÓÁĞÈİÁ¿
-*** Function: ³õÊ¼»¯Ò»¸ö»·ĞÎ¶ÓÁĞ
+			*RingBuff å¾…å¤„ç†ç¯å½¢é˜Ÿåˆ—
+			*buffer å®é™…å ç”¨çš„å†…å­˜ç©ºé—´
+			itemSize å•ä¸ªå­˜å‚¨å•å…ƒå¤§å°
+			count é˜Ÿåˆ—å®¹é‡
+*** Function: åˆå§‹åŒ–ä¸€ä¸ªç¯å½¢é˜Ÿåˆ—
 *************************************************/
 int RTE_RingQuene_Init(RTE_RingQuene_t *RingBuff, void *buffer, int itemSize, int count)
 {
@@ -26,9 +26,9 @@ int RTE_RingQuene_Init(RTE_RingQuene_t *RingBuff, void *buffer, int itemSize, in
 }
 /*************************************************
 *** Args:   
-			*RingBuff ´ı´¦Àí»·ĞÎ¶ÓÁĞ
-      *data ´ı²åÈëÊı¾İ
-*** Function: Ïò»·ĞÎ¶ÓÁĞÎ²²¿Ìí¼ÓÒ»¸öÊı¾İ
+			*RingBuff å¾…å¤„ç†ç¯å½¢é˜Ÿåˆ—
+      *data å¾…æ’å…¥æ•°æ®
+*** Function: å‘ç¯å½¢é˜Ÿåˆ—å°¾éƒ¨æ·»åŠ ä¸€ä¸ªæ•°æ®
 *************************************************/
 int RTE_RingQuene_Insert(RTE_RingQuene_t *RingBuff, const void *data)
 {
@@ -43,10 +43,10 @@ int RTE_RingQuene_Insert(RTE_RingQuene_t *RingBuff, const void *data)
 }
 /*************************************************
 *** Args:   
-			*RingBuff ´ı´¦Àí»·ĞÎ¶ÓÁĞ
-      *data ´ı²åÈëÊı¾İÊ×µØÖ·
-		   num ´ı²åÈëÊı¾İ¸öÊı
-*** Function: Ïò»·ĞÎ¶ÓÁĞÎ²²¿Ìí¼ÓÈô¸É¸öÊı¾İ
+			*RingBuff å¾…å¤„ç†ç¯å½¢é˜Ÿåˆ—
+      *data å¾…æ’å…¥æ•°æ®é¦–åœ°å€
+		   num å¾…æ’å…¥æ•°æ®ä¸ªæ•°
+*** Function: å‘ç¯å½¢é˜Ÿåˆ—å°¾éƒ¨æ·»åŠ è‹¥å¹²ä¸ªæ•°æ®
 *************************************************/
 int RTE_RingQuene_InsertMult(RTE_RingQuene_t *RingBuff, const void *data, int num)
 {
@@ -60,9 +60,9 @@ int RTE_RingQuene_InsertMult(RTE_RingQuene_t *RingBuff, const void *data, int nu
 	if (RB_INDH(RingBuff) + cnt1 >= RingBuff->count)
 		cnt1 = RingBuff->count - RB_INDH(RingBuff);
 	cnt2 -= cnt1;
-	cnt1 = min(cnt1, num);
+	cnt1 = RTE_MATH_MIN(cnt1, num);
 	num -= cnt1;
-	cnt2 = min(cnt2, num);
+	cnt2 = RTE_MATH_MIN(cnt2, num);
 	num -= cnt2;
 	/* Write segment 1 */
 	ptr += RB_INDH(RingBuff) * RingBuff->itemSz;
@@ -77,9 +77,9 @@ int RTE_RingQuene_InsertMult(RTE_RingQuene_t *RingBuff, const void *data, int nu
 }
 /*************************************************
 *** Args:   
-			*RingBuff ´ı´¦Àí»·ĞÎ¶ÓÁĞ
-      *data ´æ·ÅÊı¾İµÄµØÖ·
-*** Function: ´Ó»·ĞÎ¶ÓÁĞÍ·²¿È¡³öÒ»¸öÊı¾İ
+			*RingBuff å¾…å¤„ç†ç¯å½¢é˜Ÿåˆ—
+      *data å­˜æ”¾æ•°æ®çš„åœ°å€
+*** Function: ä»ç¯å½¢é˜Ÿåˆ—å¤´éƒ¨å–å‡ºä¸€ä¸ªæ•°æ®
 *************************************************/
 int RTE_RingQuene_Pop(RTE_RingQuene_t *RingBuff, void *data)
 {
@@ -94,10 +94,10 @@ int RTE_RingQuene_Pop(RTE_RingQuene_t *RingBuff, void *data)
 }
 /*************************************************
 *** Args:   
-			*RingBuff ´ı´¦Àí»·ĞÎ¶ÓÁĞ
-      *data ´æ·ÅÊı¾İµÄµØÖ·
-			num È¥³ıÊı¾İ¸öÊı
-*** Function: ´Ó»·ĞÎ¶ÓÁĞÍ·²¿È¡³öÒ»¸öÊı¾İ
+			*RingBuff å¾…å¤„ç†ç¯å½¢é˜Ÿåˆ—
+      *data å­˜æ”¾æ•°æ®çš„åœ°å€
+			num å»é™¤æ•°æ®ä¸ªæ•°
+*** Function: ä»ç¯å½¢é˜Ÿåˆ—å¤´éƒ¨å–å‡ºä¸€ä¸ªæ•°æ®
 *************************************************/
 int RTE_RingQuene_PopMult(RTE_RingQuene_t *RingBuff, void *data, int num)
 {
@@ -111,9 +111,9 @@ int RTE_RingQuene_PopMult(RTE_RingQuene_t *RingBuff, void *data, int num)
 	if (RB_INDT(RingBuff) + cnt1 >= RingBuff->count)
 		cnt1 = RingBuff->count - RB_INDT(RingBuff);
 	cnt2 -= cnt1;
-	cnt1 = min(cnt1, num);
+	cnt1 = RTE_MATH_MIN(cnt1, num);
 	num -= cnt1;
-	cnt2 = min(cnt2, num);
+	cnt2 = RTE_MATH_MIN(cnt2, num);
 	num -= cnt2;
 	/* Write segment 1 */
 	ptr += RB_INDT(RingBuff) * RingBuff->itemSz;
@@ -128,22 +128,22 @@ int RTE_RingQuene_PopMult(RTE_RingQuene_t *RingBuff, void *data, int num)
 }
 /*************************************************
 *** Args:   
-			*MessageQuene ´ı´¦ÀíÏûÏ¢¶ÓÁĞ
-      Size ÏûÏ¢¶ÓÁĞ´óĞ¡
-*** Function: ³õÊ¼»¯Ò»¸öÏûÏ¢¶ÓÁĞ
+			*MessageQuene å¾…å¤„ç†æ¶ˆæ¯é˜Ÿåˆ—
+      Size æ¶ˆæ¯é˜Ÿåˆ—å¤§å°
+*** Function: åˆå§‹åŒ–ä¸€ä¸ªæ¶ˆæ¯é˜Ÿåˆ—
 *************************************************/
 void RTE_MessageQuene_Init(RTE_MessageQuene_t *MessageQuene, uint16_t Size)
 {
-	MessageQuene->QueneBuffer = (uint8_t *)RTE_BGetz(MEM_RTE,Size);
+	MessageQuene->QueneBuffer = (uint8_t *)RTE_MEM_Alloc0(MEM_RTE,Size);
 	RTE_AssertParam(MessageQuene->QueneBuffer);
 	RTE_AssertParam(RTE_RingQuene_Init(&MessageQuene->RingBuff,MessageQuene->QueneBuffer,sizeof(uint8_t),Size));
 }
 /*************************************************
 *** Args:   
-			*MessageQuene ´ı´¦ÀíÏûÏ¢¶ÓÁĞ
-      *Data ´ı¼ÓÈëÊı¾İÊ×µØÖ·
-			DataSize ´ı¼ÓÈëÊı¾İ´óĞ¡
-*** Function: ÍùÏûÏ¢¶ÓÁĞÖĞ¼ÓÈëÒ»¸öÊı¾İ
+			*MessageQuene å¾…å¤„ç†æ¶ˆæ¯é˜Ÿåˆ—
+      *Data å¾…åŠ å…¥æ•°æ®é¦–åœ°å€
+			DataSize å¾…åŠ å…¥æ•°æ®å¤§å°
+*** Function: å¾€æ¶ˆæ¯é˜Ÿåˆ—ä¸­åŠ å…¥ä¸€ä¸ªæ•°æ®
 *************************************************/
 RTE_MessageQuene_Err_e RTE_MessageQuene_In(RTE_MessageQuene_t *MessageQuene, uint8_t *Data,uint16_t DataSize)
 {
@@ -161,10 +161,10 @@ RTE_MessageQuene_Err_e RTE_MessageQuene_In(RTE_MessageQuene_t *MessageQuene, uin
 }
 /*************************************************
 *** Args:   
-			*MessageQuene ´ı´¦ÀíÏûÏ¢¶ÓÁĞ
-      *Data ´æ·ÅÊı¾İ¿Õ¼äÊ×µØÖ·
-			*DataSize ´æ·ÅÊı¾İ´óĞ¡±äÁ¿µØÖ·
-*** Function: ´ÓÏûÏ¢¶ÓÁĞÖĞÈ¡³öÒ»¸öÊı¾İ
+			*MessageQuene å¾…å¤„ç†æ¶ˆæ¯é˜Ÿåˆ—
+      *Data å­˜æ”¾æ•°æ®ç©ºé—´é¦–åœ°å€
+			*DataSize å­˜æ”¾æ•°æ®å¤§å°å˜é‡åœ°å€
+*** Function: ä»æ¶ˆæ¯é˜Ÿåˆ—ä¸­å–å‡ºä¸€ä¸ªæ•°æ®
 *************************************************/
 RTE_MessageQuene_Err_e RTE_MessageQuene_Out(RTE_MessageQuene_t *MessageQuene, uint8_t *Data,uint16_t *DataSize)
 {
