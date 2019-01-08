@@ -3,8 +3,14 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "RTE_Include.h"
+#include "RTE_Config.h"
 #if RTE_USE_ROUNDROBIN
+#include <stdint.h>
+#include <stdbool.h>
+#if RTE_USE_OS
+#include "cmsis_os2.h"
+#endif
+#include "RTE_Vec.h"
 typedef enum
 {
 	RR_NOERR = 0,
@@ -67,7 +73,8 @@ extern RTE_RoundRobin_Err_e RTE_RoundRobin_ReadyTimer(uint8_t GroupID,uint8_t Ti
 extern RTE_RoundRobin_Err_e RTE_RoundRobin_ResetTimer(uint8_t GroupID,uint8_t TimerID);
 extern RTE_RoundRobin_Err_e RTE_RoundRobin_PauseTimer(uint8_t GroupID,uint8_t TimerID);
 extern RTE_RoundRobin_Err_e RTE_RoundRobin_ResumeTimer(uint8_t GroupID,uint8_t TimerID);
-
+extern bool RTE_RoundRobin_IfRunTimer(uint8_t GroupID,uint8_t TimerID);
+	
 extern void RTE_RoundRobin_Demon(void);
 
 extern uint32_t RTE_RoundRobin_GetTick(void);

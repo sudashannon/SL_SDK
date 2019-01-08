@@ -15,7 +15,7 @@
 					thisFunction 状态函数
 *** Function: 为状态机的不同状态设置状态函数
 *************************************************/
-RTE_SM_Err_e StateMachine_Add(RTE_StateMachine_t *thisStateMachine,uint8_t State, uint8_t(*StateFunction)(void *))
+RTE_SM_Err_e RTE_StateMachine_Add(RTE_StateMachine_t *thisStateMachine,uint8_t State, uint8_t(*StateFunction)(void *))
 {
 	for(uint8_t i = 0;i<thisStateMachine->SMTable.length;i++)
 	{
@@ -34,7 +34,7 @@ RTE_SM_Err_e StateMachine_Add(RTE_StateMachine_t *thisStateMachine,uint8_t State
 					InputArgs 状态机共享参数
 *** Function: 运行一个状态机
 *************************************************/
-void StateMachine_Run(RTE_StateMachine_t *thisStateMachine,void * InputArgs)
+void RTE_StateMachine_Run(RTE_StateMachine_t *thisStateMachine,void *InputArgs)
 {
 	thisStateMachine->RunningState = thisStateMachine->SMTable.data[thisStateMachine->RunningState].StateFunction(InputArgs);
 }
@@ -43,7 +43,7 @@ void StateMachine_Run(RTE_StateMachine_t *thisStateMachine,void * InputArgs)
 					thisStateMachine 待处理状态机
 *** Function: 删除一个状态机
 *************************************************/
-RTE_SM_Err_e StateMachine_Remove(RTE_StateMachine_t *thisStateMachine,uint8_t State)
+RTE_SM_Err_e RTE_StateMachine_Remove(RTE_StateMachine_t *thisStateMachine,uint8_t State)
 {
 	int8_t idx = -1;
 	for(uint8_t i = 0;i<thisStateMachine->SMTable.length;i++)
@@ -67,8 +67,9 @@ RTE_SM_Err_e StateMachine_Remove(RTE_StateMachine_t *thisStateMachine,uint8_t St
 					StateNum 状态数目
 *** Function: 初始化一个状态机
 *************************************************/
-void StateMachine_Init(RTE_StateMachine_t *thisStateMachine)
+void RTE_StateMachine_Init(RTE_StateMachine_t *thisStateMachine,uint8_t InitialState)
 {
 	vec_init(&thisStateMachine->SMTable);
+	thisStateMachine->RunningState = InitialState;
 }
 #endif

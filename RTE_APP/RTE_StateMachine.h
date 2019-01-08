@@ -3,8 +3,10 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "RTE_Include.h"
+#include "RTE_Config.h"
 #if RTE_USE_SM
+#include <string.h>
+#include "RTE_Vec.h"
 typedef enum
 {
 	SM_NOERR = 0,
@@ -23,10 +25,10 @@ typedef struct {
 	uint8_t RunningState;
 	sm_vec_t SMTable;
 }RTE_StateMachine_t;
-extern void StateMachine_Init(RTE_StateMachine_t *thisStateMachine);
-extern RTE_SM_Err_e StateMachine_Add(RTE_StateMachine_t *thisStateMachine,uint8_t State, uint8_t(*StateFunction)(void *));
-extern void StateMachine_Run(RTE_StateMachine_t *thisStateMachine,void * InputArgs);
-extern RTE_SM_Err_e StateMachine_Remove(RTE_StateMachine_t *thisStateMachine,uint8_t State);
+extern void RTE_StateMachine_Init(RTE_StateMachine_t *thisStateMachine,uint8_t InitialState);
+extern RTE_SM_Err_e RTE_StateMachine_Add(RTE_StateMachine_t *thisStateMachine,uint8_t State, uint8_t(*StateFunction)(void *));
+extern void RTE_StateMachine_Run(RTE_StateMachine_t *thisStateMachine,void *InputArgs);
+extern RTE_SM_Err_e RTE_StateMachine_Remove(RTE_StateMachine_t *thisStateMachine,uint8_t State);
 #endif
 #ifdef __cplusplus
 }

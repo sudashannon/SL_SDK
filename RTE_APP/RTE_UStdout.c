@@ -3,9 +3,10 @@
   * @file    RTE_UStdout.c
   * @author  Shan Lei ->>lurenjia.tech ->>https://github.com/sudashannon
   * @brief   标准输出printf实现。
-  * @version 1.1 2018/10/2
+  * @version 1.2 2019/01/08
 	* @History 1.0 创建，修改自tivaware
              1.1 增加了操作系统环境下的互斥锁
+						 1.2 优化互斥锁逻辑
   ******************************************************************************
   */
 #include "RTE_UStdout.h"
@@ -20,6 +21,10 @@ osMutexId_t MutexIDStdio;
 //
 //*****************************************************************************
 static const char * const g_pcHex = "0123456789abcdef";
+RTE_Stdout_t Stdout_Handle = 
+{
+	.PutsFunc = NULL,
+};
 //*****************************************************************************
 //
 //! A simple UART based vprintf function supporting \%c, \%d, \%p, \%s, \%u,
@@ -61,7 +66,7 @@ static const char * const g_pcHex = "0123456789abcdef";
 void
 RTE_Vprintf(const char *pcString, va_list vaArgP)
 {
-    uint32_t ui32Idx, ui32Value, ui32Pos, ui32Count, ui32Base, ui32Neg;
+	uint32_t ui32Idx, ui32Value, ui32Pos, ui32Count, ui32Base, ui32Neg;
     char *pcStr, pcBuf[16], cFill;
 
     //
@@ -87,8 +92,7 @@ RTE_Vprintf(const char *pcString, va_list vaArgP)
         //
         // Write this portion of the string.
         //
-        RTE_Puts(pcString, ui32Idx);
-
+				Stdout_Handle.PutsFunc(pcString, ui32Idx);
         //
         // Skip the portion of the string that was written.
         //
@@ -171,8 +175,7 @@ again:
                     //
                     // Print out the character.
                     //
-                    RTE_Puts((char *)&ui32Value, 1);
-
+										Stdout_Handle.PutsFunc((char *)&ui32Value, 1);
                     //
                     // This command has been handled.
                     //
@@ -251,7 +254,7 @@ again:
                     //
                     // Write the string.
                     //
-                    RTE_Puts(pcStr, ui32Idx);
+										Stdout_Handle.PutsFunc(pcStr, ui32Idx);
 
                     //
                     // Write any required padding spaces
@@ -261,7 +264,7 @@ again:
                         ui32Count -= ui32Idx;
                         while(ui32Count--)
                         {
-                            RTE_Puts(" ", 1);
+														Stdout_Handle.PutsFunc(" ", 1);
                         }
                     }
 
@@ -409,8 +412,7 @@ convert:
                     //
                     // Write the string.
                     //
-                    RTE_Puts(pcBuf, ui32Pos);
-
+										Stdout_Handle.PutsFunc(pcBuf, ui32Pos);
                     //
                     // This command has been handled.
                     //
@@ -425,7 +427,7 @@ convert:
                     //
                     // Simply write a single %.
                     //
-                    RTE_Puts(pcString - 1, 1);
+										Stdout_Handle.PutsFunc(pcString - 1, 1);
 
                     //
                     // This command has been handled.
@@ -441,8 +443,7 @@ convert:
                     //
                     // Indicate an error.
                     //
-                    RTE_Puts("ERROR", 5);
-
+										Stdout_Handle.PutsFunc("ERROR", 5);
                     //
                     // This command has been handled.
                     //
@@ -450,7 +451,7 @@ convert:
                 }
             }
         }
-    }
+		}
 }
 
 //*****************************************************************************
@@ -494,18 +495,38 @@ convert:
 void
 RTE_Printf(const char *pcString, ...)
 {
-    va_list vaArgP;
-
-    //
-    // Start the varargs processing.
-    //
-    va_start(vaArgP, pcString);
-
-    RTE_Vprintf(pcString, vaArgP);
-
-    //
-    // We're finished with the varargs now.
-    //
-    va_end(vaArgP);
+#if RTE_USE_OS == 1
+		osMutexAcquire(MutexIDStdio,osWaitForever);
+#endif
+		if(Stdout_Handle.PutsFunc)
+		{
+			va_list vaArgP;
+			//
+			// Start the varargs processing.
+			//
+			va_start(vaArgP, pcString);
+			RTE_Vprintf(pcString, vaArgP);
+			//
+			// We're finished with the varargs now.
+			//
+			va_end(vaArgP);
+		}
+		else
+		{
+			
+		}
+#if RTE_USE_OS == 1
+		osMutexRelease(MutexIDStdio);
+#endif
+}
+void RTE_Reg_Puts(void (*PutsFunc)(const char *,uint16_t))
+{
+#if RTE_USE_OS == 1
+	osMutexAcquire(MutexIDStdio,osWaitForever);
+	Stdout_Handle.PutsFunc = PutsFunc;
+	osMutexRelease(MutexIDStdio);
+#else
+	Stdout_Handle.PutsFunc = PutsFunc;
+#endif
 }
 #endif

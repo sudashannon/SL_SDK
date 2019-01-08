@@ -6,6 +6,7 @@
 *** History: 1.1 修复一个小warning
 *****************************************************************************/
 #if RTE_USE_KVDB == 1
+#include "RTE_UStdout.h"
 #define KVDB_STR "[KVDB]"
 #if RTE_USE_OS == 1
 	osMutexId_t MutexIDKVDB;
@@ -594,7 +595,8 @@ EfErrCode ef_del_env(const char *key) {
  */
 char *ef_get_env(const char *key) {
     char *env = NULL, *value = NULL;
-
+    /* lock the ENV cache */
+    ef_port_env_lock();
     if (!init_ok) {
         RTE_Printf("%10s    ENV isn't initialize OK.\r\n",KVDB_STR);
         return NULL;
@@ -612,6 +614,9 @@ char *ef_get_env(const char *key) {
         /* the equal sign next character is value */
         value++;
     }
+
+    /* unlock the ENV cache */
+    ef_port_env_unlock();
     return value;
 }
 /**

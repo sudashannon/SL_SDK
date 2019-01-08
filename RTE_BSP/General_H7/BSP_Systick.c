@@ -4,6 +4,7 @@ void BSP_Systick_Init(void)
 {
 	SysTick_Config(SystemCoreClock / 1000);	//Set SysTick Timer for 1ms interrupts	
 }
+#if BOARD_TURING_PURE
 #if RTE_USE_OS == 0
 void SysTick_Handler(void)
 {
@@ -19,3 +20,4 @@ void HAL_Delay(uint32_t Delay)
 {
 	RTE_RoundRobin_DelayMS(Delay);
 }
+#endif

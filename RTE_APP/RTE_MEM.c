@@ -3,12 +3,16 @@
   * @file    RTE_MEM.h
   * @author  Shan Lei ->>lurenjia.tech ->>https://github.com/sudashannon
   * @brief   动态内存管理，可以管理多块内存，移植自lvgl。
-  * @version V1.0 2018/11/02 第一版
-	* @History V1.0 创建，移植自lvgl
+  * @version V1.1 2019/01/08
+	* @History V1.0 创建，移植并修改自lvgl
+	           V1.1 增加了互斥锁
   ******************************************************************************
   */
 #include "RTE_MEM.h"
 #if RTE_USE_MEMMANAGE == 1
+#include "RTE_Math.h"
+#include "RTE_Log.h"
+#define MEM_STR "[MEM]"
 /*************************************************
 *** 管理BGet的结构体变量，静态管理
 *************************************************/
@@ -16,6 +20,11 @@ static RTE_MEM_t MemoryControlHandle[MEM_N] =
 {
 	{
 		.MemName = MEM_RTE,
+		.work_mem = (void *)0,
+		.totalsize = 0,
+	},
+	{
+		.MemName = MEM_DMA,
 		.work_mem = (void *)0,
 		.totalsize = 0,
 	},
@@ -38,6 +47,9 @@ void RTE_MEM_Pool(RTE_MEM_Name_e mem_name,void *buf,uint32_t len)
 	full->header.used = 0;
 	/*The total mem size id reduced by the first header and the close patterns */
 	full->header.d_size = len - sizeof(RTE_MEM_Header_t);
+#if RTE_USE_OS
+	MemoryControlHandle[mem_name].MutexIDMEM = osMutexNew(NULL);
+#endif
 }
 /*************************************************
 *** Args:   mem_name 指定的内存区域;
@@ -46,6 +58,9 @@ void RTE_MEM_Pool(RTE_MEM_Name_e mem_name,void *buf,uint32_t len)
 *************************************************/
 void *RTE_MEM_Alloc(RTE_MEM_Name_e mem_name,uint32_t size)
 {
+#if RTE_USE_OS
+	osMutexAcquire(MemoryControlHandle[mem_name].MutexIDMEM,osWaitForever);
+#endif
 	if(size == 0) {
 		return &zero_mem;
 	}
@@ -75,7 +90,10 @@ void *RTE_MEM_Alloc(RTE_MEM_Name_e mem_name,uint32_t size)
 		//End if there is not next entry OR the alloc. is successful
 	} while(e != NULL && alloc == NULL);
 	if(alloc == NULL) 
-		RTE_LOG_WARN("Couldn't allocate memory\r\n");
+		RTE_LOG_WARN(MEM_STR,"Couldn't allocate memory");
+#if RTE_USE_OS
+	osMutexRelease(MemoryControlHandle[mem_name].MutexIDMEM);
+#endif
 	return alloc;
 }
 /*************************************************
@@ -88,7 +106,7 @@ void *RTE_MEM_Alloc0(RTE_MEM_Name_e mem_name,uint32_t size)
 	void * alloc = NULL;
 	alloc = RTE_MEM_Alloc(mem_name,size);
 	if(alloc != NULL) memset(alloc, 0, size);
-	else RTE_LOG_WARN("Couldn't allocate memory\r\n");
+	else RTE_LOG_WARN(MEM_STR,"Couldn't allocate memory");
 	return alloc;
 }
 /*************************************************
@@ -98,6 +116,9 @@ void *RTE_MEM_Alloc0(RTE_MEM_Name_e mem_name,uint32_t size)
 *************************************************/
 void RTE_MEM_Free(RTE_MEM_Name_e mem_name,const void * data)
 {
+#if RTE_USE_OS
+	osMutexAcquire(MemoryControlHandle[mem_name].MutexIDMEM,osWaitForever);
+#endif
 	if(data == &zero_mem) return;
 	if(data == NULL) return;
 	/*e points to the header*/
@@ -117,6 +138,9 @@ void RTE_MEM_Free(RTE_MEM_Name_e mem_name,const void * data)
 		e_next = ent_get_next(mem_name,e_next);
 	}
 #endif
+#if RTE_USE_OS
+	osMutexRelease(MemoryControlHandle[mem_name].MutexIDMEM);
+#endif
 }
 /*************************************************
 *** Args:   mem_name 指定的内存区域;
@@ -126,6 +150,9 @@ void RTE_MEM_Free(RTE_MEM_Name_e mem_name,const void * data)
 *************************************************/
 void *RTE_MEM_Realloc(RTE_MEM_Name_e mem_name,void *data_p,uint32_t new_size)
 {
+#if RTE_USE_OS
+	osMutexAcquire(MemoryControlHandle[mem_name].MutexIDMEM,osWaitForever);
+#endif
 	/*data_p could be previously freed pointer (in this case it is invalid)*/
 	if(data_p != NULL) {
 		RTE_MEM_Ent_t * e = (RTE_MEM_Ent_t *)((uint8_t *) data_p - sizeof(RTE_MEM_Header_t));
@@ -142,16 +169,19 @@ void *RTE_MEM_Realloc(RTE_MEM_Name_e mem_name,void *data_p,uint32_t new_size)
 		ent_trunc(e, new_size);
 		return &e->first_data;
 	}
+#if RTE_USE_OS
+	osMutexRelease(MemoryControlHandle[mem_name].MutexIDMEM);
+#endif
 	void * new_p;
 	new_p = RTE_MEM_Alloc(mem_name,new_size);
 	if(new_p != NULL && data_p != NULL) {
 		/*Copy the old data to the new. Use the smaller size*/
 		if(old_size != 0) {
-			memcpy(new_p, data_p, RTE_MATH_MIN(new_size, old_size));
+			memcpy(new_p, data_p, MATH_MIN(new_size, old_size));
 			RTE_MEM_Free(mem_name,data_p);
 		}
 	}
-	if(new_p == NULL) RTE_LOG_WARN("Couldn't allocate memory");
+	if(new_p == NULL) RTE_LOG_WARN(MEM_STR,"Couldn't allocate memory");
 	return new_p;
 }
 /*************************************************

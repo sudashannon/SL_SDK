@@ -1,11 +1,16 @@
 #include "RTE_RingQuene.h"
 /*****************************************************************************
 *** Author: Shannon
-*** Version: 2.0 2018.8.7
+*** Version: 3.0 2019.1.9
 *** History: 1.0 创建，修改自tivaware
              2.0 为RTE的升级做适配
+						 3.0 修改了出入逻辑，增加了互斥锁
 *****************************************************************************/
 #if RTE_USE_RINGQUENE == 1
+#include "RTE_MEM.h"
+#include "RTE_MATH.h"
+#include "RTE_LOG.h"
+#define RINGQUENE_STR "[RINGQUE]"
 #define RB_INDH(rb)                ((rb)->head & ((rb)->count - 1))
 #define RB_INDT(rb)                ((rb)->tail & ((rb)->count - 1))
 /*************************************************
@@ -60,9 +65,9 @@ int RTE_RingQuene_InsertMult(RTE_RingQuene_t *RingBuff, const void *data, int nu
 	if (RB_INDH(RingBuff) + cnt1 >= RingBuff->count)
 		cnt1 = RingBuff->count - RB_INDH(RingBuff);
 	cnt2 -= cnt1;
-	cnt1 = RTE_MATH_MIN(cnt1, num);
+	cnt1 = MATH_MIN(cnt1, num);
 	num -= cnt1;
-	cnt2 = RTE_MATH_MIN(cnt2, num);
+	cnt2 = MATH_MIN(cnt2, num);
 	num -= cnt2;
 	/* Write segment 1 */
 	ptr += RB_INDH(RingBuff) * RingBuff->itemSz;
@@ -111,9 +116,9 @@ int RTE_RingQuene_PopMult(RTE_RingQuene_t *RingBuff, void *data, int num)
 	if (RB_INDT(RingBuff) + cnt1 >= RingBuff->count)
 		cnt1 = RingBuff->count - RB_INDT(RingBuff);
 	cnt2 -= cnt1;
-	cnt1 = RTE_MATH_MIN(cnt1, num);
+	cnt1 = MATH_MIN(cnt1, num);
 	num -= cnt1;
-	cnt2 = RTE_MATH_MIN(cnt2, num);
+	cnt2 = MATH_MIN(cnt2, num);
 	num -= cnt2;
 	/* Write segment 1 */
 	ptr += RB_INDT(RingBuff) * RingBuff->itemSz;
@@ -147,17 +152,25 @@ void RTE_MessageQuene_Init(RTE_MessageQuene_t *MessageQuene, uint16_t Size)
 *************************************************/
 RTE_MessageQuene_Err_e RTE_MessageQuene_In(RTE_MessageQuene_t *MessageQuene, uint8_t *Data,uint16_t DataSize)
 {
-	uint8_t SizeHigh = (DataSize>>8)&0xFF;
-	if(RTE_RingQuene_Insert(&MessageQuene->RingBuff,&SizeHigh))
+	RTE_MessageQuene_Err_e RetVal = MSG_NO_ERR;
+	if(RTE_RingQuene_GetSize(&MessageQuene->RingBuff)>=3)
 	{
+		uint8_t SizeHigh = (DataSize>>8)&0xFF;
+		RTE_RingQuene_Insert(&MessageQuene->RingBuff,&SizeHigh);
 		uint8_t SizeLow = DataSize&0xFF;
-		if(RTE_RingQuene_Insert(&MessageQuene->RingBuff,&SizeLow))
+		RTE_RingQuene_Insert(&MessageQuene->RingBuff,&SizeLow);
+		if(RTE_RingQuene_InsertMult(&MessageQuene->RingBuff,Data,DataSize) != DataSize)
 		{
-			if(RTE_RingQuene_InsertMult(&MessageQuene->RingBuff,Data,DataSize) == DataSize)
-				return MSG_NO_ERR;
+			RTE_LOG_ERROR(RINGQUENE_STR,"In data not enough");
+			RetVal = MSG_NOTSAME;
 		}
 	}
-	return MSG_EN_FULL;
+	else
+	{
+		RTE_LOG_ERROR(RINGQUENE_STR,"In error");
+		RetVal = MSG_EN_FULL;
+	}
+	return RetVal;
 }
 /*************************************************
 *** Args:   
@@ -168,25 +181,22 @@ RTE_MessageQuene_Err_e RTE_MessageQuene_In(RTE_MessageQuene_t *MessageQuene, uin
 *************************************************/
 RTE_MessageQuene_Err_e RTE_MessageQuene_Out(RTE_MessageQuene_t *MessageQuene, uint8_t *Data,uint16_t *DataSize)
 {
+	RTE_MessageQuene_Err_e RetVal = MSG_NO_ERR;
 	uint8_t SizeHigh = 0x00;
-	uint8_t SizeLow = 0x00;
-	if(RTE_RingQuene_Pop(&MessageQuene->RingBuff,&SizeHigh))
+	uint8_t SizeLow = 0x00;	
+	if(RTE_RingQuene_Pop(&MessageQuene->RingBuff,&SizeHigh)&&RTE_RingQuene_Pop(&MessageQuene->RingBuff,&SizeLow))
 	{
-		if(RTE_RingQuene_Pop(&MessageQuene->RingBuff,&SizeLow))
+		*DataSize = (uint16_t)(SizeHigh<<8)|SizeLow;
+		if(RTE_RingQuene_PopMult(&MessageQuene->RingBuff,Data,*DataSize) != *DataSize)
 		{
-			*DataSize = (uint16_t)(SizeHigh<<8)|SizeLow;
-			if(RTE_RingQuene_PopMult(&MessageQuene->RingBuff,Data,*DataSize) == *DataSize)
-			{
-				uint16_t AnotherFrameSize=0;
-				if(Data[*DataSize-1] == 0xAA&& Data[*DataSize-2] == 0x55)
-				{
-					RTE_MessageQuene_Out(MessageQuene,Data+*DataSize-2,&AnotherFrameSize);
-					*DataSize = AnotherFrameSize + *DataSize-2;
-				}
-				return MSG_NO_ERR;
-			}
+			RTE_LOG_ERROR(RINGQUENE_STR,"Out data not enough");
+			RetVal = MSG_NOTSAME;
 		}
 	}
-	return MSG_DE_EMPTY;
+	else
+	{
+		RetVal = MSG_DE_EMPTY;
+	}
+	return RetVal;
 }
 #endif

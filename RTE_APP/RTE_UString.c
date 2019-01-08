@@ -9,6 +9,7 @@
   */
 #include "RTE_UString.h"
 #if RTE_USE_USTRING == 1
+#include "RTE_MATH.h"
 //*****************************************************************************
 //
 //! \addtogroup ustdlib_api
@@ -1817,7 +1818,7 @@ char * unum2str(int32_t num, char * buf)
     } else if(num < 0) {
         (*buf) = '-';
         buf++;
-        num = RTE_MATH_ABS(num);
+        num = MATH_ABS(num);
     }
     uint32_t output = 0;
     int8_t i;

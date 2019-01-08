@@ -14,7 +14,7 @@ extern "C" {
 //-------- <<< Use Configuration Wizard in Context Menu >>> --------------------
 //<s> RTE版本号
 //<i> 具体定义见相关文档。
-#define RTE_VERSION "3.1.1102"
+#define RTE_VERSION "3.3.0108"
 //=======================
 //<e> 动态内存管理模块
 //=======================
@@ -45,6 +45,17 @@ extern "C" {
 #endif
 //</e>
 //=======================
+//<e> 双向链表模块
+//=======================
+//<i> 使用RTE自带的双向链表模块，依赖模块：动态内存模块。
+#define RTE_USE_LL                    1
+#if RTE_USE_LL == 1
+#if RTE_USE_MEMMANAGE == 0
+#error "This module needs dynatic mem manage module's support!"
+#endif
+#endif
+//</e>
+//=======================
 //<h> 标准C库模块
 //=======================
 //<i> 使用RTE自带的替换标准C库的函数，依赖模块：无。
@@ -60,24 +71,25 @@ extern "C" {
 //<e> KV数据库模块
 //=======================
 //<i> 使用RTE自带的KV关系数据库，依赖模块：标准输出。
-#define RTE_USE_KVDB                  0
+#define RTE_USE_KVDB                  1
 	//<o>KVDB最小擦除单位大小
 	//<i>单位：K
-	#define KVDB_ERASE_MIN_SIZE         (128 * 1024)              /* it is 128K for compatibility */
+	#define KVDB_ERASE_MIN_SIZE         (16 * 1024)
 	//<q>掉电保护
 	#define KVDB_USE_PFS                0
-	//<q>自动更新（增量更新）
-	#define KVDB_USE_AUTO_UPDATE        0
 	//<o>用户设置环境变量大小
 	#define KVDB_USER_SETTING_SIZE      2048
 	//<o>KVDB地址偏移
 	//<i>加上FLASH首地址后为实际地址（单位：K）
-	#define KVDB_ADDR_OFFSET            1800 * 1024 
+	#define KVDB_ADDR_OFFSET            480 * 1024 
 	//<o>FLASH首地址
 	#define KVDB_FLASH_BASE             0x08000000
+	//<e>自动更新（增量更新）
+	#define KVDB_USE_AUTO_UPDATE        0
 	//<o>固件版本
 	//<i>如果检测到产品存储的版本号与设定版本号不一致，会自动追加默认环境变量集合中新增的环境变量。
 	#define KVDB_FM_VER_NUM             0
+	//</e>
 //</e>
 //=======================
 //<e> 状态机模块
@@ -133,14 +145,14 @@ extern "C" {
 	// <q> 实时操作系统
 	// <i> 默认是RTX5
 	#ifndef RTE_USE_OS
-	#define RTE_USE_OS          0
+	#define RTE_USE_OS          1
 	#endif
 	// <o> 轮转调度最大支持的Timer数目 
 	// <i> 默认大小: 16
-	#define ROUNDROBIN_MAX_NUM    		16
+	#define ROUNDROBIN_MAX_NUM    		  16
 	// <o> 轮转调度最大支持的TimerGroup数目
 	// <i> 默认大小: 4
-	#define ROUNDROBIN_MAX_GROUP_NUM   4
+	#define ROUNDROBIN_MAX_GROUP_NUM    4
 #endif
 //</e>
 //=======================
@@ -148,6 +160,40 @@ extern "C" {
 //=======================
 //<i> 使用RTE自带的日志模块纪录程序运行信息，可选纪录位置。
 #define RTE_USE_LOG                   1
+//</e>
+//=======================
+//<e> 图像处理模块
+//=======================
+//<i> 使用RTE自带的机器视觉
+#define RTE_USE_OPENMV                0
+//</e>
+//=======================
+//<e> GUI模块
+//=======================
+//<i> 使用RTE自带的GUI
+#define RTE_USE_GUI                   1
+#if RTE_USE_GUI == 1
+#if RTE_USE_MEMMANAGE == 0
+#error "This module needs dynatic mem manage module's support!"
+#endif
+#endif
+//</e>
+//=======================
+//<e> ASSERT
+//=======================
+#define RTE_USE_ASSERT                   1
+#if RTE_USE_ASSERT
+#include <stdint.h>
+extern void RTE_Assert(char *file, uint32_t line);
+#define RTE_AssertParam(expr) {                                     \
+																 if(!(expr))                        \
+																 {                                  \
+																		 RTE_Assert(__FILE__, __LINE__);\
+																 }                                  \
+															}
+#else
+#define RTE_AssertParam(expr) ((void)0)
+#endif
 //</e>
 #ifdef __cplusplus  
 }  

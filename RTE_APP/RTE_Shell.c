@@ -1,18 +1,25 @@
 #include "RTE_Shell.h"
 /*****************************************************************************
 *** Author: Shannon
-*** Version: 2.2 2018.9.30
+*** Version: 2.3 2018.12.08
 *** History: 1.0 创建，修改自tivaware
              2.0 为RTE的升级做适配，更改模块名称
 						 2.1 动静态结合方式管理
 						 2.2 引入RTE_Vec进行统一管理
+						 2.3 单独提出ShellQuene，隔离物理层
 *****************************************************************************/
 #if RTE_USE_SHELL == 1
-#define RTE_DEBUG_TXT "[SHELL]"
+#include "RTE_RingQuene.h"
+#include "RTE_UString.h"
+#include "RTE_RoundRobin.h"
+#include "RTE_LOG.h"
+#include "RTE_MEM.h"
+#define DEBUG_STR "[SHELL]"
 /*************************************************
 *** 管理Shell的结构体变量，动态管理
 *************************************************/
 static RTE_Shell_Control_t ShellHandle = {0};
+static RTE_MessageQuene_t ShellQuene  = {0};  //数据环形队列
 /*************************************************
 *** Args:   *pcCmdLine 待处理命令行
 *** Function: Shell命令行处理
@@ -134,11 +141,11 @@ RTE_Shell_Err_e RTE_Shell_DeleteCommand(const char *cmd)
 static RTE_Shell_Err_e RTE_Shell_CMD_Help(int argc, char *argv[])
 {
 	RTE_Printf("--------------------------------------------------\r\n");
-	RTE_Printf("%10s    Available Command\r\n",RTE_DEBUG_TXT);
+	RTE_Printf("%10s    Available Command\r\n",DEBUG_STR);
 	for(uint8_t i = 0;i<ShellHandle.g_psCmdTable.length;i++)
 	{
 		RTE_Printf("%10s    Name:%16s  Function:%s\r\n", 
-			RTE_DEBUG_TXT,
+			DEBUG_STR,
 			ShellHandle.g_psCmdTable.data[i].pcCmd,
 			ShellHandle.g_psCmdTable.data[i].pcHelp);
 	}
@@ -151,24 +158,32 @@ static RTE_Shell_Err_e RTE_Shell_CMD_Help(int argc, char *argv[])
 static RTE_Shell_Err_e RTE_Shell_CMD_RTEInfor(int argc, char *argv[])
 {
 	RTE_Printf("--------------------------------------------------\r\n");
+#if RTE_USE_OS
+	extern volatile uint8_t   StaticsCPUUsage; 
+	RTE_Printf("RTE Version:%s CPU:%d%%\r\n",RTE_VERSION,StaticsCPUUsage);
+#else
 	RTE_Printf("RTE Version:%s\r\n",RTE_VERSION);
+#endif
 	RTE_Printf("--------------------------------------------------\r\n");
 	RTE_Printf("%10s    Using SHELL Nums:%d Allow Max:%d VEC Capbility:%d\r\n",
-		RTE_DEBUG_TXT,
+		DEBUG_STR,
 		ShellHandle.g_psCmdTable.length,
 		SHELL_MAX_NUM,
 		ShellHandle.g_psCmdTable.capacity);
 	RTE_MEM_Monitor_t mon_infor = {0};
-	RTE_MEM_Monitor(MEM_RTE,&mon_infor);
-	RTE_Printf("--------------------------------------------------\r\n");
-	RTE_Printf("%10s    Memery Bank:%d Infor Use/All:%d%%/%d Max Free/Free:%d/%d Percent of Frag:%d%%\r\n",
-			RTE_DEBUG_TXT,
-			MEM_RTE,
-			mon_infor.used_pct,
-			mon_infor.total_size,
-			mon_infor.free_biggest_size,
-			mon_infor.free_size,
-			mon_infor.frag_pct);
+	for(uint8_t i=0;i<MEM_N;i++)
+	{
+		RTE_MEM_Monitor((RTE_MEM_Name_e)i,&mon_infor);
+		RTE_Printf("--------------------------------------------------\r\n");
+		RTE_Printf("%10s    Memery Bank:%d Infor Use/All:%d%%/%d Max Free/Free:%d/%d Percent of Frag:%d%%\r\n",
+				DEBUG_STR,
+				i,
+				mon_infor.used_pct,
+				mon_infor.total_size,
+				mon_infor.free_biggest_size,
+				mon_infor.free_size,
+				mon_infor.frag_pct);
+	}
 	RTE_RoundRobin_Demon();
 	return(SHELL_NOERR);
 }
@@ -179,25 +194,36 @@ static RTE_Shell_Err_e RTE_Shell_CMD_RTEInfor(int argc, char *argv[])
 void RTE_Shell_Init(void)
 {
 	vec_init(&ShellHandle.g_psCmdTable);
-	RTE_AssertParam(RTE_Shell_AddCommand("Help",RTE_Shell_CMD_Help,"Available help when using Shell") == SHELL_NOERR);
-	RTE_AssertParam(RTE_Shell_AddCommand("System",RTE_Shell_CMD_RTEInfor,"Information about running SL_RTE") == SHELL_NOERR);
+	RTE_AssertParam(RTE_Shell_AddCommand("help",RTE_Shell_CMD_Help,"Available help when using Shell") == SHELL_NOERR);
+	RTE_AssertParam(RTE_Shell_AddCommand("system",RTE_Shell_CMD_RTEInfor,"Information about running SL_RTE") == SHELL_NOERR);
+	RTE_MessageQuene_Init(&ShellQuene,SHELL_BUFSIZE);
 }
 /*************************************************
 *** Args:   NULL
 *** Function: shell轮询
 *************************************************/
-void RTE_Shell_Poll(char *ShellBuffer)
+void RTE_Shell_Poll(void *Params)
 {
-	int iStatus;
-	iStatus = RTE_Shell_CommandProcess(ShellBuffer);
-	if(iStatus == SHELL_NOVALIDCMD)
+	uint16_t BufferLenth= 0;
+	char *ShellBuffer = RTE_MEM_Alloc0(MEM_RTE,SHELL_BUFSIZE);
+	if(RTE_MessageQuene_Out(&ShellQuene,(uint8_t *)ShellBuffer,&BufferLenth) == MSG_NO_ERR)
 	{
-		RTE_Printf("%10s    Can't identify such command:%s!\r\n",RTE_DEBUG_TXT,ShellBuffer);
+		int iStatus;
+		iStatus = RTE_Shell_CommandProcess(ShellBuffer);
+		if(iStatus == SHELL_NOVALIDCMD)
+		{
+			RTE_LOG_WARN(DEBUG_STR,"Can't identify such command:%s!\r\n",ShellBuffer);
+		}
+		else if(iStatus == SHELL_TOOMANYARGS)
+		{
+			RTE_LOG_WARN(DEBUG_STR,"Input command's args' count is more than max!\r\n");
+		}
 	}
-	else if(iStatus == SHELL_TOOMANYARGS)
-	{
-		RTE_Printf("%10s    Input command's args' count is more than max!\r\n",RTE_DEBUG_TXT);
-	}
-	memset(ShellBuffer,0,strlen(ShellBuffer));
+	RTE_MEM_Free(MEM_RTE,ShellBuffer);
+}
+
+void RTE_Shell_Input(uint8_t *Data,uint16_t Length)
+{
+	RTE_MessageQuene_In(&ShellQuene,Data,Length);
 }
 #endif

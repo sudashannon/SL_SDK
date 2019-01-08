@@ -1,7 +1,8 @@
-note：使用32新版本固件库建立工程时需要分别修改stm32fxxx.h和system_stm32fxxx.c中有关时钟配置的部分
+note：使用固件库建立工程时需要分别修改stm32fxxx.h和system_stm32fxxx.c中有关时钟配置的部分
       使用HAL库建立工程需要修改stm32fxxx_hal_conf.h中时钟配置的部分
+	  
 2017/09/22
-新版本1.0release：
+版本1.0release：
 
 2017/09/23
 完全剥离bsp和app 确保app使用时独立于硬件底层（SoftTimer除外 但针对coterxm内核mcu一致）
@@ -65,21 +66,33 @@ app_mem 更换rtx自带的内存管理系统做为底层 方便管理多块内存空间。
 
 2018/09/30 版本号2.3.0930
 增加RTE_Vec和RTE_List；
+利用RTE_Vec重新对Shell、Timer、SM等模块进行重构；
 开始移植GUI；
 
 2018/10/2 版本号3.0.1002
-完成了GUI得移植 GUI版本号为5.0.1；
+完成了GUI的移植，GUI版本号为5.0.1；
 完善了RR部分代码；
 
 2018/11/2 版本号3.1.1102
-重构GUI代码 GUI版本号为5.2.0；
+重构GUI代码，GUI版本号为5.2.0；
 重构目录树；
 重写RTE_Config；
 
+2018/12/27 版本号3.2.1227
+lvgl内核升级到5.2.1，修复部分RTE_APP；
+一些其他小改动；
+
+2019/01/07 版本号3.3.0107
+lvgl更新优化接口；
+MEM、Message增加互斥锁；
+STDOUT和KVDB优化互斥锁逻辑；
+LOG用于各个模块；；
+升级日志模块，可选输出到RTE_Stdout、FILE、Flash；
+优化include结构；
 
 
 下一版本计划：
 1、IAP库的开发和移植；
-
+2、lua脚本解释器；
 
 

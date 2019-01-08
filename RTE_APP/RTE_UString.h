@@ -29,7 +29,11 @@
 // Include the standard C headers upon which these replacements are based.
 //
 //*****************************************************************************
-#include "RTE_Include.h"
+#include "RTE_Config.h"
+#include <time.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <stdarg.h>
 //*****************************************************************************
 //
 // If building with a C++ compiler, make all of the definitions in this header

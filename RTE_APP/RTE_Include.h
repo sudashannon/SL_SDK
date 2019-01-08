@@ -15,13 +15,18 @@ extern "C" {
 	#include "RTE_Config.h"
 	#include "RTE_LOG.h"
 	#include "RTE_MATH.h"
+	#if RTE_USE_OS 
+	#include "cmsis_os2.h"
+	#endif
 	#if RTE_USE_MEMMANAGE
 	#include "RTE_MEM.h"
-		#if RTE_USE_VEC
-		#include "RTE_Vec.h"
-		
-		#endif
 	#endif	
+	#if RTE_USE_VEC
+	#include "RTE_Vec.h"
+	#endif
+	#if RTE_USE_LL
+	#include "RTE_LinkList.h"
+	#endif
 	#if RTE_USE_USTRING
 	#include "RTE_UString.h"
 	#endif
@@ -30,6 +35,7 @@ extern "C" {
 	#endif
 	#if RTE_USE_KVDB
 	#include "RTE_KVDB.h"
+	extern void RTE_KVDB_Init(void);
 	#endif
 	#if RTE_USE_SM
 	#include "RTE_StateMachine.h"
@@ -43,19 +49,17 @@ extern "C" {
 	#if RTE_USE_ROUNDROBIN
 	#include "RTE_RoundRobin.h"
 	#endif
+	#if RTE_USE_GUI
+	#include "GUI_Include.h"
+	#endif
+	#if RTE_USE_OPENMV
+	#include "MV_Include.h"
+	#endif
 	#define RTE_ALIGN_32BYTES(buf) buf __attribute__ ((aligned (32)))
 	extern void RTE_Init(void);
-	extern void RTE_Assert(char *file, uint32_t line);
-	#if RTE_USE_ASSERT
-	#define RTE_AssertParam(expr) {                                     \
-																	 if(!(expr))                        \
-																	 {                                  \
-																			 RTE_Assert(__FILE__, __LINE__);\
-																	 }                                  \
-																}
-	#else
-	#define RTE_AssertParam(expr) 
-	#endif		
+	#ifndef UNUSED
+	#define UNUSED(x) ((void)(x))
+	#endif
 #ifdef __cplusplus  
 }  
 #endif  

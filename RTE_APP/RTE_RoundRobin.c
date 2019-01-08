@@ -10,7 +10,10 @@
 						 2.4 引入多线程多Timer机制，不同线程的Timer按不同线程进行管理，简化已有的查询timer机制
 *****************************************************************************/
 #if RTE_USE_ROUNDROBIN == 1
-#define RTE_DEBUG_TXT "[RR]"
+#include "RTE_Log.h"
+#include "RTE_MEM.h"
+#include "RTE_UString.h"
+#define RR_STR "[RR]"
 #include "RTE_Components.h"
 #include CMSIS_device_header
 /*************************************************
@@ -29,6 +32,7 @@ void RTE_RoundRobin_Init(void)
 	RoundRobinHandle.RoundRobinRunTick = 0;
 #endif
 	RoundRobinHandle.TimerGroupCnt = 0;
+#ifndef RTE_Compiler_EventRecorder
 	/* Enable TRC */
 	CoreDebug->DEMCR &= ~0x01000000;
 	CoreDebug->DEMCR |=  0x01000000;
@@ -40,6 +44,7 @@ void RTE_RoundRobin_Init(void)
 	/* 2 dummys */
 	__ASM volatile ("NOP");
 	__ASM volatile ("NOP");
+#endif
 }
 /*************************************************
 *** Args:   NULL
@@ -75,6 +80,8 @@ int8_t RTE_RoundRobin_GetGroupID(const char *GroupName)
 			break;
 		}
 	}
+	if(idx == -1)
+		RTE_LOG_WARN(RR_STR,"No such group");
 	return idx;
 }
 /*************************************************
@@ -131,6 +138,8 @@ int8_t RTE_RoundRobin_GetTimerID(uint8_t GroupID,const char *TimerName)
 			break;
 		}
 	}
+	if(idx == -1)
+		RTE_LOG_WARN(RR_STR,"No such group");
 	return idx;
 }
 /*************************************************
@@ -159,8 +168,11 @@ inline static void RTE_RoundRobin_CheckTimer(uint8_t GroupID,uint8_t TimerID)
 		RoundRobinHandle.TimerGroup[GroupID].SoftTimerTable.data[TimerID].CNT = RoundRobinHandle.TimerGroup[GroupID].SoftTimerTable.data[TimerID].ARR;
 		/* Disable timer if auto reload feature is not used */
 		if (!RoundRobinHandle.TimerGroup[GroupID].SoftTimerTable.data[TimerID].Flags.F.AREN)
+		{
 			/* Disable counter */
 			RoundRobinHandle.TimerGroup[GroupID].SoftTimerTable.data[TimerID].Flags.F.CNTEN = 0;
+			//RTE_RoundRobin_RemoveTimer(GroupID,TimerID);
+		}
 	}
 }
 /*************************************************
@@ -247,6 +259,15 @@ RTE_RoundRobin_Err_e RTE_RoundRobin_ResumeTimer(uint8_t GroupID,uint8_t TimerID)
 }
 /*************************************************
 *** Args:   
+					*Name 待暂停定时器名称
+*** Function: 恢复当前RoundRobin环境中的一个软定时器
+*************************************************/
+bool RTE_RoundRobin_IfRunTimer(uint8_t GroupID,uint8_t TimerID)
+{
+	return RoundRobinHandle.TimerGroup[GroupID].SoftTimerTable.data[TimerID].Flags.F.CNTEN;
+}
+/*************************************************
+*** Args:   
 					Null
 *** Function: 获取当前RoundRobin环境信息
 *************************************************/
@@ -257,7 +278,7 @@ void RTE_RoundRobin_Demon(void)
 	{
 		RTE_Printf("-------------------------\r\n");
 		RTE_Printf("%10s    Group:%02d %16s Using Timer Count:%d Max Num:%d VEC Capbility:%d\r\n",
-		RTE_DEBUG_TXT,
+		RR_STR,
 		RoundRobinHandle.TimerGroup[i].TimerGroupID,
 		RoundRobinHandle.TimerGroup[i].TimerGroupName,
 		RoundRobinHandle.TimerGroup[i].SoftTimerTable.length,
@@ -266,7 +287,7 @@ void RTE_RoundRobin_Demon(void)
 		for(uint8_t j=0;j<RoundRobinHandle.TimerGroup[i].SoftTimerTable.length;j++)
 		{
 			RTE_Printf("%10s    %02d.TIMER:%16s----AutoReload Enable:%x AutoReload Val:%6d Now Val:%6d Run Enable:%x\r\n",
-			RTE_DEBUG_TXT,
+			RR_STR,
 			RoundRobinHandle.TimerGroup[i].SoftTimerTable.data[j].TimerID,
 			RoundRobinHandle.TimerGroup[i].SoftTimerTable.data[j].TimerName,
 			RoundRobinHandle.TimerGroup[i].SoftTimerTable.data[j].Flags.F.AREN,

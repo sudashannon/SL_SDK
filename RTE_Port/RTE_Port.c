@@ -21,43 +21,54 @@ void RTE_Assert(char *file, uint32_t line)
 	}
 }
 /*************************************************
-*** RTE_Stdout 依赖的输出函数
-*************************************************/
-void RTE_Puts (const char *pcString,uint16_t length)
-{
-#if RTE_USE_OS == 1
-	osMutexAcquire(MutexIDStdio,osWaitForever);
-	HAL_UART_Transmit(&UsartHandle[USART_DEBUG].UsartHalHandle, (uint8_t *)pcString,length,HAL_MAX_DELAY);
-	osMutexRelease(MutexIDStdio);
-#else
-	;
-#endif
-}
-/*************************************************
 *** RTE所管理的内存，静态分配，32位对齐
 *************************************************/
 #if RTE_USE_MEMMANAGE == 1
-RTE_ALIGN_32BYTES (uint8_t RTE_RAM[RTE_MEM_SIZE * 1024]) = {0};
+RTE_ALIGN_32BYTES (__attribute__((section (".RAM_RTE"))) uint8_t RTE_RAM[RTE_MEM_SIZE * 1024]) = {0};
+RTE_ALIGN_32BYTES (uint8_t DMA_RAM[4 * 1024]) = {0};
 #endif
 /*************************************************
-*** RTE_Shell的回调函数
+*** RTE_KVDB的相关函数
 *************************************************/
-#if RTE_USE_SHELL == 1
-//#include "Board_Usart.h"
-static void Shell_TimerCallBack(void *Params)
+#if RTE_USE_KVDB
+/* default ENV set for user */
+static const ef_env rte_kvdb_lib[] = {
+	{"boot_times","0"},
+};
+#define KVDB_TXT  "[KVDB]"
+void RTE_KVDB_Init(void) 
 {
-	uint8_t *ShellBuffer = RTE_MEM_Alloc0(MEM_RTE,SHELL_BUFSIZE);
-	uint16_t BufferLenth= 0;
-//	Board_Usart_Data_t *ShellData;
-//	ShellData = Board_Usart_ReturnQue(USART_DEBUG);
-//	if(RTE_MessageQuene_Out(&ShellData->ComQuene,(uint8_t *)ShellBuffer,&BufferLenth) == MSG_NO_ERR)
-//	{
-//		if(BufferLenth)
-//		{
-//			RTE_Shell_Poll((char *)ShellBuffer);
-//		}
-//	}
-	RTE_MEM_Free(MEM_RTE,ShellBuffer);
+	#if RTE_USE_OS == 1
+	static const osMutexAttr_t MutexIDKVDBAttr = {
+		"KVDBMutex",     // human readable mutex name
+		0U,    					// attr_bits
+		NULL,                // memory for control block   
+		0U                   // size for control block
+	};
+	MutexIDKVDB = osMutexNew(&MutexIDKVDBAttr);
+	#endif
+	size_t default_env_set_size = sizeof(rte_kvdb_lib) / sizeof(rte_kvdb_lib[0]);
+	EfErrCode result = EF_NO_ERR;
+	if (result == EF_NO_ERR) 
+	{
+		result = ef_env_init(rte_kvdb_lib, default_env_set_size);
+		if(result == EF_NO_ERR)
+		{
+			uint32_t i_boot_times = NULL;
+			char *c_old_boot_times, c_new_boot_times[11] = {0};
+			/* get the boot count number from Env */
+			c_old_boot_times = ef_get_env("boot_times");
+			RTE_AssertParam(c_old_boot_times);
+			i_boot_times = atol(c_old_boot_times);
+			/* boot count +1 */
+			i_boot_times ++;
+			RTE_Printf("%10s    The system boot times:%d\r\n",KVDB_TXT,i_boot_times);
+			/* interger to string */
+			usprintf(c_new_boot_times,"%d", i_boot_times);
+			ef_set_env("boot_times", c_new_boot_times);
+			ef_save_env();
+		}
+	}
 }
 #endif
 /*************************************************
@@ -68,13 +79,14 @@ void RTE_Init(void)
 {
 #if RTE_USE_MEMMANAGE == 1
 	RTE_MEM_Pool(MEM_RTE,RTE_RAM,RTE_MEM_SIZE*1024);
+	RTE_MEM_Pool(MEM_DMA,DMA_RAM,4*1024);
 #endif
 #if RTE_USE_ROUNDROBIN == 1
 	RTE_RoundRobin_Init();
 	RTE_RoundRobin_CreateGroup("RTEGroup");
 	#if RTE_USE_SHELL == 1
 		RTE_Shell_Init();
-		RTE_RoundRobin_CreateTimer(0,"ShellTimer",20,1,1,Shell_TimerCallBack,(void *)0);
+		RTE_RoundRobin_CreateTimer(0,"ShellTimer",100,1,1,RTE_Shell_Poll,(void *)0);
 	#endif
 #endif
 #if RTE_USE_STDOUT != 1

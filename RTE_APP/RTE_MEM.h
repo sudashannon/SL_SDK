@@ -3,9 +3,13 @@
 #ifdef __cplusplus  
 extern "C" {  
 #endif  
-	#include "RTE_Include.h"
+	#include "RTE_Config.h"
 	#if RTE_USE_MEMMANAGE == 1
-	
+	#include <stdint.h>
+	#include <string.h>
+	#if RTE_USE_OS
+	#include "cmsis_os2.h"
+	#endif
 	#if RTE_MEM_64BIT == 1
 	#define MEM_UNIT uint64_t
 	#else
@@ -17,6 +21,7 @@ extern "C" {
 	typedef enum
 	{
 		MEM_RTE = 0,
+		MEM_DMA = 1,
 		MEM_N,
 	}RTE_MEM_Name_e;
 	//--------------------------------------------------------------
@@ -44,6 +49,9 @@ extern "C" {
 		RTE_MEM_Name_e MemName;
 	  uint8_t *work_mem;    //Work memory for allocation
 		uint32_t totalsize;
+#if RTE_USE_OS
+		osMutexId_t MutexIDMEM; 
+#endif
 	}RTE_MEM_t;
 	//--------------------------------------------------------------
 	// MEM信息结构体

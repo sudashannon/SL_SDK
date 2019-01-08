@@ -3,11 +3,15 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-	#include "RTE_Include.h"
+	#include "RTE_Config.h"
 	#if RTE_USE_KVDB
 	#if RTE_USE_OS
-		extern osMutexId_t MutexIDKVDB;
+	#include "cmsis_os2.h"
+	extern osMutexId_t MutexIDKVDB;
 	#endif
+	#include <stdbool.h>
+	#include <stdint.h>
+	#include <string.h>
 	// <o> KVDB_SIZE
 	// <i> KVDB环境变量总大小(以KVDB_ERASE_MIN_SIZE为最小单位 单位：K)
 	#ifndef KVDB_SIZE
@@ -54,6 +58,9 @@ extern "C" {
 	extern EfErrCode ef_port_write(uint32_t addr, const uint32_t *buf, size_t size);
 	extern void ef_port_env_lock(void);
 	extern void ef_port_env_unlock(void);
+	#if RTE_USE_OS == 1
+	extern osMutexId_t MutexIDKVDB; 
+	#endif
 	#endif
 #ifdef __cplusplus
 }
