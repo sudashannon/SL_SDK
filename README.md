@@ -2,43 +2,46 @@
 一款基于RTX操作系统、Cotex-M内核下通用软件运行环境，加速嵌入式软件开发。
 # 主要内容
 RTE框架如下：
-
 -RTE
-
---SL_APP
-
+--RTE_APP
 ---包含内存管理、类shell交互、不同Core的文件、一个环形队列、一个状态机实现、一个软件定时器、字符串处理库等内容。
 
---SL_BSP
-
+--RTE_BSP
 ---包含任何Chip必有的三个部分：按键、串口、LED以方便用户对运行于SL_RTE下的代码进行调试。
 
---SL_ThirdParty
+--RTE_Board
+---包含常用的板级支持包。
+---STM32F103：ADC、BH1750、CRC、DHT11、E2PROM、ESP8266、片内Flash模拟E2PROM、GSMA9、I2C、LCD、PM25、PWM
+              RC522、IO模拟串口、SPI、SR501、GPIO。  
+   STM32F407：类似F1。
+   IOTL475：移植官方驱动。
+   STM32F767:待上传。
+   STM32H743：待上传。
 
----包含使用到的第三方代码。
+--RTE_Config
+---可在KEIL中进行图形化配置的RTE配置文件。
 
 --Board_Collection
-
 ---针对具体使用的开发板所搜集或编写的代码目前包含以下部分：
 
----STM32F103：ADC、BH1750、CRC、DHT11、E2PROM、ESP8266、片内Flash模拟E2PROM、GSMA9、I2C、LCD、PM25、PWM
-              RC522、IO模拟串口、SPI、SR501、GPIO。
-              
-   STM32F407：类似F1。
-   
-   IOTL475：移植官方驱动。
-   
-   STM32F767:待上传。
-   
-   STM32H743：待上传。
-   
---Example
+--RTE_Example
+---KEIL环境下不同开发板的DEMO。
 
----KEIL环境下本RTE使用的DEMO。
+--RTE_GUI
+---本RTE自带的GUI，以LVGL为内核；
 
---Docs
+--RTE_MV
+---本RTE自带的机器视觉库，以OPENMV为内核；
 
----包含TXT格式的版本历史纪录和DOC格式的用户手册。
+--RTE_OldVersion
+---老版本。
+
+--RTE_Port
+---移植到不同平台所需文件。
+
+--RTE_Utils
+---一些第三方库。
+
 # 版本历史
 
 2017/09/22  新版本1.0release。
