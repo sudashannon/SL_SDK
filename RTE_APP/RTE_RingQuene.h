@@ -6,6 +6,7 @@ extern "C" {
 #include "RTE_Config.h"
 #if RTE_USE_RINGQUENE
 #include <string.h>
+#include <stdbool.h>
 typedef struct {
 	void *data;
 	int count;
@@ -132,6 +133,7 @@ int RTE_RingQuene_Pop(RTE_RingQuene_t *RingBuff, void *data);
 int RTE_RingQuene_PopMult(RTE_RingQuene_t *RingBuff, void *data, int num);
 typedef struct
 {
+	bool busy;
 	RTE_RingQuene_t RingBuff;
 	uint8_t *QueneBuffer;
 }RTE_MessageQuene_t;
@@ -140,7 +142,8 @@ typedef enum
 	MSG_NO_ERR = 0x00,
 	MSG_EN_FULL = 0x01,
 	MSG_DE_EMPTY = 0x02,
-	MSG_NOTSAME = 0x03,
+	MSG_DE_NOTSAME = 0x03,
+	MSG_BUSY = 0x04,
 }RTE_MessageQuene_Err_e;
 extern void RTE_MessageQuene_Init(RTE_MessageQuene_t *MessageQuene, uint16_t Size);
 extern RTE_MessageQuene_Err_e RTE_MessageQuene_In(RTE_MessageQuene_t *MessageQuene, uint8_t *Data,uint16_t DataSize);

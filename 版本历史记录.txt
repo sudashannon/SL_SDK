@@ -90,6 +90,8 @@ LOG用于各个模块；；
 升级日志模块，可选输出到RTE_Stdout、FILE、Flash；
 优化include结构；
 
+2019/01/9 版本号3.3.0109
+修复了MessageQue的出入逻辑；
 
 下一版本计划：
 1、IAP库的开发和移植；

@@ -59,7 +59,9 @@ int RTE_RingQuene_InsertMult(RTE_RingQuene_t *RingBuff, const void *data, int nu
 	int cnt1, cnt2;
 	/* We cannot insert when queue is full */
 	if (RTE_RingQuene_IsFull(RingBuff))
+	{
 		return 0;
+	}
 	/* Calculate the segment lengths */
 	cnt1 = cnt2 = RTE_RingQuene_GetFree(RingBuff);
 	if (RB_INDH(RingBuff) + cnt1 >= RingBuff->count)
@@ -142,6 +144,7 @@ void RTE_MessageQuene_Init(RTE_MessageQuene_t *MessageQuene, uint16_t Size)
 	MessageQuene->QueneBuffer = (uint8_t *)RTE_MEM_Alloc0(MEM_RTE,Size);
 	RTE_AssertParam(MessageQuene->QueneBuffer);
 	RTE_AssertParam(RTE_RingQuene_Init(&MessageQuene->RingBuff,MessageQuene->QueneBuffer,sizeof(uint8_t),Size));
+	MessageQuene->busy = false;
 }
 /*************************************************
 *** Args:   
@@ -153,23 +156,23 @@ void RTE_MessageQuene_Init(RTE_MessageQuene_t *MessageQuene, uint16_t Size)
 RTE_MessageQuene_Err_e RTE_MessageQuene_In(RTE_MessageQuene_t *MessageQuene, uint8_t *Data,uint16_t DataSize)
 {
 	RTE_MessageQuene_Err_e RetVal = MSG_NO_ERR;
-	if(RTE_RingQuene_GetSize(&MessageQuene->RingBuff)>=3)
+	if(MessageQuene->busy == true)
+		return MSG_BUSY;
+	MessageQuene->busy = true;
+	if(RTE_RingQuene_GetFree(&MessageQuene->RingBuff)>=DataSize+2)
 	{
 		uint8_t SizeHigh = (DataSize>>8)&0xFF;
 		RTE_RingQuene_Insert(&MessageQuene->RingBuff,&SizeHigh);
 		uint8_t SizeLow = DataSize&0xFF;
 		RTE_RingQuene_Insert(&MessageQuene->RingBuff,&SizeLow);
-		if(RTE_RingQuene_InsertMult(&MessageQuene->RingBuff,Data,DataSize) != DataSize)
-		{
-			RTE_LOG_ERROR(RINGQUENE_STR,"In data not enough");
-			RetVal = MSG_NOTSAME;
-		}
+		RTE_AssertParam(RTE_RingQuene_InsertMult(&MessageQuene->RingBuff,Data,DataSize)==DataSize);
 	}
 	else
 	{
-		RTE_LOG_ERROR(RINGQUENE_STR,"In error");
+		RTE_LOG_ERROR(RINGQUENE_STR,"Enquene has not enough space");
 		RetVal = MSG_EN_FULL;
 	}
+	MessageQuene->busy = false;
 	return RetVal;
 }
 /*************************************************
@@ -182,21 +185,25 @@ RTE_MessageQuene_Err_e RTE_MessageQuene_In(RTE_MessageQuene_t *MessageQuene, uin
 RTE_MessageQuene_Err_e RTE_MessageQuene_Out(RTE_MessageQuene_t *MessageQuene, uint8_t *Data,uint16_t *DataSize)
 {
 	RTE_MessageQuene_Err_e RetVal = MSG_NO_ERR;
+	if(MessageQuene->busy == true)
+		return MSG_BUSY;
+	MessageQuene->busy = true;
 	uint8_t SizeHigh = 0x00;
 	uint8_t SizeLow = 0x00;	
 	if(RTE_RingQuene_Pop(&MessageQuene->RingBuff,&SizeHigh)&&RTE_RingQuene_Pop(&MessageQuene->RingBuff,&SizeLow))
 	{
 		*DataSize = (uint16_t)(SizeHigh<<8)|SizeLow;
-		if(RTE_RingQuene_PopMult(&MessageQuene->RingBuff,Data,*DataSize) != *DataSize)
+		if(RTE_RingQuene_PopMult(&MessageQuene->RingBuff,Data,*DataSize) < *DataSize)
 		{
-			RTE_LOG_ERROR(RINGQUENE_STR,"Out data not enough");
-			RetVal = MSG_NOTSAME;
+			RTE_LOG_ERROR(RINGQUENE_STR,"Dequene size error");
+			RetVal = MSG_DE_NOTSAME;
 		}
 	}
 	else
 	{
 		RetVal = MSG_DE_EMPTY;
 	}
+	MessageQuene->busy = false;
 	return RetVal;
 }
 #endif
