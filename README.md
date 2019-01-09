@@ -13,18 +13,20 @@ RTE框架如下：
 
 --RTE_Board
 ---包含常用的板级支持包。
+
 ---STM32F103：ADC、BH1750、CRC、DHT11、E2PROM、ESP8266、片内Flash模拟E2PROM、GSMA9、I2C、LCD、PM25、PWM
               RC522、IO模拟串口、SPI、SR501、GPIO。  
+              
    STM32F407：类似F1。
+   
    IOTL475：移植官方驱动。
+   
    STM32F767:待上传。
+   
    STM32H743：待上传。
 
 --RTE_Config
 ---可在KEIL中进行图形化配置的RTE配置文件。
-
---Board_Collection
----针对具体使用的开发板所搜集或编写的代码目前包含以下部分：
 
 --RTE_Example
 ---KEIL环境下不同开发板的DEMO。
