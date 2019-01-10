@@ -14,7 +14,7 @@
 #include "RTE_Log.h"
 #define MEM_STR "[MEM]"
 /*************************************************
-*** 管理BGet的结构体变量，静态管理
+*** 管理MEM的结构体变量，静态管理
 *************************************************/
 static RTE_MEM_t MemoryControlHandle[MEM_N] = 
 {
