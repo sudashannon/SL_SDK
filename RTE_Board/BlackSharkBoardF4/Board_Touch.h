@@ -34,5 +34,7 @@
 
 extern void Board_Touch_Init(void);
 extern bool Board_TouchScan(uint16_t *x,uint16_t *y);
+#if RTE_USE_GUI
 extern bool GUI_TouchScan(lv_indev_data_t *data);
+#endif
 #endif

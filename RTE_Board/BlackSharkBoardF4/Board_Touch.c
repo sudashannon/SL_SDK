@@ -1,5 +1,4 @@
 #include "Board_Touch.h"
-#include <stdio.h>
 void Board_Touch_Init(void)
 {
 	GPIO_InitTypeDef  GPIO_InitStructure;	
@@ -141,6 +140,7 @@ bool Board_TouchScan(uint16_t *x,uint16_t *y)
 	}
 	return false;
 }
+#if RTE_USE_GUI
 bool GUI_TouchScan(lv_indev_data_t *data)
 {
 	static int16_t last_x = 0;
@@ -164,3 +164,4 @@ bool GUI_TouchScan(lv_indev_data_t *data)
 	}
 	return false;
 }
+#endif

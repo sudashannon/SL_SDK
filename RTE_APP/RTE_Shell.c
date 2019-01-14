@@ -204,9 +204,8 @@ void RTE_Shell_Init(void)
 *************************************************/
 void RTE_Shell_Poll(void *Params)
 {
-	uint16_t BufferLenth= 0;
 	char *ShellBuffer = RTE_MEM_Alloc0(MEM_RTE,SHELL_BUFSIZE);
-	if(RTE_MessageQuene_Out(&ShellQuene,(uint8_t *)ShellBuffer,&BufferLenth) == MSG_NO_ERR)
+	if(RTE_MessageQuene_Out(&ShellQuene,(uint8_t *)ShellBuffer,NULL) == MSG_NO_ERR)
 	{
 		int iStatus;
 		iStatus = RTE_Shell_CommandProcess(ShellBuffer);

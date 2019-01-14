@@ -257,7 +257,7 @@
 	// </e>
 	// <e> USE_LV_LED
 	// <i> GUI LED控件 依赖控件：无
-	#define USE_LV_LED      1
+	#define USE_LV_LED      0
 	// </e>
 	// <e> USE_LV_MBOX
 	// <i> GUI 消息窗口控件 依赖控件：rect, btnm, label

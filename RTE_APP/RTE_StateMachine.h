@@ -29,6 +29,7 @@ extern void RTE_StateMachine_Init(RTE_StateMachine_t *thisStateMachine,uint8_t I
 extern RTE_SM_Err_e RTE_StateMachine_Add(RTE_StateMachine_t *thisStateMachine,uint8_t State, uint8_t(*StateFunction)(void *));
 extern void RTE_StateMachine_Run(RTE_StateMachine_t *thisStateMachine,void *InputArgs);
 extern RTE_SM_Err_e RTE_StateMachine_Remove(RTE_StateMachine_t *thisStateMachine,uint8_t State);
+extern void RTE_StateMachine_ChangeTo(RTE_StateMachine_t *thisStateMachine,uint8_t NewStateNum);
 #endif
 #ifdef __cplusplus
 }

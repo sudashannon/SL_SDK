@@ -139,7 +139,7 @@ int8_t RTE_RoundRobin_GetTimerID(uint8_t GroupID,const char *TimerName)
 		}
 	}
 	if(idx == -1)
-		RTE_LOG_WARN(RR_STR,"No such group");
+		RTE_LOG_WARN(RR_STR,"No such timer");
 	return idx;
 }
 /*************************************************
@@ -149,6 +149,8 @@ int8_t RTE_RoundRobin_GetTimerID(uint8_t GroupID,const char *TimerName)
 *************************************************/
 RTE_RoundRobin_Err_e RTE_RoundRobin_RemoveTimer(uint8_t GroupID,uint8_t TimerID)
 {
+	if(TimerID>RoundRobinHandle.TimerGroup[GroupID].SoftTimerTable.length)
+		return RR_NOSUCHTIMER;
 	vec_splice(&RoundRobinHandle.TimerGroup[GroupID].SoftTimerTable, TimerID, 1);
 	return RR_NOERR;
 }
@@ -170,8 +172,7 @@ inline static void RTE_RoundRobin_CheckTimer(uint8_t GroupID,uint8_t TimerID)
 		if (!RoundRobinHandle.TimerGroup[GroupID].SoftTimerTable.data[TimerID].Flags.F.AREN)
 		{
 			/* Disable counter */
-			RoundRobinHandle.TimerGroup[GroupID].SoftTimerTable.data[TimerID].Flags.F.CNTEN = 0;
-			//RTE_RoundRobin_RemoveTimer(GroupID,TimerID);
+			RTE_RoundRobin_RemoveTimer(GroupID,TimerID);
 		}
 	}
 }

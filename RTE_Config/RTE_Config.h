@@ -14,7 +14,7 @@ extern "C" {
 //-------- <<< Use Configuration Wizard in Context Menu >>> --------------------
 //<s> RTE版本号
 //<i> 具体定义见相关文档。
-#define RTE_VERSION "3.3.0108"
+#define RTE_VERSION "3.3.0113"
 //=======================
 //<e> 动态内存管理模块
 //=======================
@@ -130,7 +130,7 @@ extern "C" {
 	#define SHELL_MAX_ARGS              8
 	//<o>数据缓存大小
 	//<i>默认大小: 32 [bytes] 
-	#define SHELL_BUFSIZE    		        32
+	#define SHELL_BUFSIZE    		        64
 #endif
 //</e>
 //=======================

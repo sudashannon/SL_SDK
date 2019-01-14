@@ -10,7 +10,9 @@ typedef struct
 #define LCD_BASE        ((uint32_t)(0x60000000 | 0x00007FFFE))
 #define LCD             ((LCD_TypeDef *) LCD_BASE)
 extern void Board_LCD_Init(void);
+#if RTE_USE_GUI
 extern void GUI_LCD_Fill(int32_t sx,int32_t sy,int32_t ex,int32_t ey,lv_color_t color);
 extern void GUI_LCD_Map(int32_t sx,int32_t sy,int32_t ex,int32_t ey,const lv_color_t * color_map);
 extern void GUI_LCD_Flush(int32_t sx,int32_t sy,int32_t ex,int32_t ey,const lv_color_t * color_map);
+#endif
 #endif

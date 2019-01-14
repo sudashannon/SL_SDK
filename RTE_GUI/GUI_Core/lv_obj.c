@@ -340,12 +340,10 @@ lv_res_t lv_obj_del(lv_obj_t * obj)
     /*Delete the base objects*/
     if(obj->ext_attr != NULL)  lv_mem_free(obj->ext_attr);
     lv_mem_free(obj); /*Free the object itself*/
-
     /*Send a signal to the parent to notify it about the child delete*/
     if(par != NULL) {
         par->signal_func(par, LV_SIGNAL_CHILD_CHG, NULL);
     }
-
     return LV_RES_INV;
 }
 

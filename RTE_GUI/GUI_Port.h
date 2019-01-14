@@ -15,11 +15,11 @@
  *  内存管理重定向
  *********************/
 #define lv_mem_monitor_t          RTE_MEM_Monitor_t
-#define lv_mem_monitor(mon)       RTE_MEM_Monitor(MEM_RTE,mon)
-#define lv_mem_alloc(size)        RTE_MEM_Alloc(MEM_RTE,size)
-#define lv_mem_free(data)         RTE_MEM_Free(MEM_RTE,data)
+#define lv_mem_monitor(mon)       RTE_MEM_Monitor(MEM_DMA,mon)
+#define lv_mem_alloc(size)        RTE_MEM_Alloc(MEM_DMA,size)
+#define lv_mem_free(data)         RTE_MEM_Free(MEM_DMA,data)
 #define lv_mem_assert             RTE_AssertParam
-#define lv_mem_realloc(data,size) RTE_MEM_Realloc(MEM_RTE,data,size)
+#define lv_mem_realloc(data,size) RTE_MEM_Realloc(MEM_DMA,data,size)
 #define lv_mem_get_size           RTE_MEM_GetDataSize
 /*********************
  *  链表重定向

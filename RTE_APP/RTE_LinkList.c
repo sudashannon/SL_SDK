@@ -65,7 +65,7 @@ void * RTE_LL_InsHead(RTE_LL_t * ll_p)
 {
     RTE_LL_Node_t * n_new;
 
-    n_new = RTE_MEM_Alloc(MEM_RTE,ll_p->n_size + LL_NODE_META_SIZE);
+    n_new = RTE_MEM_Alloc(MEM_DMA,ll_p->n_size + LL_NODE_META_SIZE);
 
     if(n_new != NULL) {
         node_set_prev(ll_p, n_new, NULL);           /*No prev. before the new head*/
@@ -101,7 +101,7 @@ void * RTE_LL_InsPrev(RTE_LL_t * ll_p, void * n_act)
         n_new = RTE_LL_InsHead(ll_p);
         if(n_new == NULL) return NULL;
     } else {
-        n_new = RTE_MEM_Alloc(MEM_RTE,ll_p->n_size + LL_NODE_META_SIZE);
+        n_new = RTE_MEM_Alloc(MEM_DMA,ll_p->n_size + LL_NODE_META_SIZE);
         if(n_new == NULL) return NULL;
 
         n_prev = RTE_LL_GetPrev(ll_p, n_act);
@@ -123,7 +123,7 @@ void * RTE_LL_InsTail(RTE_LL_t * ll_p)
 {
     RTE_LL_Node_t * n_new;
 
-    n_new = RTE_MEM_Alloc(MEM_RTE,ll_p->n_size + LL_NODE_META_SIZE);
+    n_new = RTE_MEM_Alloc(MEM_DMA,ll_p->n_size + LL_NODE_META_SIZE);
     if(n_new == NULL) return NULL;
 
     if(n_new != NULL) {
@@ -192,7 +192,7 @@ void RTE_LL_Clear(RTE_LL_t * ll_p)
         i_next = RTE_LL_GetNext(ll_p, i);
 
         RTE_LL_Remove(ll_p, i);
-        RTE_MEM_Free(MEM_RTE,i);
+        RTE_MEM_Free(MEM_DMA,i);
 
         i = i_next;
     }
