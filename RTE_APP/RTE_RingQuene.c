@@ -1,10 +1,11 @@
 #include "RTE_RingQuene.h"
 /*****************************************************************************
 *** Author: Shannon
-*** Version: 3.0 2019.1.9
+*** Version: 3.1 2019.1.13
 *** History: 1.0 创建，修改自tivaware
              2.0 为RTE的升级做适配
 						 3.0 修改了出入逻辑，增加了互斥锁
+						 3.1 删除互斥锁 因为入和出的管理不会冲突
 *****************************************************************************/
 #if RTE_USE_RINGQUENE == 1
 #include "RTE_MEM.h"
@@ -144,7 +145,6 @@ void RTE_MessageQuene_Init(RTE_MessageQuene_t *MessageQuene, uint16_t Size)
 	MessageQuene->QueneBuffer = (uint8_t *)RTE_MEM_Alloc0(MEM_RTE,Size);
 	RTE_AssertParam(MessageQuene->QueneBuffer);
 	RTE_AssertParam(RTE_RingQuene_Init(&MessageQuene->RingBuff,MessageQuene->QueneBuffer,sizeof(uint8_t),Size));
-	MessageQuene->busy = false;
 }
 /*************************************************
 *** Args:   
@@ -156,9 +156,6 @@ void RTE_MessageQuene_Init(RTE_MessageQuene_t *MessageQuene, uint16_t Size)
 RTE_MessageQuene_Err_e RTE_MessageQuene_In(RTE_MessageQuene_t *MessageQuene, uint8_t *Data,uint16_t DataSize)
 {
 	RTE_MessageQuene_Err_e RetVal = MSG_NO_ERR;
-	if(MessageQuene->busy == true)
-		return MSG_BUSY;
-	MessageQuene->busy = true;
 	if(RTE_RingQuene_GetFree(&MessageQuene->RingBuff)>=DataSize+2)
 	{
 		uint8_t SizeHigh = (DataSize>>8)&0xFF;
@@ -172,7 +169,6 @@ RTE_MessageQuene_Err_e RTE_MessageQuene_In(RTE_MessageQuene_t *MessageQuene, uin
 		RTE_LOG_ERROR(RINGQUENE_STR,"Enquene has not enough space");
 		RetVal = MSG_EN_FULL;
 	}
-	MessageQuene->busy = false;
 	return RetVal;
 }
 /*************************************************
@@ -185,25 +181,24 @@ RTE_MessageQuene_Err_e RTE_MessageQuene_In(RTE_MessageQuene_t *MessageQuene, uin
 RTE_MessageQuene_Err_e RTE_MessageQuene_Out(RTE_MessageQuene_t *MessageQuene, uint8_t *Data,uint16_t *DataSize)
 {
 	RTE_MessageQuene_Err_e RetVal = MSG_NO_ERR;
-	if(MessageQuene->busy == true)
-		return MSG_BUSY;
-	MessageQuene->busy = true;
 	uint8_t SizeHigh = 0x00;
 	uint8_t SizeLow = 0x00;	
+	uint16_t DataLenth = 0;
 	if(RTE_RingQuene_Pop(&MessageQuene->RingBuff,&SizeHigh)&&RTE_RingQuene_Pop(&MessageQuene->RingBuff,&SizeLow))
 	{
-		*DataSize = (uint16_t)(SizeHigh<<8)|SizeLow;
-		if(RTE_RingQuene_PopMult(&MessageQuene->RingBuff,Data,*DataSize) < *DataSize)
+		DataLenth = (uint16_t)(SizeHigh<<8)|SizeLow;
+		if(RTE_RingQuene_PopMult(&MessageQuene->RingBuff,Data,DataLenth) < DataLenth)
 		{
 			RTE_LOG_ERROR(RINGQUENE_STR,"Dequene size error");
 			RetVal = MSG_DE_NOTSAME;
 		}
+		if(DataSize)
+			*DataSize = DataLenth;
 	}
 	else
 	{
 		RetVal = MSG_DE_EMPTY;
 	}
-	MessageQuene->busy = false;
 	return RetVal;
 }
 #endif

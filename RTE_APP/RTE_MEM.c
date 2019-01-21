@@ -6,15 +6,17 @@
   * @version V1.1 2019/01/08
 	* @History V1.0 创建，移植并修改自lvgl
 	           V1.1 增加了互斥锁
+						 V1.2 修复了互斥锁逻辑
   ******************************************************************************
   */
 #include "RTE_MEM.h"
 #if RTE_USE_MEMMANAGE == 1
 #include "RTE_Math.h"
 #include "RTE_Log.h"
+#include "RTE_UString.h"
 #define MEM_STR "[MEM]"
 /*************************************************
-*** 管理MEM的结构体变量，静态管理
+*** 管理BGet的结构体变量，静态管理
 *************************************************/
 static RTE_MEM_t MemoryControlHandle[MEM_N] = 
 {
@@ -39,6 +41,20 @@ static uint32_t zero_mem;       /*Give the address of this variable if 0 byte sh
             len 实际占用的内存大小；
 *** Function: 根据获取的内存以及大小初始化块管理
 *************************************************/
+//static const osMutexAttr_t MutexIDStdioAttr[MEM_N] = {
+//	{
+//		"Mem0Mutex",     // human readable mutex name
+//		osMutexPrioInherit|osMutexRecursive  ,    					// attr_bits
+//		NULL,                // memory for control block   
+//		0U                   // size for control block
+//	},
+//	{
+//		"Mem1Mutex",     // human readable mutex name
+//		osMutexPrioInherit|osMutexRecursive  ,    					// attr_bits
+//		NULL,                // memory for control block   
+//		0U                   // size for control block
+//	},
+//};
 void RTE_MEM_Pool(RTE_MEM_Name_e mem_name,void *buf,uint32_t len)
 {
 	MemoryControlHandle[mem_name].work_mem = (uint8_t *) buf;
@@ -58,9 +74,6 @@ void RTE_MEM_Pool(RTE_MEM_Name_e mem_name,void *buf,uint32_t len)
 *************************************************/
 void *RTE_MEM_Alloc(RTE_MEM_Name_e mem_name,uint32_t size)
 {
-#if RTE_USE_OS
-	osMutexAcquire(MemoryControlHandle[mem_name].MutexIDMEM,osWaitForever);
-#endif
 	if(size == 0) {
 		return &zero_mem;
 	}
@@ -91,9 +104,6 @@ void *RTE_MEM_Alloc(RTE_MEM_Name_e mem_name,uint32_t size)
 	} while(e != NULL && alloc == NULL);
 	if(alloc == NULL) 
 		RTE_LOG_WARN(MEM_STR,"Couldn't allocate memory");
-#if RTE_USE_OS
-	osMutexRelease(MemoryControlHandle[mem_name].MutexIDMEM);
-#endif
 	return alloc;
 }
 /*************************************************
@@ -116,9 +126,6 @@ void *RTE_MEM_Alloc0(RTE_MEM_Name_e mem_name,uint32_t size)
 *************************************************/
 void RTE_MEM_Free(RTE_MEM_Name_e mem_name,const void * data)
 {
-#if RTE_USE_OS
-	osMutexAcquire(MemoryControlHandle[mem_name].MutexIDMEM,osWaitForever);
-#endif
 	if(data == &zero_mem) return;
 	if(data == NULL) return;
 	/*e points to the header*/
@@ -138,9 +145,6 @@ void RTE_MEM_Free(RTE_MEM_Name_e mem_name,const void * data)
 		e_next = ent_get_next(mem_name,e_next);
 	}
 #endif
-#if RTE_USE_OS
-	osMutexRelease(MemoryControlHandle[mem_name].MutexIDMEM);
-#endif
 }
 /*************************************************
 *** Args:   mem_name 指定的内存区域;
@@ -150,9 +154,6 @@ void RTE_MEM_Free(RTE_MEM_Name_e mem_name,const void * data)
 *************************************************/
 void *RTE_MEM_Realloc(RTE_MEM_Name_e mem_name,void *data_p,uint32_t new_size)
 {
-#if RTE_USE_OS
-	osMutexAcquire(MemoryControlHandle[mem_name].MutexIDMEM,osWaitForever);
-#endif
 	/*data_p could be previously freed pointer (in this case it is invalid)*/
 	if(data_p != NULL) {
 		RTE_MEM_Ent_t * e = (RTE_MEM_Ent_t *)((uint8_t *) data_p - sizeof(RTE_MEM_Header_t));
@@ -169,9 +170,6 @@ void *RTE_MEM_Realloc(RTE_MEM_Name_e mem_name,void *data_p,uint32_t new_size)
 		ent_trunc(e, new_size);
 		return &e->first_data;
 	}
-#if RTE_USE_OS
-	osMutexRelease(MemoryControlHandle[mem_name].MutexIDMEM);
-#endif
 	void * new_p;
 	new_p = RTE_MEM_Alloc(mem_name,new_size);
 	if(new_p != NULL && data_p != NULL) {
@@ -264,6 +262,9 @@ uint32_t RTE_MEM_GetDataSize(const void * data)
  */
 static RTE_MEM_Ent_t * ent_get_next(RTE_MEM_Name_e mem_name,RTE_MEM_Ent_t * act_e)
 {
+#if RTE_USE_OS
+	osMutexAcquire(MemoryControlHandle[mem_name].MutexIDMEM,osWaitForever);
+#endif
 	RTE_MEM_Ent_t * next_e = NULL;
 	if(act_e == NULL) { /*NULL means: get the first entry*/
 		next_e = (RTE_MEM_Ent_t *) MemoryControlHandle[mem_name].work_mem;
@@ -272,6 +273,9 @@ static RTE_MEM_Ent_t * ent_get_next(RTE_MEM_Name_e mem_name,RTE_MEM_Ent_t * act_
 		next_e = (RTE_MEM_Ent_t *)&data[act_e->header.d_size];
 		if(&next_e->first_data >= &MemoryControlHandle[mem_name].work_mem[MemoryControlHandle[mem_name].totalsize]) next_e = NULL;
 	}
+#if RTE_USE_OS
+	osMutexRelease(MemoryControlHandle[mem_name].MutexIDMEM);
+#endif
 	return next_e;
 }
 /**

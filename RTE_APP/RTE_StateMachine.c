@@ -64,6 +64,16 @@ RTE_SM_Err_e RTE_StateMachine_Remove(RTE_StateMachine_t *thisStateMachine,uint8_
 /*************************************************
 *** Args:   
 					thisStateMachine 待处理状态机
+					NewStateNum 状态数目
+*** Function: 初始化一个状态机
+*************************************************/
+void RTE_StateMachine_ChangeTo(RTE_StateMachine_t *thisStateMachine,uint8_t NewStateNum)
+{
+	thisStateMachine->RunningState = NewStateNum;
+}
+/*************************************************
+*** Args:   
+					thisStateMachine 待处理状态机
 					StateNum 状态数目
 *** Function: 初始化一个状态机
 *************************************************/

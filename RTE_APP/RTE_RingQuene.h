@@ -133,7 +133,6 @@ int RTE_RingQuene_Pop(RTE_RingQuene_t *RingBuff, void *data);
 int RTE_RingQuene_PopMult(RTE_RingQuene_t *RingBuff, void *data, int num);
 typedef struct
 {
-	bool busy;
 	RTE_RingQuene_t RingBuff;
 	uint8_t *QueneBuffer;
 }RTE_MessageQuene_t;

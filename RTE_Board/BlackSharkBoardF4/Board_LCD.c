@@ -71,32 +71,54 @@ void Board_LCD_DrawPoint(uint16_t x,uint16_t y,uint16_t color)
 }	 
 void Board_LCD_Set_Window(uint16_t x1, uint16_t x2, uint16_t y1, uint16_t y2)
 {   
-	Board_LCD_WR_REG(0x2A);
+	LCD->LCD_REG = 0x2A;
 	Board_LCD_WR_DATA(x1 >> 8);
 	Board_LCD_WR_DATA(x1 & 0xff);
 	Board_LCD_WR_DATA(x2 >> 8);
 	Board_LCD_WR_DATA(x2 & 0xff);
 
-	Board_LCD_WR_REG(0x2B);
+	LCD->LCD_REG = 0x2B;
 	Board_LCD_WR_DATA(y1 >> 8);
 	Board_LCD_WR_DATA(y1  &0xff);
 	Board_LCD_WR_DATA(y2 >> 8);
 	Board_LCD_WR_DATA(y2  &0xff);
 } 
+#if RTE_USE_GUI
 //在指定区域内填充单个颜色
 //(sx,sy),(ex,ey):填充矩形对角坐标,区域大小为:(ex-sx+1)*(ey-sy+1)   
 //color:要填充的颜色
+#if RTE_USE_OS == 0
+static volatile bool DMAFlag = false;
+#else
+osEventFlagsId_t EvtIDLCD;
+#endif
 void GUI_LCD_Fill(int32_t sx,int32_t sy,int32_t ex,int32_t ey,lv_color_t color)
 {           
 	uint16_t width = ex-sx+1; 			//得到填充的宽度
 	uint16_t height = ey-sy+1;			//高度
 	Board_LCD_Set_Window(sx,ex,sy,ey);
 	LCD->LCD_REG =0x2C;	 
-	for(uint16_t i = 0;i<height;i++)
+	uint16_t *Linebuffer = RTE_MEM_Alloc0(MEM_DMA,width*2);
+	for(uint16_t i=0;i<width;i++)
+		Linebuffer[i] = color.full;
+	for(uint16_t i=0;i<height;)
 	{
-		for(uint16_t j = 0;j<width;j++)
-			LCD->LCD_RAM = color.full;	//显示颜色 	    
+		DMA2_Stream7->PAR = (uint32_t)Linebuffer;
+		DMA_SetCurrDataCounter(DMA2_Stream7,width);
+#if RTE_USE_OS == 0
+		DMAFlag = false;
+		DMA_Cmd(DMA2_Stream7, ENABLE);
+		while(DMAFlag==false);
+#else
+		DMA_Cmd(DMA2_Stream7, ENABLE);
+		uint32_t GetFlags = osEventFlagsWait(EvtIDLCD,0x00000001U,osFlagsWaitAny,osWaitForever);
+		if(GetFlags != 0x00000001U)
+			continue;
+		i++;
+#endif
+		
 	}
+	RTE_MEM_Free(MEM_DMA,Linebuffer);
 }  
 void GUI_LCD_Map(int32_t sx,int32_t sy,int32_t ex,int32_t ey,const lv_color_t * color_map)
 {  
@@ -104,34 +126,64 @@ void GUI_LCD_Map(int32_t sx,int32_t sy,int32_t ex,int32_t ey,const lv_color_t * 
 	uint16_t height=ey-sy+1;			//高度
 	Board_LCD_Set_Window(sx,ex,sy,ey);
 	LCD->LCD_REG =0x2C;	 
-	uint32_t nowwidth = 0;
- 	for(uint16_t i=0;i<height;i++)
+	uint32_t pixnum = width*height;
+	while(pixnum>0)
 	{
-		for(uint16_t j=0;j<width;j++)
-			LCD->LCD_RAM = color_map[nowwidth+j].full;//写入数据 
-		nowwidth += width;
-	}		  
+		uint32_t sendpix = pixnum;
+		if(sendpix>UINT16_MAX)
+			sendpix = UINT16_MAX;
+		DMA2_Stream7->PAR = (uint32_t)color_map;
+		DMA_SetCurrDataCounter(DMA2_Stream7,sendpix);
+#if RTE_USE_OS == 0
+		DMAFlag = false;
+		DMA_Cmd(DMA2_Stream7, ENABLE);
+		while(DMAFlag==false);
+#else
+		DMA_Cmd(DMA2_Stream7, ENABLE);
+		uint32_t GetFlags = osEventFlagsWait(EvtIDLCD,0x00000001U,osFlagsWaitAny,osWaitForever);
+		if(GetFlags != 0x00000001U)
+			continue;
+#endif
+		pixnum = pixnum - sendpix;
+	}  
 } 
 //在指定区域内填充指定颜色块			 
 //(sx,sy),(ex,ey):填充矩形对角坐标,区域大小为:(ex-sx+1)*(ey-sy+1)   
 //color:要填充的颜色
 void GUI_LCD_Flush(int32_t sx,int32_t sy,int32_t ex,int32_t ey,const lv_color_t * color_map)
 {  
-	uint16_t width=ex-sx+1; 			//得到填充的宽度
-	uint16_t height=ey-sy+1;			//高度
+	uint16_t width = ex-sx+1; 			//得到填充的宽度
+	uint16_t height = ey-sy+1;			//高度
 	Board_LCD_Set_Window(sx,ex,sy,ey);
 	LCD->LCD_REG =0x2C;	 
-	uint32_t nowwidth = 0;
- 	for(uint16_t i=0;i<height;i++)
+	uint32_t pixnum = width*height;
+	while(pixnum>0)
 	{
-		for(uint16_t j=0;j<width;j++)
-			LCD->LCD_RAM = color_map[nowwidth+j].full;//写入数据 
-		nowwidth += width;
-	}		  
+		uint32_t sendpix = pixnum;
+		if(sendpix>UINT16_MAX)
+			sendpix = UINT16_MAX;
+		DMA2_Stream7->PAR = (uint32_t)color_map;
+		DMA_SetCurrDataCounter(DMA2_Stream7,sendpix);
+#if RTE_USE_OS == 0
+		DMAFlag = false;
+		DMA_Cmd(DMA2_Stream7, ENABLE);
+		while(DMAFlag==false);
+#else
+		DMA_Cmd(DMA2_Stream7, ENABLE);
+		uint32_t GetFlags = osEventFlagsWait(EvtIDLCD,0x00000001U,osFlagsWaitAny,osWaitForever);
+		if(GetFlags != 0x00000001U)
+			continue;
+#endif
+		pixnum = pixnum - sendpix;
+	} 
 	lv_flush_ready();
 }  
+#endif
 void Board_LCD_Init(void)
 {
+#if RTE_USE_OS
+	EvtIDLCD = osEventFlagsNew(NULL);
+#endif
   GPIO_InitTypeDef  GPIO_InitStructure;
 	FSMC_NORSRAMInitTypeDef  FSMC_NORSRAMInitStructure;
   FSMC_NORSRAMTimingInitTypeDef  readWriteTiming; 
@@ -237,37 +289,7 @@ void Board_LCD_Init(void)
   	LCDID=Board_LCD_RD_DATA();   	//读取93								   
  		LCDID<<=8;
 		LCDID|=Board_LCD_RD_DATA();  	//读取41 	   			   
- 		if(LCDID!=0X9341)		//非9341,尝试是不是6804
-		{	
-			Board_LCD_WR_REG(0XBF);				   
-			LCDID=Board_LCD_RD_DATA();//dummy read 	 
-			LCDID=Board_LCD_RD_DATA();//读回0X01			   
-			LCDID=Board_LCD_RD_DATA();//读回0XD0 			  	
-			LCDID=Board_LCD_RD_DATA();//这里读回0X68 
-			LCDID<<=8;
-			LCDID|=Board_LCD_RD_DATA();//这里读回0X04	  
-			if(LCDID!=0X6804)	//也不是6804,尝试看看是不是NT35310
-			{ 
-				Board_LCD_WR_REG(0XD4);				   
-				LCDID=Board_LCD_RD_DATA();	//dummy read  
-				LCDID=Board_LCD_RD_DATA();	//读回0X01	 
-				LCDID=Board_LCD_RD_DATA();	//读回0X53	
-				LCDID<<=8;	 
-				LCDID|=Board_LCD_RD_DATA();	//这里读回0X10	 
-				if(LCDID!=0X5310)		//也不是NT35310,尝试看看是不是NT35510
-				{
-					Board_LCD_WR_REG(0XDA00);	
-					LCDID=Board_LCD_RD_DATA();//读回0X00	 
-					Board_LCD_WR_REG(0XDB00);	
-					LCDID=Board_LCD_RD_DATA();//读回0X80
-					LCDID<<=8;	
-					Board_LCD_WR_REG(0XDC00);	
-					LCDID|=Board_LCD_RD_DATA();//读回0X00		
-					if(LCDID==0x8000)LCDID=0x5510;//NT35510读回的ID是8000H,为方便区分,我们强制设置为5510
-				}
-			}
- 		}  	
-	}  
+	}
 	if(LCDID==0X9341||LCDID==0X5310||LCDID==0X5510)//如果是这三个IC,则设置WR时序为最快
 	{
 		//重新配置写时序控制寄存器的时序   	 							    
@@ -398,6 +420,51 @@ void Board_LCD_Init(void)
 	}
 	else
 		RTE_Assert(__FILE__,__LINE__);
+	
+	NVIC_InitTypeDef NVIC_InitStructure;
+	NVIC_InitStructure.NVIC_IRQChannel = DMA2_Stream7_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x10;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+	NVIC_InitStructure.NVIC_IRQChannelCmd=ENABLE;
+	NVIC_Init(&NVIC_InitStructure);	
+
+	DMA_InitTypeDef DMA_InitStructure;
+	/* Enable the DMA2 Clock */
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA2, ENABLE);
+	/* DMA2 Stream7 disable */
+	DMA_DeInit(DMA2_Stream7);
+  while((DMA_GetCmdStatus(DMA2_Stream7) != DISABLE))
+	{  
+	}
+	DMA_InitStructure.DMA_Channel = DMA_Channel_0;                              //数据流
+	DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)0;                     //外设地址  FSMC总线写地址
+	DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)&LCD->LCD_RAM;            //DMA访问的数据地址 启用DMA时赋值
+	DMA_InitStructure.DMA_DIR = DMA_DIR_MemoryToMemory;                         //外设作为数据传输的目的地
+	DMA_InitStructure.DMA_BufferSize = 0;                                       //传输数据量大小 启用DMA时赋值
+	DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Enable;             //外设地址不增加
+	DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Disable;                    //内存地址自增1
+	DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_HalfWord; //外设数据宽度为16bit
+	DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_HalfWord;         //DMA从内存中搬运数据宽度为byte
+	DMA_InitStructure.DMA_Mode = DMA_Mode_Normal;                               //只传送一次
+	DMA_InitStructure.DMA_Priority = DMA_Priority_Medium;                     //(DMA传送优先级为高) 
+	DMA_InitStructure.DMA_FIFOMode = DMA_FIFOMode_Enable;                      //指定使用FIFO模式还是直接模式
+	DMA_InitStructure.DMA_FIFOThreshold = DMA_FIFOThreshold_Full;               //指定了FIFO阈值
+	DMA_InitStructure.DMA_MemoryBurst = DMA_MemoryBurst_Single;                 //内存突发传输每次转移一个数据
+	DMA_InitStructure.DMA_PeripheralBurst = DMA_PeripheralBurst_Single;         //外设突发传输每次转移一个数据
+	DMA_Init(DMA2_Stream7, &DMA_InitStructure);
+	DMA_ITConfig(DMA2_Stream7, DMA_IT_TC, ENABLE);
+	
 	GPIO_SetBits(GPIOB, GPIO_Pin_1);
-	GUI_LCD_Fill(0,0,319,239,LV_COLOR_BLUE);
+	GUI_LCD_Fill(0,0,319,239,LV_COLOR_GREEN);
 }
+void DMA2_Stream7_IRQHandler(void)
+{
+#if RTE_USE_OS == 0
+	DMAFlag = true;
+#else
+	osEventFlagsSet(EvtIDLCD,0x00000001U);
+#endif
+	DMA_ClearITPendingBit(DMA2_Stream7,DMA_IT_TCIF7);
+}
+
+

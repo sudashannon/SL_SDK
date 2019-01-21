@@ -6,20 +6,32 @@
 static BSP_COM_Handle_t ComControlArray[COM_N] = {
 	// Name, Clock               , AF-UART      ,UART  , Baud , Interrupt
   {
-		COM_DEBUG,RCC_APB2Periph_USART1,GPIO_AF_USART1,USART1,115200,USART1_IRQn, // UART2 mit 115200 Baud
+		COM_DEBUG,RCC_APB2Periph_USART1,GPIO_AF_USART1,USART1,USART1_IRQn, // UART2 mit 115200 Baud
 		// PORT , PIN      , Clock              , Source
 		{GPIOA,GPIO_Pin_9,RCC_AHB1Periph_GPIOA,GPIO_PinSource9},  // TX an PA2
 		{GPIOA,GPIO_Pin_10,RCC_AHB1Periph_GPIOA,GPIO_PinSource10},
 		//DMA2数据流2 通道4
 		DMA2_Stream2,DMA_Channel_4,
 		//BufferLen QUENELEN 
-		32,64,
+		SHELL_BUFSIZE,SHELL_BUFSIZE*2,
+		0x09,
+	},
+  {
+		COM_WIFI,RCC_APB1Periph_USART2,GPIO_AF_USART2,USART2,USART2_IRQn, // UART2 mit 115200 Baud
+		// PORT , PIN      , Clock              , Source
+		{GPIOA,GPIO_Pin_2,RCC_AHB1Periph_GPIOA,GPIO_PinSource2},  // TX an PA2
+		{GPIOA,GPIO_Pin_3,RCC_AHB1Periph_GPIOA,GPIO_PinSource3},
+		//DMA1数据流5 通道4
+		DMA1_Stream5,DMA_Channel_4,
+		//BufferLen QUENELEN 
+		2048,8192,
+		0x03,
 	},
 };
 //--------------------------------------------------------------
 // init aller UARTs
 //--------------------------------------------------------------
-void BSP_COM_Init(BSP_COM_Name_e uart)
+void BSP_COM_Init(BSP_COM_Name_e uart,uint32_t baudrate)
 {
   GPIO_InitTypeDef GPIO_InitStructure;
   USART_InitTypeDef USART_InitStructure;
@@ -56,7 +68,7 @@ void BSP_COM_Init(BSP_COM_Name_e uart)
 	USART_OverSampling8Cmd(ComControlArray[uart].UART, ENABLE);
 
 	// init mit Baudrate, 8Databits, 1Stopbit, keine Paritaet, kein RTS+CTS
-	USART_InitStructure.USART_BaudRate = ComControlArray[uart].BAUD;
+	USART_InitStructure.USART_BaudRate = baudrate;
 	USART_InitStructure.USART_WordLength = USART_WordLength_8b;
 	USART_InitStructure.USART_StopBits = USART_StopBits_1;
 	USART_InitStructure.USART_Parity = USART_Parity_No;
@@ -70,7 +82,7 @@ void BSP_COM_Init(BSP_COM_Name_e uart)
 
 	// enable UART Interrupt-Vector
 	NVIC_InitStructure.NVIC_IRQChannel = ComControlArray[uart].INT;
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x10;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = ComControlArray[uart].IDLEPriority;
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_InitStructure);
@@ -99,8 +111,8 @@ void BSP_COM_Init(BSP_COM_Name_e uart)
   DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;//存储器增量模式
   DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;//外设数据长度:8位
   DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;//存储器数据长度:8位
-  DMA_InitStructure.DMA_Mode = DMA_Mode_Circular;// 使用循环模式
-  DMA_InitStructure.DMA_Priority = DMA_Priority_Medium;//中等优先级
+  DMA_InitStructure.DMA_Mode = DMA_Mode_Normal;// 使用循环模式
+  DMA_InitStructure.DMA_Priority = DMA_Priority_VeryHigh;//中等优先级
   DMA_InitStructure.DMA_FIFOMode = DMA_FIFOMode_Disable;         
   DMA_InitStructure.DMA_FIFOThreshold = DMA_FIFOThreshold_Full;
   DMA_InitStructure.DMA_MemoryBurst = DMA_MemoryBurst_Single;//存储器突发单次传输
@@ -188,9 +200,18 @@ static void BSP_COM_RecCallback(BSP_COM_Name_e uart)
 	{
 		if(uart == COM_DEBUG)
 			RTE_Shell_Input(ComControlArray[uart].ComBuffer.pu8Databuf,ComControlArray[uart].ComBuffer.u16Datalength);
-		else
+		else if(uart == COM_WIFI)
+		{
+			osThreadId_t ThreadIDWIFI;
 			RTE_MessageQuene_In(&ComControlArray[uart].ComBuffer.ComQuene,ComControlArray[uart].ComBuffer.pu8Databuf,
 						ComControlArray[uart].ComBuffer.u16Datalength);
+			osThreadFlagsSet(ThreadIDWIFI,0x00000001U);
+		}
+		else
+		{
+			RTE_MessageQuene_In(&ComControlArray[uart].ComBuffer.ComQuene,ComControlArray[uart].ComBuffer.pu8Databuf,
+						ComControlArray[uart].ComBuffer.u16Datalength);
+		}
 	}
 	memset(ComControlArray[uart].ComBuffer.pu8Databuf,0,ComControlArray[uart].ComBuffer.u16Datalength);
 	ComControlArray[uart].ComBuffer.u16Datalength = 0;
@@ -210,11 +231,11 @@ void USART1_IRQHandler(void) {
 		BSP_COM_RecCallback(COM_DEBUG);
 }
 //--------------------------------------------------------------
-// UART3-Interrupt
+// USART2-Interrupt
 //--------------------------------------------------------------
-void USART3_IRQHandler(void) {
-	if(USART_GetITStatus(USART3, USART_IT_IDLE) != RESET)
-		BSP_COM_RecCallback(COM_3);
+void USART2_IRQHandler(void) {
+	if(USART_GetITStatus(USART2, USART_IT_IDLE) != RESET)
+		BSP_COM_RecCallback(COM_WIFI);
 }
 
 ////--------------------------------------------------------------

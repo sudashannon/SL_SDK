@@ -25,7 +25,7 @@ void RTE_Assert(char *file, uint32_t line)
 *************************************************/
 #if RTE_USE_MEMMANAGE == 1
 RTE_ALIGN_32BYTES (__attribute__((section (".RAM_RTE"))) uint8_t RTE_RAM[RTE_MEM_SIZE * 1024]) = {0};
-RTE_ALIGN_32BYTES (uint8_t DMA_RAM[4 * 1024]) = {0};
+RTE_ALIGN_32BYTES (uint8_t DMA_RAM[32 * 1024]) = {0};
 #endif
 /*************************************************
 *** RTE_KVDB的相关函数
@@ -79,14 +79,14 @@ void RTE_Init(void)
 {
 #if RTE_USE_MEMMANAGE == 1
 	RTE_MEM_Pool(MEM_RTE,RTE_RAM,RTE_MEM_SIZE*1024);
-	RTE_MEM_Pool(MEM_DMA,DMA_RAM,4*1024);
+	RTE_MEM_Pool(MEM_DMA,DMA_RAM,32*1024);
 #endif
 #if RTE_USE_ROUNDROBIN == 1
 	RTE_RoundRobin_Init();
 	RTE_RoundRobin_CreateGroup("RTEGroup");
 	#if RTE_USE_SHELL == 1
 		RTE_Shell_Init();
-		RTE_RoundRobin_CreateTimer(0,"ShellTimer",100,1,1,RTE_Shell_Poll,(void *)0);
+		RTE_RoundRobin_CreateTimer(0,"ShellTimer",10,1,1,RTE_Shell_Poll,(void *)0);
 	#endif
 #endif
 #if RTE_USE_STDOUT != 1

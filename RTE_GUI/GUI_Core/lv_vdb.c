@@ -37,9 +37,9 @@ typedef uint8_t lv_vdb_state_t;
 /*Simple VDB*/
 static volatile lv_vdb_state_t vdb_state = LV_VDB_STATE_ACTIVE;
 /*If the buffer address is not specified  simply allocate it*/
-//static uint8_t vdb_buf[LV_VDB_SIZE_IN_BYTES];
-//static lv_vdb_t vdb = {.buf = (lv_color_t *)vdb_buf};
-static lv_vdb_t vdb ={0};
+static uint8_t vdb_buf[LV_VDB_SIZE_IN_BYTES];
+static lv_vdb_t vdb = {.buf = (lv_color_t *)vdb_buf};
+//static lv_vdb_t vdb ={0};
 #else       /*LV_VDB_DOUBLE != 0*/
 /*Double VDB*/
 static volatile lv_vdb_state_t vdb_state[2] = {LV_VDB_STATE_FREE, LV_VDB_STATE_FREE};
@@ -63,8 +63,8 @@ void lv_vdb_init(void)
 		vdb.buf = (lv_color_t *)RTE_MEM_Alloc0(MEM_RTE,LV_VDB_SIZE_IN_BYTES);
 	RTE_AssertParam(vdb.buf);
 #else
-	vdb[0].buf = (lv_color_t *)RTE_MEM_Alloc0(MEM_FB,LV_VDB_SIZE_IN_BYTES);
-	vdb[1].buf = (lv_color_t *)RTE_MEM_Alloc0(MEM_FB,LV_VDB_SIZE_IN_BYTES);
+	vdb[0].buf = (lv_color_t *)RTE_MEM_Alloc0(MEM_RTE,LV_VDB_SIZE_IN_BYTES);
+	vdb[1].buf = (lv_color_t *)RTE_MEM_Alloc0(MEM_RTE,LV_VDB_SIZE_IN_BYTES);
 	RTE_AssertParam(vdb[0].buf);
 	RTE_AssertParam(vdb[1].buf);
 #endif
