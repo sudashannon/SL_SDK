@@ -6,7 +6,7 @@
 /*********************
  *      INCLUDES
  *********************/
-#include "lv_font_builtin.h"
+#include "GUI_Font/lv_font_builtin.h"
 
 /*********************
  *      DEFINES

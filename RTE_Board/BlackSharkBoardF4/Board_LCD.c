@@ -98,7 +98,7 @@ void GUI_LCD_Fill(int32_t sx,int32_t sy,int32_t ex,int32_t ey,lv_color_t color)
 	uint16_t height = ey-sy+1;			//高度
 	Board_LCD_Set_Window(sx,ex,sy,ey);
 	LCD->LCD_REG =0x2C;	 
-	uint16_t *Linebuffer = RTE_MEM_Alloc0(MEM_DMA,width*2);
+	uint16_t *Linebuffer = Memory_Alloc0(BANK_DMA,width*2);
 	for(uint16_t i=0;i<width;i++)
 		Linebuffer[i] = color.full;
 	for(uint16_t i=0;i<height;)
@@ -116,9 +116,8 @@ void GUI_LCD_Fill(int32_t sx,int32_t sy,int32_t ex,int32_t ey,lv_color_t color)
 			continue;
 		i++;
 #endif
-		
 	}
-	RTE_MEM_Free(MEM_DMA,Linebuffer);
+	Memory_Free(BANK_DMA,Linebuffer);
 }  
 void GUI_LCD_Map(int32_t sx,int32_t sy,int32_t ex,int32_t ey,const lv_color_t * color_map)
 {  
@@ -192,7 +191,6 @@ void Board_LCD_Init(void)
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB|RCC_AHB1Periph_GPIOD|RCC_AHB1Periph_GPIOE, ENABLE);//使能IO时钟  
   RCC_AHB3PeriphClockCmd(RCC_AHB3Periph_FSMC,ENABLE);//使能FSMC时钟  
 	
- 
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1;//PB1 推挽输出,控制背光
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;//普通输出模式
   GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;//推挽输出
@@ -247,7 +245,6 @@ void Board_LCD_Init(void)
   readWriteTiming.FSMC_DataLatency = 0x00;
   readWriteTiming.FSMC_AccessMode = FSMC_AccessMode_A;	 //模式A 
     
-
 	writeTiming.FSMC_AddressSetupTime =9;	      //地址建立时间（ADDSET）为9个HCLK =54ns 
   writeTiming.FSMC_AddressHoldTime = 0x00;	 //地址保持时间（A		
   writeTiming.FSMC_DataSetupTime = 8;		 //数据保存时间为6ns*9个HCLK=54ns
@@ -256,7 +253,6 @@ void Board_LCD_Init(void)
   writeTiming.FSMC_DataLatency = 0x00;
   writeTiming.FSMC_AccessMode = FSMC_AccessMode_A;	 //模式A 
 
- 
   FSMC_NORSRAMInitStructure.FSMC_Bank = FSMC_Bank1_NORSRAM1;//  这里我们使用NE1 
   FSMC_NORSRAMInitStructure.FSMC_DataAddressMux = FSMC_DataAddressMux_Disable; // 不复用数据地址
   FSMC_NORSRAMInitStructure.FSMC_MemoryType =FSMC_MemoryType_SRAM;// FSMC_MemoryType_SRAM;  //SRAM   

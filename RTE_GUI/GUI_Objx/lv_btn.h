@@ -16,7 +16,6 @@ extern "C" {
 #include "GUI_Config.h"
 
 #if USE_LV_BTN != 0
-
 /*Testing of dependencies*/
 #if USE_LV_CONT == 0
 #error "lv_btn: lv_cont is required. Enable it in lv_conf.h (USE_LV_CONT  1) "

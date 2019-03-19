@@ -7,12 +7,13 @@
 /*********************
  *      INCLUDES
  *********************/
-#include "lv_arc.h"
+#include "GUI_Objx/lv_arc.h"
 #if USE_LV_ARC != 0
 
+#include "GUI_Port.h"
 #include "GUI_Draw/lv_draw_arc.h"
 #include "GUI_Theme/lv_theme.h"
-#include "GUI_Port.h"
+
 
 /*********************
  *      DEFINES

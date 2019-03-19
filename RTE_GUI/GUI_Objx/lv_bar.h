@@ -16,7 +16,6 @@ extern "C" {
 #include "GUI_Config.h"
 
 #if USE_LV_BAR != 0
-
 #include "GUI_Core/lv_obj.h"
 #include "GUI_Objx/lv_cont.h"
 #include "GUI_Objx/lv_btn.h"
@@ -38,6 +37,7 @@ typedef struct
     int16_t cur_value;              /*Current value of the bar*/
     int16_t min_value;              /*Minimum value of the bar*/
     int16_t max_value;              /*Maximum value of the bar*/
+    uint8_t sym    :1;              /*Symmetric: means the center is around zero value*/
     lv_style_t *style_indic;        /*Style of the indicator*/
 } lv_bar_ext_t;
 
@@ -88,6 +88,13 @@ void lv_bar_set_value_anim(lv_obj_t * bar, int16_t value, uint16_t anim_time);
 void lv_bar_set_range(lv_obj_t * bar, int16_t min, int16_t max);
 
 /**
+ * Make the bar symmetric to zero. The indicator will grow from zero instead of the minimum position.
+ * @param bar pointer to a bar object
+ * @param en true: enable disable symmetric behavior; false: disable
+ */
+void lv_bar_set_sym(lv_obj_t * bar, bool en);
+
+/**
  * Set a style of a bar
  * @param bar pointer to a bar object
  * @param type which style should be set
@@ -120,6 +127,12 @@ int16_t lv_bar_get_min_value(const lv_obj_t * bar);
  */
 int16_t lv_bar_get_max_value(const lv_obj_t * bar);
 
+/**
+ * Get whether the bar is symmetric or not.
+ * @param bar pointer to a bar object
+ * @return true: symmetric is enabled; false: disable
+ */
+bool lv_bar_get_sym(lv_obj_t * bar);
 
 /**
  * Get a style of a bar

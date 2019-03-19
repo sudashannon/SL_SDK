@@ -14,7 +14,6 @@ extern "C" {
  *      INCLUDES
  *********************/
 #include "GUI_Config.h"
-
 #include "GUI_Core/lv_style.h"
 #include "GUI_Misc/lv_txt.h"
 

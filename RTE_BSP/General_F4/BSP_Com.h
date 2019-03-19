@@ -10,8 +10,9 @@
 //--------------------------------------------------------------
 typedef enum
 {
-  COM_DEBUG = 0,  // COM1 (TX=PA9, RX=PA10)
-  COM_WIFI = 1,   // COM3 (TX=PC10, RX=PC11)
+	COM_DEBUG = 0,  // COM1 (TX=PA9, RX=PA10)
+	COM_WIFI = 1,   // COM2 (TX=PA2, RX=PA3)
+	COM_RFID = 2, // COM3 (TX=PB10, RX=PB11)
 	COM_N ,
 }BSP_COM_Name_e;
 //--------------------------------------------------------------

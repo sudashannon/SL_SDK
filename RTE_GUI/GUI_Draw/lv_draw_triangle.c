@@ -6,7 +6,7 @@
 /*********************
  *      INCLUDES
  *********************/
-#include "lv_draw_triangle.h"
+#include "GUI_Draw/lv_draw_triangle.h"
 #include "GUI_Port.h"
 
 /*********************

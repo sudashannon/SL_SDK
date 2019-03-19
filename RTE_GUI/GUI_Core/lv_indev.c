@@ -7,14 +7,19 @@
  *      INCLUDES
  ********************/
 #include "lv_indev.h"
-
 #include "GUI_Core/lv_group.h"
 #include "GUI_Core/lv_refr.h"
+#include "GUI_Draw/lv_draw_rbasic.h"
 #include "GUI_Core/lv_obj.h"
 #include "GUI_Port.h"
+
 /*********************
  *      DEFINES
  *********************/
+
+#if LV_INDEV_DRAG_THROW <= 0
+#warning "LV_INDEV_DRAG_THROW must be greater than 0"
+#endif
 
 /**********************
  *      TYPEDEFS
@@ -132,7 +137,7 @@ void lv_indev_enable(lv_hal_indev_type_t type, bool enable)
  */
 void lv_indev_set_cursor(lv_indev_t * indev, lv_obj_t * cur_obj)
 {
-    if(indev->driver.type != LV_INDEV_TYPE_POINTER && indev->driver.type != LV_INDEV_TYPE_BUTTON) return;
+    if(indev->driver.type != LV_INDEV_TYPE_POINTER) return;
 
     indev->cursor = cur_obj;
     lv_obj_set_parent(indev->cursor, lv_layer_sys());
@@ -157,9 +162,19 @@ void lv_indev_set_group(lv_indev_t * indev, lv_group_t * group)
  * @param indev pointer to an input device
  * @param group point to a group
  */
-void lv_indev_set_button_points(lv_indev_t * indev, lv_point_t * points)
+void lv_indev_set_button_points(lv_indev_t * indev, const lv_point_t * points)
 {
     if(indev->driver.type == LV_INDEV_TYPE_BUTTON) indev->btn_points = points;
+}
+
+/**
+ * Set feedback callback for indev.
+ * @param indev pointer to an input device
+ * @param feedback feedback callback
+ */
+void lv_indev_set_feedback(lv_indev_t *indev, lv_indev_feedback_t feedback)
+{
+	indev->feedback = feedback;
 }
 
 /**
@@ -243,6 +258,16 @@ uint32_t lv_indev_get_inactive_time(const lv_indev_t * indev)
     }
 
     return t;
+}
+
+/**
+ * Get feedback callback for indev.
+ * @param indev pointer to an input device
+ * @return feedback callback
+ */
+lv_indev_feedback_t lv_indev_get_feedback(const lv_indev_t *indev)
+{
+	return indev->feedback;
 }
 
 /**
@@ -364,6 +389,10 @@ static void indev_keypad_proc(lv_indev_t * i, lv_indev_data_t * data)
     if(data->state == LV_INDEV_STATE_PR &&
             i->proc.last_state == LV_INDEV_STATE_REL) {
         i->proc.pr_timestamp = lv_tick_get();
+        lv_obj_t * focused = lv_group_get_focused(i->group);
+        if(focused && data->key == LV_GROUP_KEY_ENTER) {
+            focused->signal_func(focused, LV_SIGNAL_PRESSED, indev_act);
+        }
     }
     /*Pressing*/
     else if(data->state == LV_INDEV_STATE_PR && i->proc.last_state == LV_INDEV_STATE_PR) {
@@ -817,11 +846,12 @@ static void indev_drag(lv_indev_proc_t * state)
 
     if(lv_obj_get_drag(drag_obj) == false) return;
 
-    /*If still there is no drag then count the movement*/
-    if(state->drag_range_out == 0) {
-        state->drag_sum.x += state->vect.x;
-        state->drag_sum.y += state->vect.y;
+    /*Count the movement by drag*/
+    state->drag_sum.x += state->vect.x;
+    state->drag_sum.y += state->vect.y;
 
+    /*Enough move?*/
+    if(state->drag_range_out == 0) {
         /*If a move is greater then LV_DRAG_LIMIT then begin the drag*/
         if(MATH_ABS(state->drag_sum.x) >= LV_INDEV_DRAG_LIMIT ||
                 MATH_ABS(state->drag_sum.y) >= LV_INDEV_DRAG_LIMIT) {
@@ -841,6 +871,8 @@ static void indev_drag(lv_indev_proc_t * state)
 
             lv_coord_t prev_x = drag_obj->coords.x1;
             lv_coord_t prev_y = drag_obj->coords.y1;
+            lv_coord_t prev_par_w = lv_obj_get_width(lv_obj_get_parent(drag_obj));
+            lv_coord_t prev_par_h = lv_obj_get_height(lv_obj_get_parent(drag_obj));
 
             lv_obj_set_pos(drag_obj, act_x + state->vect.x, act_y + state->vect.y);
 
@@ -855,8 +887,15 @@ static void indev_drag(lv_indev_proc_t * state)
             }
             /*If the object didn't moved then clear the invalidated areas*/
             else {
-                uint16_t new_inv_buf_size = lv_refr_get_buf_size();
-                lv_refr_pop_from_buf(new_inv_buf_size - inv_buf_size);
+                /*In a special case if the object is moved on a page and
+                 * the scrollable has fit == true and the object is dragged of the page then
+                 * while its coordinate is not changing only the parent's size is reduced */
+                lv_coord_t act_par_w = lv_obj_get_width(lv_obj_get_parent(drag_obj));
+                lv_coord_t act_par_h = lv_obj_get_height(lv_obj_get_parent(drag_obj));
+                if(act_par_w == prev_par_w && act_par_h == prev_par_h) {
+                    uint16_t new_inv_buf_size = lv_refr_get_buf_size();
+                    lv_refr_pop_from_buf(new_inv_buf_size - inv_buf_size);
+                }
             }
         }
     }

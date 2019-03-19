@@ -1,4 +1,5 @@
 #include "RTE_Include.h"
+#include <stdlib.h>
 /*****************************************************************************
 *** Author: Shannon
 *** Version: 2.2 2018.10.02
@@ -14,7 +15,7 @@
 *************************************************/
 void RTE_Assert(char *file, uint32_t line)
 { 
-	RTE_Printf("[ASSERT]    Wrong parameters value: file %s on line %d\r\n", file, line);
+	RTE_Printf("%10s    Wrong parameters value: file %s on line %d\r\n","[ASSERT]" ,file, line);
 	while (1)
 	{
 		
@@ -24,8 +25,8 @@ void RTE_Assert(char *file, uint32_t line)
 *** RTE所管理的内存，静态分配，32位对齐
 *************************************************/
 #if RTE_USE_MEMMANAGE == 1
-RTE_ALIGN_32BYTES (__attribute__((section (".RAM_RTE"))) uint8_t RTE_RAM[RTE_MEM_SIZE * 1024]) = {0};
-RTE_ALIGN_32BYTES (uint8_t DMA_RAM[32 * 1024]) = {0};
+MEM_ALIGN_BYTES (__attribute__((section (".RAM_RTE"))) uint8_t RTE_RAM[RTE_MEM_SIZE * 1024]) = {0};
+MEM_ALIGN_BYTES (uint8_t DMA_RAM[32 * 1024]) = {0};
 #endif
 /*************************************************
 *** RTE_KVDB的相关函数
@@ -34,6 +35,7 @@ RTE_ALIGN_32BYTES (uint8_t DMA_RAM[32 * 1024]) = {0};
 /* default ENV set for user */
 static const ef_env rte_kvdb_lib[] = {
 	{"boot_times","0"},
+	
 };
 #define KVDB_TXT  "[KVDB]"
 void RTE_KVDB_Init(void) 
@@ -55,10 +57,10 @@ void RTE_KVDB_Init(void)
 		if(result == EF_NO_ERR)
 		{
 			uint32_t i_boot_times = NULL;
-			char *c_old_boot_times, c_new_boot_times[11] = {0};
+			char c_old_boot_times[11], c_new_boot_times[11] = {0};
 			/* get the boot count number from Env */
-			c_old_boot_times = ef_get_env("boot_times");
-			RTE_AssertParam(c_old_boot_times);
+			size_t len = 0;
+			len = ef_get_env_blob("boot_times", c_old_boot_times, sizeof(c_old_boot_times), &len);
 			i_boot_times = atol(c_old_boot_times);
 			/* boot count +1 */
 			i_boot_times ++;
@@ -71,6 +73,20 @@ void RTE_KVDB_Init(void)
 	}
 }
 #endif
+#if RTE_USE_SHELL
+#include "RTE_Shell.h"
+#include <stdlib.h>
+static RTE_Shell_Err_e RTE_Shell_Memory_Demon(int argc, char *argv[])
+{
+    if(argc!=3)
+		return SHELL_ARGSERROR;
+	RTE_Printf("--------------------------------------------------\r\n");
+	RTE_Printf("%10s    BANK COUNTS:%d\r\n","[MEM]",BANK_N);
+	RTE_Printf("--------------------------------------------------\r\n");
+	Memory_Demon((mem_bank_e)atoi(argv[2]));
+	return(SHELL_NOERR);
+}
+#endif
 /*************************************************
 *** Args:   NULL
 *** Function: RTE初始化
@@ -78,15 +94,23 @@ void RTE_KVDB_Init(void)
 void RTE_Init(void)
 {
 #if RTE_USE_MEMMANAGE == 1
-	RTE_MEM_Pool(MEM_RTE,RTE_RAM,RTE_MEM_SIZE*1024);
-	RTE_MEM_Pool(MEM_DMA,DMA_RAM,32*1024);
+	Memory_Pool(BANK_RTE,RTE_RAM,RTE_MEM_SIZE*1024);
+	Memory_Pool(BANK_DMA,DMA_RAM,32*1024);
 #endif
 #if RTE_USE_ROUNDROBIN == 1
+	#if RTE_USE_SHELL == 1
+        RTE_Shell_Init();
+    #endif // RTE_USE_SHELL
 	RTE_RoundRobin_Init();
 	RTE_RoundRobin_CreateGroup("RTEGroup");
+    #if RTE_USE_SHELL == 1
+        RTE_RoundRobin_CreateTimer(0,"ShellTimer",10,1,1,RTE_Shell_Poll,(void *)0);
+	#endif
+#endif
+#if RTE_USE_MEMMANAGE == 1
 	#if RTE_USE_SHELL == 1
-		RTE_Shell_Init();
-		RTE_RoundRobin_CreateTimer(0,"ShellTimer",10,1,1,RTE_Shell_Poll,(void *)0);
+    RTE_Shell_CreateModule("mem");
+	RTE_Shell_AddCommand("mem","demon",RTE_Shell_Memory_Demon,"Demon a specific membank Example:mem.demon(0)");
 	#endif
 #endif
 #if RTE_USE_STDOUT != 1

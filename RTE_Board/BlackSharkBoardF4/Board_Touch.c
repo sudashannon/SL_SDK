@@ -22,13 +22,19 @@ void Board_Touch_Init(void)
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;//上拉
 	GPIO_Init(GPIOB, &GPIO_InitStructure);//初始化
 	//GPIOC5初始化设置
+	memset(&GPIO_InitStructure,0,sizeof(GPIO_InitTypeDef));
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5;//PC5 设置为上拉输入
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;//输入模式
-	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;//推挽输出
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;//100MHz
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;//上拉
 	GPIO_Init(GPIOC, &GPIO_InitStructure);//初始化
 	
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4;//PC5 设置为上拉输入
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;//输入模式
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;//100MHz
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;//上拉
+	GPIO_Init(GPIOC, &GPIO_InitStructure);//初始化
+
   // SPI-Clock enable
 	SPI_InitTypeDef  SPI_InitStructure;
   RCC_APB1PeriphClockCmd(RCC_APB1Periph_SPI2, ENABLE);  
@@ -124,8 +130,8 @@ static uint8_t Board_LCD_ReadXY2(uint16_t *x,uint16_t *y)
 }  
 bool Board_TouchScan(uint16_t *x,uint16_t *y)
 {
-	if(GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_5)==0)
-	{
+//	if(GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_5)==0)
+//	{
 		if(Board_LCD_ReadXY2(x,y))
 		{
 			uint16_t vx=15542,vy=11165;
@@ -137,7 +143,7 @@ bool Board_TouchScan(uint16_t *x,uint16_t *y)
 			*y = 240 - temp;
 			return true;
 		}
-	}
+//	}
 	return false;
 }
 #if RTE_USE_GUI
@@ -147,7 +153,6 @@ bool GUI_TouchScan(lv_indev_data_t *data)
 	static int16_t last_y = 0;
 	uint16_t x = 0;
 	uint16_t y = 0;
-	
 	if(Board_TouchScan(&x,&y))
 	{
 		data->point.x = x;

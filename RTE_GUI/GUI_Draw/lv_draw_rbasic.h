@@ -14,12 +14,11 @@ extern "C" {
  *      INCLUDES
  *********************/
 #include "GUI_Config.h"
-
 #if USE_LV_REAL_DRAW != 0
 
 #include "GUI_Misc/lv_color.h"
 #include "GUI_Misc/lv_area.h"
-#include "GUI_Font/lv_font.h"
+#include "GUI_Misc/lv_font.h"
 
 /*********************
  *      DEFINES

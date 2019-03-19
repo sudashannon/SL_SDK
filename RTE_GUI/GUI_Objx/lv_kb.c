@@ -10,7 +10,7 @@
 #include "lv_kb.h"
 #if USE_LV_KB != 0
 
-#include "GUI_Objx/lv_ta.h"
+#include "lv_ta.h"
 #include "GUI_Theme/lv_theme.h"
 
 /*********************

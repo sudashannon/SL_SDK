@@ -6,8 +6,7 @@
 /*********************
  *      INCLUDES
  *********************/
-#include "lv_draw_img.h"
-#include "GUI_Misc/lv_fs.h"
+#include "GUI_Draw/lv_draw_img.h"
 
 /*********************
  *      DEFINES

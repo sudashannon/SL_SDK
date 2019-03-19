@@ -6,7 +6,7 @@
 /*********************
  *      INCLUDES
  *********************/
-#include "lv_theme.h"
+#include "GUI_Theme/lv_theme.h"
 
 #if USE_LV_THEME_DEFAULT
 

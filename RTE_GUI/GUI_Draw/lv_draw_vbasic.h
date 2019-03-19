@@ -14,12 +14,11 @@ extern "C" {
  *      INCLUDES
  *********************/
 #include "GUI_Config.h"
-
 #if LV_VDB_SIZE != 0
 
 #include "GUI_Misc/lv_color.h"
 #include "GUI_Misc/lv_area.h"
-#include "GUI_Font/lv_font.h"
+#include "GUI_Misc/lv_font.h"
 
 /*********************
  *      DEFINES
@@ -71,12 +70,6 @@ void lv_vletter(const lv_point_t * pos_p, const lv_area_t * mask_p,
 void lv_vmap(const lv_area_t * cords_p, const lv_area_t * mask_p,
              const uint8_t * map_p, lv_opa_t opa, bool chroma_key, bool alpha_byte,
              lv_color_t recolor, lv_opa_t recolor_opa);
-
-
-/**
- * Reallocate 'color_map_tmp' to the new hor. res. size. It is used in 'sw_fill'
- */
-void lv_vdraw_refresh_temp_arrays(void);
 
 /**********************
  *      MACROS

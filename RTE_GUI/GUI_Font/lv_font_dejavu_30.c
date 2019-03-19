@@ -1,5 +1,5 @@
 
-#include "lv_font.h"
+#include "GUI_Misc/lv_font.h"
 
 #if USE_LV_FONT_DEJAVU_30 != 0  /*Can be enabled in lv_conf.h*/
 

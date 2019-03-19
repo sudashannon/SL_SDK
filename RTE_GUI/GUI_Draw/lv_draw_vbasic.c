@@ -3,7 +3,7 @@
  *
  */
 
-#include "lv_draw_vbasic.h"
+#include "GUI_Draw/lv_draw_vbasic.h"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -11,7 +11,7 @@
 
 #include "GUI_Hal/lv_hal_disp.h"
 #include "GUI_Misc/lv_area.h"
-#include "GUI_Font/lv_font.h"
+#include "GUI_Misc/lv_font.h"
 #include "GUI_Misc/lv_color.h"
 #include "GUI_Port.h"
 
@@ -19,7 +19,7 @@
 
 #include <stddef.h>
 #include "GUI_Core/lv_vdb.h"
-#include "lv_draw.h"
+#include "GUI_Draw/lv_draw.h"
 
 /*********************
  *      INCLUDES
@@ -29,6 +29,10 @@
  *      DEFINES
  *********************/
 #define VFILL_HW_ACC_SIZE_LIMIT    50      /*Always fill < 50 px with 'sw_color_fill' because of the hw. init overhead*/
+
+#ifndef LV_ATTRIBUTE_MEM_ALIGN
+#define LV_ATTRIBUTE_MEM_ALIGN
+#endif
 
 /**********************
  *      TYPEDEFS
@@ -147,7 +151,7 @@ void lv_vfill(const lv_area_t * cords_p, const lv_area_t * mask_p,
 
 
 #if USE_LV_GPU
-    static lv_color_t color_array_tmp[LV_HOR_RES];       /*Used by 'lv_disp_mem_blend'*/
+    static LV_ATTRIBUTE_MEM_ALIGN lv_color_t color_array_tmp[LV_HOR_RES];       /*Used by 'lv_disp_mem_blend'*/
     static lv_coord_t last_width = -1;
 
     lv_coord_t w = lv_area_get_width(&vdb_rel_a);
@@ -529,21 +533,6 @@ void lv_vmap(const lv_area_t * cords_p, const lv_area_t * mask_p,
                             vdb_buf_tmp[col] = lv_color_mix(px_color, vdb_buf_tmp[col], opa_result);
 #else
                             vdb_buf_tmp[col] = color_mix_2_alpha(vdb_buf_tmp[col], vdb_buf_tmp[col].alpha, px_color,  opa_result);
-//                            if(vdb_buf_tmp[col].alpha == LV_OPA_TRANSP) {
-//                                /* When it is the first visible pixel on the transparent screen
-//                                 * simlply use this color and set the pixel opa as backrounds alpha*/
-//                                vdb_buf_tmp[col] = px_color;
-//                                vdb_buf_tmp[col].alpha = opa_result;
-//                            } else {
-//                                /* If already this pixel is already written then for performance reasons
-//                                 * don't care with alpha channel
-//                                 */
-//                                lv_opa_t bg_opa = vdb_buf_tmp[col].alpha;
-//                                vdb_buf_tmp[col] = lv_color_mix(px_color, vdb_buf_tmp[col], opa_result);
-//
-//                                uint16_t opa_tmp = (uint16_t)opa_result + ((bg_opa * (255 - opa_result)) >> 8);
-//                                vdb_buf_tmp[col].alpha = opa_tmp > 0xFF ? 0xFF : opa_tmp ;
-//                            }
 #endif
                         }
                     }
@@ -680,7 +669,7 @@ static inline lv_color_t color_mix_2_alpha(lv_color_t bg_color, lv_opa_t bg_opa,
         /*Save the parameters and the result. If they will be asked again don't compute again*/
         static lv_opa_t fg_opa_save = 0;
         static lv_opa_t bg_opa_save = 0;
-        static lv_color_t c = {0};
+        static lv_color_t c = {{0}};
 
         if(fg_opa != fg_opa_save || bg_opa != bg_opa_save) {
             fg_opa_save = fg_opa;

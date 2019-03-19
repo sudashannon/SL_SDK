@@ -14,9 +14,7 @@ extern "C" {
  *      INCLUDES
  *********************/
 #include "GUI_Config.h"
-
 #if USE_LV_CALENDAR != 0
-
 #include "GUI_Core/lv_obj.h"
 
 /*********************
@@ -33,6 +31,16 @@ typedef struct {
     int8_t day;
 } lv_calendar_date_t;
 
+enum
+{
+    LV_CALENDAR_ACTION_CLICK,
+    LV_CALENDAR_ACTION_PR,
+    LV_CALENDAR_ACTION_LONG_PR,
+    LV_CALENDAR_ACTION_LONG_PR_REPEAT,
+    LV_CALENDAR_ACTION_NUM,
+};
+typedef uint8_t lv_calendar_action_t;
+
 /*Data of calendar*/
 typedef struct {
     /*None*/ /*Ext. of ancestor*/
@@ -42,8 +50,10 @@ typedef struct {
     lv_calendar_date_t * highlighted_dates;  /*Apply different style on these days (pointer to an array defined by the user)*/
     uint8_t highlighted_dates_num;           /*Number of elements in `highlighted_days`*/
     int8_t btn_pressing;                    /*-1: prev month pressing, +1 next month pressing on the header*/
+    lv_calendar_date_t pressed_date;
     const char ** day_names;            /*Pointer to an array with the name of the days (NULL: use default names)*/
     const char ** month_names;          /*Pointer to an array with the name of the month (NULL. use default names)*/
+    lv_action_t actions[LV_CALENDAR_ACTION_NUM];
 
     /*Styles*/
     lv_style_t * style_header;
@@ -70,6 +80,7 @@ typedef uint8_t lv_calendar_style_t;
 
 
 
+
 /**********************
  * GLOBAL PROTOTYPES
  **********************/
@@ -90,6 +101,12 @@ lv_obj_t * lv_calendar_create(lv_obj_t * par, const lv_obj_t * copy);
 /*=====================
  * Setter functions
  *====================*/
+/**
+ * Set a function to call when a calendar event happens
+ * @param calendar pointer to a calendar object
+ * @param action type of event form 'lv_action_t' (press, release, long press, long press repeat)
+ */
+void lv_calendar_set_action(lv_obj_t * calendar, lv_calendar_action_t type, lv_action_t action);
 
 /**
  * Set the today's date
@@ -141,6 +158,12 @@ void lv_calendar_set_style(lv_obj_t * calendar, lv_calendar_style_t type, lv_sty
 /*=====================
  * Getter functions
  *====================*/
+/**
+ * Get the action of a calendar
+ * @param calendar pointer to a calendar object
+ * @return pointer to the action function
+ */
+lv_action_t lv_calendar_get_action(const lv_obj_t * calendar, lv_calendar_action_t type);
 
 /**
  * Get the today's date
@@ -155,6 +178,13 @@ lv_calendar_date_t * lv_calendar_get_today_date(const lv_obj_t * calendar);
  * @return pointer to an `lv_calendar_date_t` variable containing the date is being shown.
  */
 lv_calendar_date_t * lv_calendar_get_showed_date(const lv_obj_t * calendar);
+
+/**
+ * Get the the pressed date.
+ * @param calendar pointer to a calendar object
+ * @return pointer to an `lv_calendar_date_t` variable containing the pressed date.
+ */
+lv_calendar_date_t * lv_calendar_get_pressed_date(const lv_obj_t * calendar);
 
 /**
  * Get the the highlighted dates

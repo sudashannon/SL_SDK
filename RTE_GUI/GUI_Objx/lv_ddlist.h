@@ -14,6 +14,7 @@ extern "C" {
  *      INCLUDES
  *********************/
 #include "GUI_Config.h"
+
 #if USE_LV_DDLIST != 0
 
 /*Testing of dependencies*/
@@ -49,6 +50,8 @@ typedef struct
     uint16_t sel_opt_id_ori;             /*Store the original index on focus*/
     uint16_t anim_time;                  /*Open/Close animation time [ms]*/
     uint8_t opened :1;                   /*1: The list is opened (handled by the library)*/
+    uint8_t draw_arrow :1;               /*1: Draw arrow*/
+
     lv_coord_t fix_height;               /*Height of the ddlist when opened. (0: auto-size)*/
 } lv_ddlist_ext_t;
 
@@ -73,6 +76,13 @@ lv_obj_t * lv_ddlist_create(lv_obj_t * par, const lv_obj_t * copy);
 /*=====================
  * Setter functions
  *====================*/
+
+/**
+ * Set arrow draw in a drop down list
+ * @param ddlist pointer to drop down list object
+ * @param en enable/disable a arrow draw. E.g. "true" for draw.
+ */
+void lv_ddlist_set_draw_arrow(lv_obj_t * ddlist, bool en);
 
 /**
  * Set the options in a drop down list from a string
@@ -106,9 +116,9 @@ void lv_ddlist_set_fix_height(lv_obj_t * ddlist, lv_coord_t h);
 /**
  * Enable or disable the horizontal fit to the content
  * @param ddlist pointer to a drop down list
- * @param fit en true: enable auto fit; false: disable auto fit
+ * @param en true: enable auto fit; false: disable auto fit
  */
-void lv_ddlist_set_hor_fit(lv_obj_t * ddlist, bool fit_en);
+void lv_ddlist_set_hor_fit(lv_obj_t * ddlist, bool en);
 
 /**
  * Set the scroll bar mode of a drop down list
@@ -136,9 +146,22 @@ void lv_ddlist_set_anim_time(lv_obj_t * ddlist, uint16_t anim_time);
  *  */
 void lv_ddlist_set_style(lv_obj_t *ddlist, lv_ddlist_style_t type, lv_style_t *style);
 
+/**
+ * Set the alignment of the labels in a drop down list
+ * @param ddlist pointer to a drop down list object
+ * @param align alignment of labels
+ */
+void lv_ddlist_set_align(lv_obj_t *ddlist, lv_label_align_t align);
+
 /*=====================
  * Getter functions
  *====================*/
+
+/**
+ * Get arrow draw in a drop down list
+ * @param ddlist pointer to drop down list object
+ */
+bool lv_ddlist_get_draw_arrow(lv_obj_t * ddlist);
 
 /**
  * Get the options of a drop down list
@@ -200,6 +223,13 @@ uint16_t lv_ddlist_get_anim_time(const lv_obj_t * ddlist);
  */
 lv_style_t * lv_ddlist_get_style(const lv_obj_t *ddlist, lv_ddlist_style_t type);
 
+/**
+ * Get the alignment of the labels in a drop down list
+ * @param ddlist pointer to a drop down list object
+ * @return alignment of labels
+ */
+lv_label_align_t lv_ddlist_get_align(const lv_obj_t *ddlist);
+
 /*=====================
  * Other functions
  *====================*/
@@ -209,14 +239,14 @@ lv_style_t * lv_ddlist_get_style(const lv_obj_t *ddlist, lv_ddlist_style_t type)
  * @param ddlist pointer to drop down list object
  * @param anim_en true: use animation; false: not use animations
  */
-void lv_ddlist_open(lv_obj_t * ddlist, bool anim);
+void lv_ddlist_open(lv_obj_t * ddlist, bool anim_en);
 
 /**
  * Close (Collapse) the drop down list
  * @param ddlist pointer to drop down list object
- * @param anim true: use animation; false: not use animations
+ * @param anim_en true: use animation; false: not use animations
  */
-void lv_ddlist_close(lv_obj_t * ddlist, bool anim);
+void lv_ddlist_close(lv_obj_t * ddlist, bool anim_en);
 
 /**********************
  *      MACROS

@@ -9,12 +9,12 @@
 
 #include <stdio.h>
 #include <stdbool.h>
-#include "lv_draw.h"
-#include "lv_draw_rbasic.h"
-#include "lv_draw_vbasic.h"
-#include "GUI_Misc/lv_fs.h"
-#include "GUI_Misc/lv_ufs.h"
+#include "GUI_Draw/lv_draw.h"
+#include "GUI_Draw/lv_draw_rbasic.h"
+#include "GUI_Draw/lv_draw_vbasic.h"
+#include "GUI_Objx/lv_img.h"
 #include "GUI_Port.h"
+
 /*********************
  *      DEFINES
  *********************/

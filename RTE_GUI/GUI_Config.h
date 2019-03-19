@@ -3,7 +3,7 @@
 //-------- <<< Use Configuration Wizard in Context Menu >>> --------------------
 //<s>  GUI Version
 //<i> LITTLEV GUI 原始文件版本号
-#define LV_VERSION                 "5.2.1"
+#define LV_VERSION                 "5.3.0"
 // <h> Resolution settings
  //<i> GUI分辨率设置
 	 //<o> LV_HOR_RES
@@ -21,12 +21,18 @@
 // <i> GUI显示设置
 	// <o> LV_VDB_SIZE
 	// <i> 默认大小为 ~1/10 screen，用于缓冲绘图，抗锯齿以及不透明度
-	#define LV_VDB_SIZE         (LV_VER_RES / 10 * LV_HOR_RES) 	
+	#define LV_VDB_SIZE         (LV_VER_RES  * LV_HOR_RES)/10
 	// <q> LV_VDB_DOUBLE
 	// <i> GUI 双缓冲绘图，需要DMA配合
 	#define LV_VDB_DOUBLE       0       /*1: Enable the use of 2 VDBs*/
 	// GUI 每像素点色彩深度
-	#define LV_VDB_PX_BPP       LV_COLOR_SIZE  
+	#define LV_VDB_PX_BPP       LV_COLOR_SIZE
+	// <q> LV_VDB_TRUE_DOUBLE_BUFFERED
+	// <i> GUI 双缓冲绘图 使用整个屏幕 配合LTDC使用
+    // * Requires:
+    // * - LV_VDB_SIZE = LV_HOR_RES * LV_VER_RES
+    // * - LV_VDB_DOUBLE = 1
+	#define LV_VDB_TRUE_DOUBLE_BUFFERED 0
 	// <q> LV_ANTIALIAS
 	// <i> GUI 抗锯齿使能
 	#define LV_ANTIALIAS        1       /*1: Enable anti-aliasing*/
@@ -39,8 +45,8 @@
 // <i> GUI输入设备设置
 	// <o> LV_INDEV_READ_PERIOD
 	// <i> GUI 输入设备读取间隔时间（单位：ms）
-	#define LV_INDEV_READ_PERIOD            50    	/*Input device read period in milliseconds*/
-  #define LV_INDEV_POINT_MARKER           0                      /*Mark the pressed points  (required: USE_LV_REAL_DRAW = 1)*/
+	#define LV_INDEV_READ_PERIOD            10    	/*Input device read period in milliseconds*/
+    #define LV_INDEV_POINT_MARKER           0                      /*Mark the pressed points  (required: USE_LV_REAL_DRAW = 1)*/
 	// <o> LV_INDEV_DRAG_LIMIT
 	// <i> GUI 拖动阈值
 	#define LV_INDEV_DRAG_LIMIT             10                     /*Drag threshold in pixels */
@@ -58,7 +64,7 @@
 	// <o> LV_COLOR_DEPTH
 	// <i> GUI使用得色彩位数大小
 	// <i> 默认大小: 16（单位：bit）
-	#define LV_COLOR_DEPTH     16                     /*Color depth: 1/8/16/32*/
+	#define LV_COLOR_DEPTH     16                    /*Color depth: 1/8/16/32*/
 	// <q> LV_COLOR_16_SWAP
 	// <i> 是否交换RGB565的两个高低位 八位接口LCD时需要注意设置
 	#define LV_COLOR_16_SWAP   0
@@ -76,6 +82,9 @@
 	//<s>  LV_TXT_BREAK_CHARS
 	//<i> GUI TXT使用特定字符串
 	#define LV_TXT_BREAK_CHARS     " ,.;:-_"         /*Can break texts on these chars*/
+	#define LV_TXT_LINE_BREAK_LONG_LEN 12 /* If a character is at least this long, will break wherever "prettiest" */
+	#define LV_TXT_LINE_BREAK_LONG_PRE_MIN_LEN 3 /* Minimum number of characters of a word to put on a line before a break */
+	#define LV_TXT_LINE_BREAK_LONG_POST_MIN_LEN 1 /* Minimum number of characters of a word to put on a line after a break */
 // </h>
 
 // <h> GUI feature usage
@@ -89,7 +98,7 @@
 		// <o> LV_AINIM_TIME_PERIOD
 		// <i> GUI 动画时钟基准
 		// <i> 默认大小: 10（单位：MS）
-		#define LV_AINIM_TIME_PERIOD          10   
+		#define LV_AINIM_TIME_PERIOD          10
 	// </e>
 	// <q> USE_LV_GROUP
 	// <i> GUI Group模块
@@ -100,9 +109,7 @@
 	// <q> USE_LV_REAL_DRAW
 	// <i> GUI 直接绘制
 	#define USE_LV_REAL_DRAW        1               /*1: Enable function which draw directly to the frame buffer instead of VDB (required if LV_VDB_SIZE = 0)*/
-	// <q> USE_LV_FILESYSTEM
-	// <i> GUI 文件系统模块
-	#define USE_LV_FILESYSTEM       1               /*1: Enable file system (required by images*/
+    #define USE_LV_MULTI_LANG       0               /* Number of languages for labels to store (0: to disable this feature)*/
 // </h>
 
 // <h> Compiler settings
@@ -135,27 +142,26 @@
 // <i> 主题配置
 	// <q> LV_THEME_LIVE_UPDATE
 	// <i> 支持运行中更换主题 需要额外的8-10 kB RAM
-	#define LV_THEME_LIVE_UPDATE    0       /*1: Allow theme switching at run time. Uses 8..10 kB of RAM*/
-	// <q> USE_LV_THEME_TEMPL
-	#define USE_LV_THEME_TEMPL      0       /*Just for test*/
+	#define LV_THEME_LIVE_UPDATE    1       /*1: Allow theme switching at run time. Uses 8..10 kB of RAM*/
 	// <q> USE_LV_THEME_DEFAULT
-	#define USE_LV_THEME_DEFAULT    0       /*Built mainly from the built-in styles. Consumes very few RAM*/
+	#define USE_LV_THEME_DEFAULT    1       /*Built mainly from the built-in styles. Consumes very few RAM*/
 	// <q> USE_LV_THEME_ALIEN
 	#define USE_LV_THEME_ALIEN      1       /*Dark futuristic theme*/
 	// <q> USE_LV_THEME_NIGHT
-	#define USE_LV_THEME_NIGHT      0       /*Dark elegant theme*/
+	#define USE_LV_THEME_NIGHT      1       /*Dark elegant theme*/
 	// <q> USE_LV_THEME_MONO
-	#define USE_LV_THEME_MONO       0       /*Mono color theme for monochrome displays*/
+	#define USE_LV_THEME_MONO       1       /*Mono color theme for monochrome displays*/
 	// <q> USE_LV_THEME_MATERIAL
-	#define USE_LV_THEME_MATERIAL   0       /*Flat theme with bold colors and light shadows*/
+	#define USE_LV_THEME_MATERIAL   1       /*Flat theme with bold colors and light shadows*/
 	// <q> USE_LV_THEME_ZEN
-	#define USE_LV_THEME_ZEN        0       /*Peaceful, mainly light theme */
+	#define USE_LV_THEME_ZEN        1       /*Peaceful, mainly light theme */
 	// <q> USE_LV_THEME_NEMO
-	#define USE_LV_THEME_NEMO       0       /*Water-like theme based on the movie "Finding Nemo"*/
+	#define USE_LV_THEME_NEMO       1       /*Water-like theme based on the movie "Finding Nemo"*/
 // </h>
 
 // <h> Font Settings
 // <i> GUI 字体配置
+#define LV_FONT_USE_FREETYPE        1
 #define LV_FONT_DEFAULT        &lv_font_dejavu_20    /*Always set a default font from the built-in fonts*/
 /* More info about fonts: https://littlevgl.com/basics#fonts
  * To enable a built-in font use 1,2,4 or 8 values
@@ -170,17 +176,17 @@
 #define USE_LV_FONT_DEJAVU_20_CYRILLIC     0
 #define USE_LV_FONT_SYMBOL_20              4
 
-#define USE_LV_FONT_DEJAVU_30              0
+#define USE_LV_FONT_DEJAVU_30              4
 #define USE_LV_FONT_DEJAVU_30_LATIN_SUP    0
 #define USE_LV_FONT_DEJAVU_30_CYRILLIC     0
-#define USE_LV_FONT_SYMBOL_30              0
+#define USE_LV_FONT_SYMBOL_30              4
 
-#define USE_LV_FONT_DEJAVU_40              0
+#define USE_LV_FONT_DEJAVU_40              4
 #define USE_LV_FONT_DEJAVU_40_LATIN_SUP    0
 #define USE_LV_FONT_DEJAVU_40_CYRILLIC     0
-#define USE_LV_FONT_SYMBOL_40              0
+#define USE_LV_FONT_SYMBOL_40              4
 
-#define USE_LV_FONT_MONOSPACE_8            0
+#define USE_LV_FONT_MONOSPACE_8            1
 // </h>
 
 
@@ -189,6 +195,7 @@
  *==================*/
 #define LV_OBJ_FREE_NUM_TYPE    uint32_t    /*Type of free number attribute (comment out disable free number)*/
 #define LV_OBJ_FREE_PTR         1           /*Enable the free pointer attribute*/
+#define LV_OBJ_REALIGN          1           /*Enable `lv_obj_realaign()` based on `lv_obj_align()` parameters*/
 #endif
 
 // <h> Objectx settings
@@ -239,6 +246,11 @@
 	#define LV_TABVIEW_ANIM_TIME    200     /*Time of slide animation [ms] (0: no animation)*/
 	#endif
 	// </e>
+    /*Tileview (dependencies: lv_page) */
+    #define USE_LV_TILEVIEW  1
+    #if USE_LV_TILEVIEW != 0
+    #define LV_TILEVIEW_ANIM_TIME   300     /*Time of slide animation [ms] (0: no animation)*/
+    #endif
 	// <e> USE_LV_BAR
 	// <i> GUI 进度条控件 依赖控件：无
 	#define USE_LV_BAR      1
@@ -255,9 +267,14 @@
 	// <i> GUI 二维图控件 依赖控件：无
 	#define USE_LV_CHART    1
 	// </e>
+    /*Table (dependencies: lv_label)*/
+    #define USE_LV_TABLE    1
+    #if USE_LV_TABLE != 0
+    #define LV_TABLE_COL_MAX    12
+    #endif
 	// <e> USE_LV_LED
 	// <i> GUI LED控件 依赖控件：无
-	#define USE_LV_LED      0
+	#define USE_LV_LED      1
 	// </e>
 	// <e> USE_LV_MBOX
 	// <i> GUI 消息窗口控件 依赖控件：rect, btnm, label
@@ -275,6 +292,8 @@
 	#define LV_TA_PWD_SHOW_TIME     1500    /*ms*/
 	#endif
 	// </e>
+    /*Spinbox (dependencies: lv_ta)*/
+    #define USE_LV_SPINBOX       1
 	// <e> USE_LV_CALENDAR
 	// <i> GUI 日历控件 依赖控件：无
 	#define USE_LV_CALENDAR    1
@@ -290,6 +309,8 @@
 	#define LV_PRELOAD_DEF_SPIN_TIME    1000    /*[ms]*/
 	#endif
 	// </e>
+    /*Canvas (dependencies: lv_img)*/
+    #define USE_LV_CANVAS       1
 	// <e> USE_LV_BTN
 	// <i> GUI 按钮控件 依赖控件：cont
 	#define USE_LV_BTN      1
@@ -300,6 +321,9 @@
 	// <q> USE_LV_IMGBTN
 	// <i> GUI 图片按钮
 	#define USE_LV_IMGBTN   1
+    #if USE_LV_IMGBTN != 0
+    #define LV_IMGBTN_TILED 0           /*1: The imgbtn requires left, mid and right parts and the width can be set freely*/
+	#endif
 	#endif
 	// </e>
 	// <e> USE_LV_BTNM

@@ -6,9 +6,9 @@
 static BSP_COM_Handle_t ComControlArray[COM_N] = {
 	// Name, Clock               , AF-UART      ,UART  , Baud , Interrupt
   {
-		COM_DEBUG,RCC_APB2Periph_USART1,GPIO_AF_USART1,USART1,USART1_IRQn, // UART2 mit 115200 Baud
+		COM_DEBUG,RCC_APB2Periph_USART1,GPIO_AF_USART1,USART1,USART1_IRQn,
 		// PORT , PIN      , Clock              , Source
-		{GPIOA,GPIO_Pin_9,RCC_AHB1Periph_GPIOA,GPIO_PinSource9},  // TX an PA2
+		{GPIOA,GPIO_Pin_9,RCC_AHB1Periph_GPIOA,GPIO_PinSource9}, 
 		{GPIOA,GPIO_Pin_10,RCC_AHB1Periph_GPIOA,GPIO_PinSource10},
 		//DMA2数据流2 通道4
 		DMA2_Stream2,DMA_Channel_4,
@@ -17,15 +17,26 @@ static BSP_COM_Handle_t ComControlArray[COM_N] = {
 		0x09,
 	},
   {
-		COM_WIFI,RCC_APB1Periph_USART2,GPIO_AF_USART2,USART2,USART2_IRQn, // UART2 mit 115200 Baud
+		COM_WIFI,RCC_APB1Periph_USART2,GPIO_AF_USART2,USART2,USART2_IRQn,
 		// PORT , PIN      , Clock              , Source
-		{GPIOA,GPIO_Pin_2,RCC_AHB1Periph_GPIOA,GPIO_PinSource2},  // TX an PA2
+		{GPIOA,GPIO_Pin_2,RCC_AHB1Periph_GPIOA,GPIO_PinSource2},
 		{GPIOA,GPIO_Pin_3,RCC_AHB1Periph_GPIOA,GPIO_PinSource3},
 		//DMA1数据流5 通道4
 		DMA1_Stream5,DMA_Channel_4,
 		//BufferLen QUENELEN 
 		2048,8192,
 		0x03,
+	},
+	// Name, Clock               , AF-UART      ,UART  , Baud , Interrupt
+  {
+		COM_RFID,RCC_APB1Periph_USART3,GPIO_AF_USART3,USART3,USART3_IRQn, 
+		// PORT , PIN      , Clock              , Source
+		{GPIOB,GPIO_Pin_10,RCC_AHB1Periph_GPIOB,GPIO_PinSource10},  
+		{GPIOB,GPIO_Pin_11,RCC_AHB1Periph_GPIOB,GPIO_PinSource11},
+		DMA1_Stream1,DMA_Channel_4,
+		//BufferLen QUENELEN 
+		64,256,
+		0x04,
 	},
 };
 //--------------------------------------------------------------
@@ -89,7 +100,7 @@ void BSP_COM_Init(BSP_COM_Name_e uart,uint32_t baudrate)
 
 	// RX-Puffer vorbereiten
 	//申请内存
-	ComControlArray[uart].ComBuffer.pu8Databuf = (uint8_t *)RTE_MEM_Alloc0(MEM_DMA,ComControlArray[uart].DataBufferLen);
+	ComControlArray[uart].ComBuffer.pu8Databuf = (uint8_t *)Memory_Alloc0(BANK_DMA,ComControlArray[uart].DataBufferLen);
 	ComControlArray[uart].ComBuffer.u16Datalength = 0;
 	RTE_MessageQuene_Init(&ComControlArray[uart].ComBuffer.ComQuene,ComControlArray[uart].DataQueneLen);
 	
@@ -202,15 +213,17 @@ static void BSP_COM_RecCallback(BSP_COM_Name_e uart)
 			RTE_Shell_Input(ComControlArray[uart].ComBuffer.pu8Databuf,ComControlArray[uart].ComBuffer.u16Datalength);
 		else if(uart == COM_WIFI)
 		{
-			osThreadId_t ThreadIDWIFI;
+			extern osThreadId_t ThreadIDWIFI;
 			RTE_MessageQuene_In(&ComControlArray[uart].ComBuffer.ComQuene,ComControlArray[uart].ComBuffer.pu8Databuf,
 						ComControlArray[uart].ComBuffer.u16Datalength);
 			osThreadFlagsSet(ThreadIDWIFI,0x00000001U);
 		}
 		else
 		{
+			extern osThreadId_t ThreadIDRFID;
 			RTE_MessageQuene_In(&ComControlArray[uart].ComBuffer.ComQuene,ComControlArray[uart].ComBuffer.pu8Databuf,
 						ComControlArray[uart].ComBuffer.u16Datalength);
+			osThreadFlagsSet(ThreadIDRFID,0x00000001U);
 		}
 	}
 	memset(ComControlArray[uart].ComBuffer.pu8Databuf,0,ComControlArray[uart].ComBuffer.u16Datalength);
@@ -236,6 +249,13 @@ void USART1_IRQHandler(void) {
 void USART2_IRQHandler(void) {
 	if(USART_GetITStatus(USART2, USART_IT_IDLE) != RESET)
 		BSP_COM_RecCallback(COM_WIFI);
+}
+//--------------------------------------------------------------
+// USART3-Interrupt
+//--------------------------------------------------------------
+void USART3_IRQHandler(void) {
+	if(USART_GetITStatus(USART3, USART_IT_IDLE) != RESET)
+		BSP_COM_RecCallback(COM_RFID);
 }
 
 ////--------------------------------------------------------------

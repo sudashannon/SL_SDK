@@ -9,7 +9,7 @@ static BSP_LED_Handle_t LedControlArray[LED_N]=
 {
   // Name    ,PORT , PIN ,                        Init
   {LED_SYS ,GPIOA,GPIO_Pin_1,RCC_AHB1Periph_GPIOA,LED_OFF},   // PD2,LED0
-  {LED_SIGNAL ,GPIOA,GPIO_Pin_5,RCC_AHB1Periph_GPIOA,LED_OFF},   // PD2,LED0
+  {LED_WATER ,GPIOA,GPIO_Pin_5,RCC_AHB1Periph_GPIOA,LED_OFF},   // PD2,LED0
 };
 //--------------------------------------------------------------
 // LED ausschalten

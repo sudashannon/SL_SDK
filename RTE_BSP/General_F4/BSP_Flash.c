@@ -1,114 +1,6 @@
 #include "BSP_Flash.h"
-static uint32_t stm32_get_sector(uint32_t address);
-static uint32_t stm32_get_sector_size(uint32_t sector);
-/**
- * Read data from flash.
- * @note This operation's units is word.
- *
- * @param addr flash address
- * @param buf buffer to store read data
- * @param size read bytes size
- *
- * @return result
- */
-EfErrCode ef_port_read(uint32_t addr, uint32_t *buf, size_t size) {
-    EfErrCode result = EF_NO_ERR;
-    RTE_AssertParam(size % 4 == 0);
-    /*copy from flash to ram */
-    for (; size > 0; size -= 4, addr += 4, buf++) {
-        *buf = *(uint32_t *) addr;
-    }
-    return result;
-}
-/**
- * Erase data on flash.
- * @note This operation is irreversible.
- * @note This operation's units is different which on many chips.
- *
- * @param addr flash address
- * @param size erase bytes size
- *
- * @return result
- */
-EfErrCode ef_port_erase(uint32_t addr, size_t size) {
-    EfErrCode result = EF_NO_ERR;
-    FLASH_Status flash_status;
-    size_t erased_size = 0;
-    uint32_t cur_erase_sector;
-
-    /* make sure the start address is a multiple of EF_ERASE_MIN_SIZE */
-    RTE_AssertParam(addr % KVDB_ERASE_MIN_SIZE == 0);
-
-    /* start erase */
-    FLASH_Unlock();
-    FLASH_ClearFlag(FLASH_FLAG_EOP | FLASH_FLAG_OPERR | FLASH_FLAG_WRPERR | FLASH_FLAG_PGAERR
-                    | FLASH_FLAG_PGPERR | FLASH_FLAG_PGSERR);
-    /* it will stop when erased size is greater than setting size */
-    while(erased_size < size) {
-        cur_erase_sector = stm32_get_sector(addr + erased_size);
-        flash_status = FLASH_EraseSector(cur_erase_sector, VoltageRange_3);
-        if (flash_status != FLASH_COMPLETE) {
-            result = EF_ERASE_ERR;
-            break;
-        }
-        erased_size += stm32_get_sector_size(cur_erase_sector);
-    }
-    FLASH_Lock();
-
-    return result;
-}
-/**
- * Write data to flash.
- * @note This operation's units is word.
- * @note This operation must after erase. @see flash_erase.
- *
- * @param addr flash address
- * @param buf the write data buffer
- * @param size write bytes size
- *
- * @return result
- */
-EfErrCode ef_port_write(uint32_t addr, const uint32_t *buf, size_t size) {
-    EfErrCode result = EF_NO_ERR;
-    size_t i;
-    uint32_t read_data;
-
-    RTE_AssertParam(size % 4 == 0);
-
-    FLASH_Unlock();
-    FLASH_ClearFlag(FLASH_FLAG_EOP | FLASH_FLAG_OPERR | FLASH_FLAG_WRPERR | FLASH_FLAG_PGAERR
-                    | FLASH_FLAG_PGPERR | FLASH_FLAG_PGSERR);
-    for (i = 0; i < size; i += 4, buf++, addr += 4) {
-        /* write data */
-        FLASH_ProgramWord(addr, *buf);
-        read_data = *(uint32_t *)addr;
-        /* check data */
-        if (read_data != *buf) {
-            result = EF_WRITE_ERR;
-            break;
-        }
-    }
-    FLASH_Lock();
-
-    return result;
-}
-/**
- * lock the ENV ram cache
- */
-void ef_port_env_lock(void) {
-#if RTE_USE_OS == 1
-	osMutexAcquire(MutexIDKVDB,osWaitForever);
-#endif
-}
-
-/**
- * unlock the ENV ram cache
- */
-void ef_port_env_unlock(void) {
-#if RTE_USE_OS == 1
-	osMutexRelease(MutexIDKVDB);
-#endif
-}
+#include <sfud.h>
+#if USE_ONCHIP_FLASH == 1
 /**
  * Get the sector of a given address
  *
@@ -210,4 +102,140 @@ static uint32_t stm32_get_sector_size(uint32_t sector) {
     case FLASH_Sector_23: return 128 * 1024;
     default : return 128 * 1024;
     }
+}
+#endif
+/**
+ * Read data from flash.
+ * @note This operation's units is word.
+ *
+ * @param addr flash address
+ * @param buf buffer to store read data
+ * @param size read bytes size
+ *
+ * @return result
+ */
+EfErrCode ef_port_read(uint32_t addr, uint32_t *buf, size_t size) {
+	EfErrCode result = EF_NO_ERR;
+#if USE_ONCHIP_FLASH == 1
+    uint8_t *buf_8 = (uint8_t *)buf;
+    size_t i;
+
+    /*copy from flash to ram */
+    for (i = 0; i < size; i++, addr ++, buf_8++) {
+        *buf_8 = *(uint8_t *) addr;
+    }
+#else
+    const sfud_flash *flash = sfud_get_device_table() + SFUD_W25_DEVICE_INDEX;
+    sfud_read(flash, addr, size, (uint8_t *)buf);
+#endif
+    return result;
+}
+/**
+ * Erase data on flash.
+ * @note This operation is irreversible.
+ * @note This operation's units is different which on many chips.
+ *
+ * @param addr flash address
+ * @param size erase bytes size
+ *
+ * @return result
+ */
+EfErrCode ef_port_erase(uint32_t addr, size_t size) {
+    EfErrCode result = EF_NO_ERR;
+#if USE_ONCHIP_FLASH == 1
+    FLASH_Status flash_status;
+    size_t erased_size = 0;
+    uint32_t cur_erase_sector;
+
+    /* make sure the start address is a multiple of EF_ERASE_MIN_SIZE */
+    RTE_AssertParam(addr % EF_ERASE_MIN_SIZE == 0);
+
+    /* start erase */
+    FLASH_Unlock();
+    FLASH_ClearFlag(FLASH_FLAG_EOP | FLASH_FLAG_OPERR | FLASH_FLAG_WRPERR | FLASH_FLAG_PGAERR
+                    | FLASH_FLAG_PGPERR | FLASH_FLAG_PGSERR);
+    /* it will stop when erased size is greater than setting size */
+    while(erased_size < size) {
+        cur_erase_sector = stm32_get_sector(addr + erased_size);
+        flash_status = FLASH_EraseSector(cur_erase_sector, VoltageRange_3);
+        if (flash_status != FLASH_COMPLETE) {
+            result = EF_ERASE_ERR;
+            break;
+        }
+        erased_size += stm32_get_sector_size(cur_erase_sector);
+    }
+    FLASH_Lock();
+#else
+    sfud_err sfud_result = SFUD_SUCCESS;
+    const sfud_flash *flash = sfud_get_device_table() + SFUD_W25_DEVICE_INDEX;
+    /* make sure the start address is a multiple of FLASH_ERASE_MIN_SIZE */
+    RTE_AssertParam(addr % EF_ERASE_MIN_SIZE == 0);
+    sfud_result = sfud_erase(flash, addr, size);
+    if(sfud_result != SFUD_SUCCESS) {
+        result = EF_ERASE_ERR;
+    }
+#endif
+    return result;
+}
+/**
+ * Write data to flash.
+ * @note This operation's units is word.
+ * @note This operation must after erase. @see flash_erase.
+ *
+ * @param addr flash address
+ * @param buf the write data buffer
+ * @param size write bytes size
+ *
+ * @return result
+ */
+EfErrCode ef_port_write(uint32_t addr, const uint32_t *buf, size_t size) {
+    EfErrCode result = EF_NO_ERR;
+#if USE_ONCHIP_FLASH == 1
+    size_t i;
+    uint32_t read_data;
+    uint8_t *buf_8 = (uint8_t *)buf;
+
+    FLASH_Unlock();
+    FLASH_ClearFlag(
+            FLASH_FLAG_EOP | FLASH_FLAG_OPERR | FLASH_FLAG_WRPERR | FLASH_FLAG_PGAERR | FLASH_FLAG_PGPERR
+                    | FLASH_FLAG_PGSERR);
+    for (i = 0; i < size; i++, buf_8++, addr++)
+    {
+        /* write data */
+        FLASH_ProgramByte(addr, *buf_8);
+        read_data = *(uint8_t *) addr;
+        /* check data */
+        if (read_data != *buf_8) {
+            result = EF_WRITE_ERR;
+            break;
+        }
+    }
+    FLASH_Lock();
+#else
+    sfud_err sfud_result = SFUD_SUCCESS;
+    const sfud_flash *flash = sfud_get_device_table() + SFUD_W25_DEVICE_INDEX;
+    sfud_result = sfud_write(flash, addr, size, (const uint8_t *)buf);
+    if(sfud_result != SFUD_SUCCESS) {
+        result = EF_WRITE_ERR;
+    }
+
+#endif
+    return result;
+}
+/**
+ * lock the ENV ram cache
+ */
+void ef_port_env_lock(void) {
+#if RTE_USE_OS == 1
+	osMutexAcquire(MutexIDKVDB,osWaitForever);
+#endif
+}
+
+/**
+ * unlock the ENV ram cache
+ */
+void ef_port_env_unlock(void) {
+#if RTE_USE_OS == 1
+	osMutexRelease(MutexIDKVDB);
+#endif
 }

@@ -10,8 +10,8 @@
 #if USE_LV_REAL_DRAW != 0
 
 #include "GUI_Hal/lv_hal_disp.h"
-#include "GUI_Font/lv_font.h"
-#include "lv_draw.h"
+#include "GUI_Misc/lv_font.h"
+#include "GUI_Draw/lv_draw.h"
 
 /*********************
  *      DEFINES

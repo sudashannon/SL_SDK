@@ -15,9 +15,7 @@ extern "C" {
  *      INCLUDES
  *********************/
 #include "GUI_Config.h"
-
 #if USE_LV_ARC != 0
-
 #include "GUI_Core/lv_obj.h"
 
 /*********************

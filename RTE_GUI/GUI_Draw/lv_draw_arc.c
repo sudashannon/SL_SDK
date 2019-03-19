@@ -6,7 +6,7 @@
 /*********************
  *      INCLUDES
  *********************/
-#include "lv_draw_arc.h"
+#include "GUI_Draw/lv_draw_arc.h"
 #include "GUI_Port.h"
 
 /*********************

@@ -6,7 +6,7 @@
 /*********************
  *      INCLUDES
  *********************/
-#include "lv_color.h"
+#include "GUI_Misc/lv_color.h"
 
 /*********************
  *      DEFINES

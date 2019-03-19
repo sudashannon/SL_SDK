@@ -14,19 +14,13 @@ extern "C" {
 //-------- <<< Use Configuration Wizard in Context Menu >>> --------------------
 //<s> RTE版本号
 //<i> 具体定义见相关文档。
-#define RTE_VERSION "3.3.0113"
+#define RTE_VERSION "3.7.0319"
 //=======================
 //<e> 动态内存管理模块
 //=======================
 //<i> 使用RTE自带的动态内存管理，依赖模块：无。
 #define RTE_USE_MEMMANAGE             1
 #if RTE_USE_MEMMANAGE == 1
-	//<q> 硬件环境是否支持64位
-	//<i> 对于STM32等32位MCU，无需勾选此项。
-	#define RTE_MEM_64BIT               0
-	//<q> 是否自动回收碎片
-	//<i> 使能MEM自带的碎片整理功能。
-	#define RTE_MEM_AUTO_DEFRAG         1
 	//<o> RTE内存块大小
 	//<i> RTE使用得动态内存大小
 	//<i> 默认大小: 32（单位：K）
@@ -72,24 +66,43 @@ extern "C" {
 //=======================
 //<i> 使用RTE自带的KV关系数据库，依赖模块：标准输出。
 #define RTE_USE_KVDB                  1
-	//<o>KVDB最小擦除单位大小
+	//<q>使用片上flash
+	#define USE_ONCHIP_FLASH            0
+	//<q>环境变量功能
+	#define EF_USING_ENV                1
+	//<q>环境变量自动更新功能
+	//<i>Auto update ENV to latest default when current ENV version number is changed.
+	#define EF_ENV_AUTO_UPDATE          0
+	#if EF_ENV_AUTO_UPDATE
+	//<o>环境变量版本
+	#define EF_ENV_VER_NUM              0
+	#endif
+	//<q>IAT功能
+	#define EF_USING_IAP                0
+	//<o>最小擦除大小
 	//<i>单位：K
-	#define KVDB_ERASE_MIN_SIZE         (16 * 1024)
-	//<q>掉电保护
-	#define KVDB_USE_PFS                0
-	//<o>用户设置环境变量大小
-	#define KVDB_USER_SETTING_SIZE      2048
-	//<o>KVDB地址偏移
-	//<i>加上FLASH首地址后为实际地址（单位：K）
-	#define KVDB_ADDR_OFFSET            480 * 1024 
-	//<o>FLASH首地址
-	#define KVDB_FLASH_BASE             0x08000000
-	//<e>自动更新（增量更新）
-	#define KVDB_USE_AUTO_UPDATE        0
-	//<o>固件版本
-	//<i>如果检测到产品存储的版本号与设定版本号不一致，会自动追加默认环境变量集合中新增的环境变量。
-	#define KVDB_FM_VER_NUM             0
-	//</e>
+	#if USE_ONCHIP_FLASH == 0
+	#define EF_ERASE_MIN_SIZE          4096
+	#else
+	#define EF_ERASE_MIN_SIZE          (32 * 1024)
+	#endif
+	//<o>FLASH写入单元
+	//<i>support 1(nor flash)/ 8(stm32f4)/ 32(stm32f1)/ 64(stm32l4)
+	#if USE_ONCHIP_FLASH == 0
+	#define EF_WRITE_GRAN              1
+	#else
+	#define EF_WRITE_GRAN              8
+	#endif
+	//<o>可用FLASH首地址
+	#if USE_ONCHIP_FLASH == 0
+	#define EF_START_ADDR              (0)
+	#else
+	#define EF_START_ADDR              0x08000000 + 480 * 1024
+	#endif
+	//<o>环境变量大小
+	//<i>至少两个扇区大小用于GC
+	#define ENV_AREA_SIZE             (16 * EF_ERASE_MIN_SIZE)      
+
 //</e>
 //=======================
 //<e> 状态机模块
@@ -122,15 +135,18 @@ extern "C" {
 #if RTE_USE_VEC == 0 || RTE_USE_MEMMANAGE == 0 || RTE_USE_RINGQUENE == 0
 #error "This module needs vec and dynatic mem manage module's support!"
 #endif
-	//<o>最大支持指令数目
+	//<o>最大支持模组数目
 	//<i>默认大小: 16
-	#define SHELL_MAX_NUM    		        16
-	//<o>单条指令最大支持参数量
+	#define SHELL_MAX_MODULE    		    16
+	//<o>模组最大函数数目
+	//<i>默认大小: 16
+	#define SHELL_MAX_MODULE_FUC    		16
+	//<o>函数最大支持参数量
 	//<i>默认大小: 8
-	#define SHELL_MAX_ARGS              8
+	#define SHELL_MAX_ARGS                  8
 	//<o>数据缓存大小
-	//<i>默认大小: 32 [bytes] 
-	#define SHELL_BUFSIZE    		        64
+	//<i>默认大小: 128 [bytes]
+	#define SHELL_BUFSIZE    		        128
 #endif
 //</e>
 //=======================

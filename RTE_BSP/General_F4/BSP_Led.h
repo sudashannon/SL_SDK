@@ -12,7 +12,7 @@
 typedef enum 
 {
   LED_SYS = 0,  			 // LED0
-  LED_SIGNAL = 1,  			 // LED0
+	LED_WATER = 1,  			 // LED0
 	LED_N,
 }BSP_LED_Name_t;
 //--------------------------------------------------------------

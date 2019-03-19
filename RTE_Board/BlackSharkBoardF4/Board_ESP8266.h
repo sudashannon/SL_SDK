@@ -9,7 +9,9 @@ typedef struct
 	uint8_t *ssid;
 	uint8_t *mac;
 }ESP8266_HotsPot_t;
-extern bool Board_ESP8266_Init(uint8_t retrytimes);
+extern void Board_ESP8266_Init(void);
+extern void Board_ESP8266_Off(void);
+extern bool Board_ESP8266_Boot(uint8_t retrytimes);
 extern void Board_ESP8266_HardReset(void);
 extern uint8_t *Board_ESP8266_ATSend(const char *command,const char *ideares,uint32_t timeout);
 
