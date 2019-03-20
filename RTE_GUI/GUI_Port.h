@@ -15,10 +15,10 @@
  *  内存管理重定向
  *********************/
 #define lv_mem_alloc(size)        Memory_Alloc(BANK_RTE,size)
-#define lv_mem_free(data)         Memory_Free(BANK_RTE,data)
+#define lv_mem_free(data)         Memory_Free(BANK_RTE,(void *)data)
 #define lv_mem_assert             RTE_AssertParam
-#define lv_mem_realloc(data,size) Memory_Realloc(BANK_RTE,data,size)
-#define lv_mem_get_size(data)     Memory_GetDataSize(data)
+#define lv_mem_realloc(data,size) Memory_Realloc(BANK_RTE,(void *)data,size)
+#define lv_mem_get_size(data)     Memory_GetDataSize((void *)data)
 /*********************
  *  链表重定向
  *********************/
