@@ -5,9 +5,7 @@ extern "C" {
 #endif
 	#include <stdio.h>
 	#include <stdint.h>
-	#include <stdbool.h>
-	#include <math.h>
-	#include <limits.h>
+
 	#ifndef M_PI
 	#define M_PI    3.14159265f
 	#endif

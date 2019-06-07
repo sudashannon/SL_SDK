@@ -4,11 +4,14 @@
   * @author  Shan Lei ->>lurenjia.tech ->>https://github.com/sudashannon
   * @brief   RTE自带的一些数学运算。
   * @version V1.0 2018/11/02 第一版
-	* @History V1.0 创建
+  * @History V1.0 创建
   ******************************************************************************
   */
-#include "RTE_MATH.h"
-#include "RTE_UString.h"
+#include "RTE_Math.h"
+#include <string.h>
+#include <stdbool.h>
+#include <math.h>
+#include <limits.h>
 static void InvertUint8(unsigned char *dBuf,unsigned char *srcBuf)
 {
     int i;
@@ -404,8 +407,8 @@ int MATH_StringToHex(const char *str, unsigned char *out)
 {
     char *p = (char *)str;
     char high = 0, low = 0;
-    int tmplen = ustrlen(p), cnt = 0;
-    tmplen = ustrlen(p);
+    int tmplen = strlen(p), cnt = 0;
+    tmplen = strlen(p);
     while(cnt < (tmplen / 2))
     {
         high = ((*p > '9') && ((*p <= 'F') || (*p <= 'f'))) ? *p - 48 - 7 : *p - 48;

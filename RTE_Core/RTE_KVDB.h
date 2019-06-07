@@ -39,7 +39,6 @@ extern "C" {
 		EF_SECTOR_USING,
 		EF_SECTOR_FULL,
 	} EfSecrorStatus;
-	#if EF_USING_ENV
 	extern EfErrCode ef_env_init(ef_env const *default_env, size_t default_env_size);
 	/* only supported on ef_env.c */
 	size_t ef_get_env_blob(const char *key, void *value_buf, size_t buf_len, size_t *value_len);
@@ -56,9 +55,8 @@ extern "C" {
 	size_t ef_get_env_write_bytes(void);
 	EfErrCode ef_set_and_save_env(const char *key, const char *value);
 	EfErrCode ef_del_and_save_env(const char *key);
-	#endif
 
-	#if EF_USING_IAP
+	#if EF_USING_IAP == 1
 	extern EfErrCode ef_iap_init(void);
 	/* ef_iap.c */
 	EfErrCode ef_erase_bak_app(size_t app_size);

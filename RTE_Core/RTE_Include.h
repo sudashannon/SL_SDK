@@ -3,7 +3,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-    #include <stdio.h>
+	#include <stdlib.h>
+	#include <stdio.h>
 	#include <string.h>
 	#include <stdarg.h>
 	#include <stdbool.h>
@@ -13,48 +14,22 @@ extern "C" {
 	#include <stdarg.h>
 	#include <time.h>
 	#include "RTE_Config.h"
-	#include "RTE_MATH.h"
-	#if RTE_USE_OS == 1
-	#include "cmsis_os2.h"
-	#endif
-	#if RTE_USE_MEMMANAGE == 1
+	#include "RTE_Printf.h"
 	#include "RTE_Memory.h"
-	#endif
-	#if RTE_USE_VEC == 1
-	#include "RTE_Vec.h"
-	#endif
-	#if RTE_USE_LL == 1
-	#include "RTE_LinkList.h"
-	#endif
-	#if RTE_USE_USTRING == 1
-	#include "RTE_UString.h"
-	#endif
-	#if RTE_USE_USTDOUT == 1
-	#include "RTE_UStdout.h"
-	#endif
-	#if RTE_USE_KVDB == 1
-	#include "RTE_KVDB.h"
-	extern void RTE_KVDB_Init(void);
-	#endif
-	#if RTE_USE_SM == 1
-	#include "RTE_StateMachine.h"
-	#endif
-	#if RTE_USE_RINGQUENE == 1
-	#include "RTE_RingQuene.h"
-	#endif
-	#if RTE_USE_SHELL == 1
-	#include "RTE_Shell.h"
-	#endif
-	#if RTE_USE_ROUNDROBIN == 1
+	#include "RTE_Vector.h"
 	#include "RTE_RoundRobin.h"
-	#endif
-	#if RTE_USE_GUI == 1
-	#include "GUI_Include.h"
-	#endif
+	#include "RTE_LinkList.h"
+	#include "RTE_Stream.h"
+	#include "RTE_StateMachine.h"
+	#include "RTE_Shell.h"
+	#include "RTE_KVDB.h"
+	#include "RTE_Math.h"
 	extern void RTE_Init(void);
+	#define ALIGN_NBYTES(buf,n) buf __attribute__ ((aligned (n)))
 	#ifndef UNUSED
 	#define UNUSED(x) ((void)(x))
-	#endif
+#endif
+
 #ifdef __cplusplus
 }
 #endif

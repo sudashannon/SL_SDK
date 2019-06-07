@@ -4,22 +4,31 @@
   * @file    RTE_MEM.h
   * @author  Shan Lei ->>lurenjia.tech ->>https://github.com/sudashannon
   * @brief   动态内存管理，可以管理多块内存。
-  * @version V3.0 2019/03/17
+  * @version V4.0 2019/06/07
   * @History V1.0 创建，移植并修改自lvgl
              V1.1 增加了互斥锁
 			 V1.2 修复了互斥锁逻辑
 			 v2.0 使用umm_alloc作为管理内核 https://github.com/rhempel/umm_malloc
 			 v3.0 使用tlsf作为管理内核 http://www.gii.upv.es/tlsf/mm/intro
 			 v3.1 升级tlsf到最新版本 https://github.com/mattconte/tlsf
+			 v4.0 归并简单版本和复杂版本的动态内存管理
   ******************************************************************************
   */
-#if RTE_USE_MEMMANAGE == 1
-#include "RTE_UStdout.h"
-#include "RTE_Math.h"
+#if RTE_USE_MEMORY == 1
+#if MEMORY_DEBUG == 1
+#include "RTE_Printf.h"
+#endif
 #include <string.h>
+#include <math.h>
+#include <limits.h>
 #define MEM_STR  "[MEM]"
 static mem_control_t MemoryHandle[BANK_N] = {0};
+static uint8_t zeroval;
+#define mem_min(a, b)		((a)<(b)?(a):(b))
+#define mem_max(a, b)		((a)>(b)?(a):(b))
+#if MEMORY_TYPE == 1
 #if defined (__ARMCC_VERSION)
+#include "cmsis_compiler.h"
 /* RealView Compilation Tools for ARM */
 static inline int mem_ffs(unsigned int word)
 {
@@ -59,8 +68,8 @@ static inline int mem_fls(unsigned int word)
 	return bit - 1;
 }
 #endif
-/* Possibly 64-bit version of tlsf_fls. */
-#if defined (RTE_MEM_64BIT)
+/* Possibly 64-bit version of mem_fls. */
+#if RTE_MEM_64BIT == 1
 static inline int mem_fls_sizet(size_t size)
 {
 	int high = (int)(size >> 32);
@@ -92,9 +101,9 @@ enum mem_public
 	SL_INDEX_COUNT_LOG2 = 5,
 };
 /* Private constants: do not modify. */
-enum tlsf_private
+enum mem_private
 {
-#if defined (RTE_MEM_64BIT)
+#if RTE_MEM_64BIT == 1
 	/* All allocation sizes and addresses are aligned to 8 bytes. */
 	ALIGN_SIZE_LOG2 = 3,
 #else
@@ -113,7 +122,7 @@ enum tlsf_private
 	** blocks below that size into the 0th first-level list.
 	*/
 
-#if defined (RTE_MEM_64BIT)
+#if RTE_MEM_64BIT == 1
 	/*
 	** TODO: We can increase this to support larger sizes, at the expense
 	** of more overhead in the mem structure.
@@ -132,8 +141,6 @@ enum tlsf_private
 ** Cast and min/max macros.
 */
 #define mem_cast(t, exp)	((t) (exp))
-#define mem_min(a, b)		MATH_MIN(a,b)
-#define mem_max(a, b)		MATH_MAX(a,b)
 /*
 ** Static assertion mechanism.
 */
@@ -193,7 +200,7 @@ static const size_t block_start_offset =
 ** the prev_phys_block field, and no larger than the number of addressable
 ** bits for FL_INDEX.
 */
-static const size_t block_size_min = 
+static const size_t block_size_min =
 	sizeof(block_header_t) - sizeof(block_header_t*);
 static const size_t block_size_max = mem_cast(size_t, 1) << FL_INDEX_MAX;
 /* The mem control structure. */
@@ -327,7 +334,7 @@ static size_t adjust_request_size(size_t size, size_t align)
 		const size_t aligned = align_up(size, align);
 
 		/* aligned sized must not exceed block_size_max or we'll go out of bounds on sl_bitmap */
-		if (aligned < block_size_max) 
+		if (aligned < block_size_max)
 		{
 			adjust = mem_max(aligned, block_size_min);
 		}
@@ -560,7 +567,7 @@ static block_header_t* block_locate_free(control_t* control, size_t size)
 	{
 		mapping_search(size, &fl, &sl);
 		/*
-		** mapping_search can futz with the size, so for excessively large sizes it can sometimes wind up 
+		** mapping_search can futz with the size, so for excessively large sizes it can sometimes wind up
 		** with indices that are off the end of the block array.
 		** So, we protect against that here, since this is the only callsite of mapping_search.
 		** Note that we don't need to check sl, since it comes from a modulo operation that guarantees it's always in range.
@@ -609,7 +616,7 @@ static mem_t mem_create(void* mem_pool)
 {
 	if (((memptr_t)mem_pool % ALIGN_SIZE) != 0)
 	{
-		RTE_Printf("tlsf_create: Memory must be aligned to %u bytes.\n",
+		uprintf("mem_create: Memory must be aligned to %u bytes.\r\n",
 			(unsigned int)ALIGN_SIZE);
 		return 0;
 	}
@@ -624,19 +631,19 @@ static pool_t mem_add_pool(mem_t mem, void* mem_pool, size_t mem_pool_size)
 	const size_t pool_bytes = align_down(mem_pool_size - pool_overhead, ALIGN_SIZE);
 	if (((memptr_t)mem_pool % ALIGN_SIZE) != 0)
 	{
-		RTE_Printf("mem_add_pool: Memory must be aligned by %u bytes.\n",
+		uprintf("mem_add_pool: Memory must be aligned by %u bytes.\r\n",
 			(unsigned int)ALIGN_SIZE);
 		return 0;
 	}
 
 	if (pool_bytes < block_size_min || pool_bytes > block_size_max)
 	{
-#if defined (RTE_MEM_64BIT)
-		RTE_Printf("mem_add_pool: Memory size must be between 0x%x and 0x%x00 bytes.\n", 
+#if RTE_MEM_64BIT == 1
+		uprintf("mem_add_pool: Memory size must be between 0x%x and 0x%x00 bytes.\r\n",
 			(unsigned int)(pool_overhead + block_size_min),
 			(unsigned int)((pool_overhead + block_size_max) / 256));
 #else
-		RTE_Printf("mem_add_pool: Memory size must be between %u and %u bytes.\n", 
+		uprintf("mem_add_pool: Memory size must be between %u and %u bytes.\r\n",
 			(unsigned int)(pool_overhead + block_size_min),
 			(unsigned int)(pool_overhead + block_size_max));
 #endif
@@ -669,7 +676,7 @@ void Memory_Pool(mem_bank_e bank,void *mem_pool,size_t mem_pool_size)
 #if RTE_USE_OS == 1
 	/* ------------------------------------------------------------------------- */
 	const static osMutexAttr_t MemoryMutexattr = {
-	  .attr_bits = osMutexRecursive,    // attr_bits
+	  .attr_bits = osMutexRecursive|osMutexPrioInherit,    // attr_bits
 	};
 	MemoryHandle[bank].mutex_mem = osMutexNew(&MemoryMutexattr);
 #endif
@@ -679,17 +686,30 @@ void* Memory_Alloc(mem_bank_e bank, size_t size)
 #if RTE_USE_OS == 1
 	osMutexAcquire(MemoryHandle[bank].mutex_mem,osWaitForever);
 #endif
-	control_t* control = mem_cast(control_t*, MemoryHandle[bank].mem);
-	const size_t adjust = adjust_request_size(size, ALIGN_SIZE);
-	block_header_t* block = block_locate_free(control, adjust);
+    void *p = NULL;
+    if(size)
+    {
+        control_t* control = mem_cast(control_t*, MemoryHandle[bank].mem);
+        const size_t adjust = adjust_request_size(size, ALIGN_SIZE);
+        block_header_t* block = block_locate_free(control, adjust);
+        p = block_prepare_used(control, block, adjust);
+    }
+    else
+        p = &zeroval;
 #if RTE_USE_OS == 1
 	osMutexRelease(MemoryHandle[bank].mutex_mem);
 #endif
-	return block_prepare_used(control, block, adjust);
+    if(!p)
+    {
+        uprintf("%10s    Can't alloc such size:%d in bank%d \r\n",MEM_STR,size,bank);
+        Memory_Demon(bank);
+        RTE_Assert(__FILE__, __LINE__);
+    }
+	return p;
 }
 void *Memory_Alloc0(mem_bank_e bank,size_t size)
 {
-	void *ret = NULL;
+	void *ret = 0;
 	ret = Memory_Alloc(bank,size);
 	if(ret&&size)
 		memset(ret,0,size);
@@ -714,7 +734,7 @@ void* Memory_AllocAlign(mem_bank_e bank, size_t align, size_t size)
 	const size_t size_with_gap = adjust_request_size(adjust + align + gap_minimum, align);
 	/*
 	** If alignment is less than or equals base alignment, we're done.
-	** If we requested 0 bytes, return null, as tlsf_malloc(0) does.
+	** If we requested 0 bytes, return null, as mem_malloc(0) does.
 	*/
 	const size_t aligned_size = (adjust && align > ALIGN_SIZE) ? size_with_gap : adjust;
 	block_header_t* block = block_locate_free(control, aligned_size);
@@ -751,7 +771,7 @@ void* Memory_AllocAlign(mem_bank_e bank, size_t align, size_t size)
 void Memory_Free(mem_bank_e bank,void* ptr)
 {
 	/* Don't attempt to free a NULL pointer. */
-	if (ptr)
+	if (ptr&&ptr!=&zeroval)
 	{
 #if RTE_USE_OS == 1
 		osMutexAcquire(MemoryHandle[bank].mutex_mem,osWaitForever);
@@ -793,9 +813,11 @@ void* Memory_Realloc(mem_bank_e bank,void* ptr, size_t size)
 	if (ptr && size == 0)
 	{
 		Memory_Free(bank, ptr);
+		if(size == 0)
+            p = &zeroval;
 	}
 	/* Requests with NULL pointers are treated as malloc. */
-	else if (!ptr)
+	else if (!ptr||ptr == &zeroval)
 	{
 		p = Memory_Alloc(bank, size);
 	}
@@ -841,15 +863,15 @@ void* Memory_Realloc(mem_bank_e bank,void* ptr, size_t size)
 }
 static void print_block(void* ptr, size_t size, int used)
 {
-	RTE_Printf("%10s    %p %s size: %d (%p)\n",MEM_STR, ptr, used ? "used" : "free", (unsigned int)size, block_from_ptr(ptr));
+	uprintf("%10s    %p %s size: %d (%p)\r\n",MEM_STR, ptr, used ? "used" : "free", (unsigned int)size, block_from_ptr(ptr));
 }
 void Memory_Demon(mem_bank_e bank)
 {
 	block_header_t* block =
 		offset_to_block(MemoryHandle[bank].pool, -(int)block_header_overhead);
-	RTE_Printf("--------------------------------------------------\r\n");
-    RTE_Printf("%10s    BANK%d start at %x\r\n",MEM_STR,bank, MemoryHandle[bank].pool);
-	RTE_Printf("--------------------------------------------------\r\n");
+	uprintf("--------------------------------------------------\r\n");
+    uprintf("%10s    BANK%d start at %p\r\n",MEM_STR,bank, MemoryHandle[bank].pool);
+	uprintf("--------------------------------------------------\r\n");
 	while (block && !block_is_last(block))
 	{
 		print_block(
@@ -869,7 +891,7 @@ size_t Memory_GetDataSize(void *ptr)
 	}
 	return size;
 }
-void *Memory_AllocMaxFree(mem_bank_e bank,uint32_t *size)
+void *Memory_AllocMaxFree(mem_bank_e bank,size_t *size)
 {
 	/* Protect the critical section... */
 #if RTE_USE_OS == 1
@@ -878,8 +900,8 @@ void *Memory_AllocMaxFree(mem_bank_e bank,uint32_t *size)
 	block_header_t* retval = NULL;
 	block_header_t* block =
 		offset_to_block(MemoryHandle[bank].pool, -(int)block_header_overhead);
-	uint32_t nowsize = 0;
-	uint32_t maxsize = 0;
+	size_t nowsize = 0;
+	size_t maxsize = 0;
     while (block && !block_is_last(block)){
 		nowsize = block_size(block);
 		if((nowsize > maxsize)&&block_is_free(block))
@@ -905,4 +927,299 @@ void *Memory_AllocMaxFree(mem_bank_e bank,uint32_t *size)
 #endif
 	return NULL;
 }
+#elif MEMORY_TYPE == 0
+/**
+ * Give the next entry after 'act_e'
+ * @param act_e pointer to an entry
+ * @return pointer to an entry after 'act_e'
+ */
+static mem_ent_t * ent_get_next(mem_bank_e mem_name,mem_ent_t * act_e)
+{
+#if RTE_USE_OS
+	osMutexAcquire(MemoryHandle[mem_name].MutexIDMEM,osWaitForever);
+#endif
+	mem_ent_t * next_e = NULL;
+	if(act_e == NULL) { /*NULL means: get the first entry*/
+		next_e = (mem_ent_t *) MemoryHandle[mem_name].work_mem;
+	} else { /*Get the next entry */
+		uint8_t * data = &act_e->first_data;
+		next_e = (mem_ent_t *)&data[act_e->head.d_size];
+		if(&next_e->first_data >= &MemoryHandle[mem_name].work_mem[MemoryHandle[mem_name].totalsize]) next_e = NULL;
+	}
+#if RTE_USE_OS
+	osMutexRelease(MemoryHandle[mem_name].MutexIDMEM);
+#endif
+	return next_e;
+}
+/**
+ * Truncate the data of entry to the given size
+ * @param e Pointer to an entry
+ * @param size new size in bytes
+ */
+static void ent_trunc(mem_ent_t * e, uint32_t size)
+{
+#if RTE_MEM_64BIT
+	/*Round the size up to 8*/
+	if(size & 0x7) {
+		size = size & (~0x7);
+		size += 8;
+	}
+#else
+	/*Round the size up to 4*/
+	if(size & 0x3) {
+		size = size & (~0x3);
+		size += 4;
+	}
+#endif
+	/*Don't let empty space only for a header without data*/
+	if(e->head.d_size == size + sizeof(mem_head_t)) {
+		size = e->head.d_size;
+	}
+	/* Create the new entry after the current if there is space for it */
+	if(e->head.d_size != size) {
+		uint8_t * e_data = &e->first_data;
+		mem_ent_t * after_new_e = (mem_ent_t *)&e_data[size];
+		after_new_e->head.used = 0;
+		after_new_e->head.d_size = e->head.d_size - size - sizeof(mem_head_t);
+	}
+	/* Set the new size for the original entry */
+	e->head.d_size = size;
+}
+/**
+ * Try to do the real allocation with a given size
+ * @param e try to allocate to this entry
+ * @param size size of the new memory in bytes
+ * @return pointer to the allocated memory or NULL if not enough memory in the entry
+ */
+static void *ent_alloc(mem_ent_t * e, uint32_t size)
+{
+	void * alloc = NULL;
+	/*If the memory is free and big enough then use it */
+	if(e->head.used == 0 && e->head.d_size >= size) {
+		/*Truncate the entry to the desired size */
+		ent_trunc(e, size),
+		e->head.used = 1;
+		/*Save the allocated data*/
+		alloc = &e->first_data;
+	}
+	return alloc;
+}
+/*************************************************
+*** Args:   mem_name 制定的MEMNAME;
+            *buf 实际占用的内存地址；
+            len 实际占用的内存大小；
+*** Function: 根据获取的内存以及大小初始化块管理
+*************************************************/
+void Memory_Pool(mem_bank_e bank,void *mem_pool,size_t mem_pool_size)
+{
+	MemoryHandle[bank].work_mem = (uint8_t *) mem_pool;
+	MemoryHandle[bank].totalsize = mem_pool_size;
+	mem_ent_t * full = (mem_ent_t *)MemoryHandle[bank].work_mem;
+	full->head.used = 0;
+	/*The total mem size id reduced by the first header and the close patterns */
+	full->head.d_size = mem_pool_size - sizeof(mem_head_t);
+#if RTE_USE_OS
+	MemoryHandle[mem_name].mutex_mem = osMutexNew(NULL);
+#endif
+}
+/*************************************************
+*** Args:   mem_name 指定的内存区域;
+            requested_size 需求的内存大小；
+*** Function: 由MEM动态申请内存
+*************************************************/
+void *Memory_Alloc(mem_bank_e bank, size_t size)
+{
+	if(size == 0) {
+		return &zeroval;
+	}
+#if MEMORY_SIMPLE_64BIT == 1
+	/*Round the size up to 8*/
+	if(size & 0x7) {
+		size = size & (~0x7);
+		size += 8;
+	}
+#else
+	/*Round the size up to 4*/
+	if(size & 0x3) {
+		size = size & (~0x3);
+		size += 4;
+	}
+#endif
+    void * alloc = NULL;
+	mem_ent_t * e = NULL;
+	//Search for a appropriate entry
+	do {
+		//Get the next entry
+		e = ent_get_next(bank,e);
+		/*If there is next entry then try to allocate there*/
+		if(e != NULL) {
+			alloc = ent_alloc(e, size);
+		}
+		//End if there is not next entry OR the alloc. is successful
+	} while(e != NULL && alloc == NULL);
+#if MEMORY_DEBUG == 1
+	if(alloc == NULL)
+        uprintf("%10s    Couldn't allocate memory size:%d free:%d\r\n",MEM_STR,size,Memory_MaxFree(bank));
+#endif
+	return alloc;
+}
+/*************************************************
+*** Args:   mem_name BGet制定的MEMNAME;
+            requested_size 需求的内存大小；
+*** Function: 由BGet申请内存，并清空
+*************************************************/
+void *Memory_Alloc0(mem_bank_e bank,size_t size)
+{
+	void *ret = 0;
+	ret = Memory_Alloc(bank,size);
+	if(ret&&size)
+		memset(ret,0,size);
+    return ret;
+}
+/*************************************************
+*** Args:   mem_name 指定的内存区域;
+            *buf 先前申请的内存地址；
+*** Function: 释放由相应申请的内存
+*************************************************/
+void Memory_Free(mem_bank_e bank, void *ptr)
+{
+	if(ptr == &zeroval) return;
+	if(ptr == NULL) return;
+	/*e points to the header*/
+	mem_ent_t * e = (mem_ent_t *)((uint8_t *) ptr - sizeof(mem_ent_t));
+	e->head.used = 0;
+#if MEMORY_SIMPLE_AUTODEFRAG == 1
+	/* Make a simple defrag.
+	 * Join the following free entries after this*/
+	mem_ent_t * e_next;
+	e_next = ent_get_next(bank,e);
+	while(e_next != NULL) {
+		if(e_next->head.used == 0) {
+			e->head.d_size += e_next->head.d_size + sizeof(e->head);
+		} 
+		else 
+			break;
+		e_next = ent_get_next(bank,e_next);
+	}
+#endif
+}
+/*************************************************
+*** Args:   mem_name 指定的内存区域;
+						*buf 先前申请的内存地址
+            size 新需求的内存大小；
+*** Function: 申请新的大小的内存空间
+*************************************************/
+void *Memory_Realloc(mem_bank_e bank, void *ptr, size_t size )
+{
+	/*data_p could be previously freed pointer (in this case it is invalid)*/
+	if(ptr != NULL) {
+		mem_ent_t * e = (mem_ent_t *)((uint8_t *) ptr - sizeof(mem_ent_t));
+		if(e->head.used == 0)
+			ptr = NULL;
+	}
+	uint32_t old_size = Memory_GetDataSize(ptr);
+	if(old_size == size) return ptr;     /*Also avoid reallocating the same memory*/
+	/* Only truncate the memory is possible
+	 * If the 'old_size' was extended by a header size in 'ent_trunc' it avoids reallocating this same memory */
+	if(size < old_size) {
+		mem_ent_t * e = (mem_ent_t *)((uint8_t *) ptr - sizeof(mem_ent_t));
+		ent_trunc(e, size);
+		return &e->first_data;
+	}
+	void * new_p;
+	new_p = Memory_Alloc(bank,size);
+	if(new_p != NULL && ptr != NULL) {
+		/*Copy the old data to the new. Use the smaller size*/
+		if(old_size != 0) {
+			memcpy(new_p, ptr, mem_min(size, old_size));
+			Memory_Free(bank,ptr);
+		}
+	}
+#if MEMORY_DEBUG == 1
+	if(new_p == NULL)
+        uprintf("%10s    Couldn't allocate memory\r\n",MEM_STR);
+#endif
+	return new_p;
+}
+/*************************************************
+*** Args:   mem_name 指定的内存区域;
+*** Function: 碎片整理
+*************************************************/
+void Memory_Defrag(mem_bank_e bank)
+{
+	mem_ent_t * e_free;
+	mem_ent_t * e_next;
+	e_free = ent_get_next(bank,NULL);
+	while(1) {
+		/*Search the next free entry*/
+		while(e_free != NULL) {
+			if(e_free->head.used != 0) {
+				e_free = ent_get_next(bank,e_free);
+			} 
+			else
+				break;
+		}
+		if(e_free == NULL) 
+			return;
+		/*Joint the following free entries to the free*/
+		e_next = ent_get_next(bank,e_free);
+		while(e_next != NULL) {
+			if(e_next->head.used == 0) {
+				e_free->head.d_size += e_next->head.d_size + sizeof(e_next->head);
+			} 
+			else
+				break;
+			e_next = ent_get_next(bank,e_next);
+		}
+		if(e_next == NULL) 
+			return;
+		/*Continue from the lastly checked entry*/
+		e_free = e_next;
+	}
+}
+/*************************************************
+*** Args:   mem_name 指定的内存区域;
+*** Function: 信息统计
+*************************************************/
+void Memory_Demon(mem_bank_e mem_name,mem_mon_t * mon_p)
+{
+	/*Init the data*/
+	memset(mon_p, 0, sizeof(mem_mon_t));
+	mem_ent_t * e;
+	e = NULL;
+	e = ent_get_next(mem_name,e);
+	while(e != NULL)  {
+		if(e->head.used == 0) {
+			mon_p->free_cnt++;
+			mon_p->free_size += e->head.d_size;
+			if(e->head.d_size > mon_p->free_biggest_size) 
+				mon_p->free_biggest_size = e->head.d_size;
+		} 
+		else
+			mon_p->used_cnt++;
+		e = ent_get_next(mem_name,e);
+	}
+	mon_p->total_size = MemoryHandle[mem_name].totalsize;;
+	mon_p->used_pct = 100 - (100U * mon_p->free_size) / mon_p->total_size;
+	mon_p->frag_pct = (uint32_t)mon_p->free_biggest_size * 100U / mon_p->free_size;
+	mon_p->frag_pct = 100 - mon_p->frag_pct;
+}
+/*************************************************
+*** Args:   *buf 申请的内存地址;
+*** Function: 获取该申请内存的实际空间大小
+*************************************************/
+size_t Memory_GetDataSize(void *ptr)
+{
+	if(ptr == NULL) return 0;
+	if(ptr == &zeroval) return 0;
+	mem_ent_t *e = (mem_ent_t *)((uint8_t *) ptr - sizeof(mem_ent_t));
+	return e->head.d_size;
+}
+size_t Memory_MaxFree(mem_bank_e bank)
+{
+	mem_mon_t mon_infor = {0};
+	Memory_Demon(bank,&mon_infor);
+	return mon_infor.free_biggest_size;
+}
+#endif
 #endif

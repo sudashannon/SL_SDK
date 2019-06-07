@@ -9,22 +9,22 @@
              2.3 单独提出ShellQuene，隔离物理层
 *****************************************************************************/
 #if RTE_USE_SHELL == 1
-#include "RTE_RingQuene.h"
-#include "RTE_UString.h"
-#include "RTE_UStdout.h"
+#include "RTE_Stream.h"
+#include "RTE_Printf.h"
 #include "RTE_RoundRobin.h"
 #include "RTE_Memory.h"
+#include <string.h>
 #define DEBUG_STR "[SHELL]"
 /*************************************************
 *** 管理Shell的结构体变量，动态管理
 *************************************************/
-static RTE_Shell_Control_t ShellHandle = {0};
-static RTE_MessageQuene_t ShellQuene  = {0};  //数据环形队列
+static shell_t ShellHandle = {0};
+static stream_t ShellStream  = {0};
 /*************************************************
 *** Args:   *pcCmdLine 待处理命令行
 *** Function: Shell命令行处理
 *************************************************/
-static RTE_Shell_Err_e RTE_Shell_CommandProcess(char *pcCmdLine)
+static shell_error_e Shell_CommandProcess(char *pcCmdLine)
 {
 	char *pcChar;
 	uint_fast8_t ui8Argc;
@@ -101,21 +101,21 @@ static RTE_Shell_Err_e RTE_Shell_CommandProcess(char *pcCmdLine)
 	}
 	for(uint8_t i = 0;i<ShellHandle.ShellModuleCnt&&ui8Argc>=2;i++)
     {
-		if(!ustrcmp(ShellHandle.g_ppcArgv[0],ShellHandle.ShellModule[i].ShellModuleName))
+		if(!strcmp(ShellHandle.g_ppcArgv[0],ShellHandle.ShellModule[i].ShellModuleName))
 		{
             // If one or more arguments was found, then process the command.
-            for(uint8_t i2 = 0;i2<ShellHandle.ShellModule[i].ModuleFucTable.length;i2++)
+            for(uint8_t i2 = 0;i2<Vector_Length(ShellHandle.ShellModule[i].ModuleFucTable);i2++)
             {
                 // If this command entry command string matches argv[0], then call
                 // the function for this command, passing the command line
                 // arguments.
-                if(!ustrcmp(ShellHandle.g_ppcArgv[1], ShellHandle.ShellModule[i].ModuleFucTable.data[i2].pcCmd))
+                if(!strcmp(ShellHandle.g_ppcArgv[1], ((shell_cmd_t *)Vector_GetElement(ShellHandle.ShellModule[i].ModuleFucTable,i2))->pcCmd))
                 {
 
-                    RTE_Shell_Err_e retval;
-                    if(ShellHandle.ShellModule[i].ModuleFucTable.data[i2].pfnCmdLine !=(void *)0)
+                    shell_error_e retval;
+                    if(((shell_cmd_t *)Vector_GetElement(ShellHandle.ShellModule[i].ModuleFucTable,i2))->pfnCmdLine !=(void *)0)
                     {
-                        retval = (RTE_Shell_Err_e)ShellHandle.ShellModule[i].ModuleFucTable.data[i2].pfnCmdLine(ui8Argc, ShellHandle.g_ppcArgv);
+                        retval = (shell_error_e)((shell_cmd_t *)Vector_GetElement(ShellHandle.ShellModule[i].ModuleFucTable,i2))->pfnCmdLine(ui8Argc, ShellHandle.g_ppcArgv);
                     }
                     return retval;
                 }
@@ -128,7 +128,7 @@ static RTE_Shell_Err_e RTE_Shell_CommandProcess(char *pcCmdLine)
 *** Args:   *module 模块名
 *** Function: 增加一个Shell命令行处理模块
 *************************************************/
-RTE_Shell_Err_e RTE_Shell_CreateModule(const char *module)
+shell_error_e Shell_CreateModule(const char *module)
 {
 	if(ShellHandle.ShellModuleCnt>=SHELL_MAX_MODULE)
 		return SHELL_NOSPACEFORNEW;
@@ -139,7 +139,7 @@ RTE_Shell_Err_e RTE_Shell_CreateModule(const char *module)
 	}
 	ShellHandle.ShellModule[ShellHandle.ShellModuleCnt].ShellModuleID = ShellHandle.ShellModuleCnt;
 	ShellHandle.ShellModule[ShellHandle.ShellModuleCnt].ShellModuleName = module;
-	vec_init(&ShellHandle.ShellModule[ShellHandle.ShellModuleCnt].ModuleFucTable);
+	Vector_Init(&ShellHandle.ShellModule[ShellHandle.ShellModuleCnt].ModuleFucTable,MEM_RTE);
 	ShellHandle.ShellModuleCnt++;
 	return SHELL_NOERR;
 }
@@ -149,12 +149,12 @@ RTE_Shell_Err_e RTE_Shell_CreateModule(const char *module)
             *help 帮助字符串
 *** Function: 增加一条Shell命令行处理
 *************************************************/
-RTE_Shell_Err_e RTE_Shell_AddCommand(const char *module,const char *cmd,RTE_Shell_Err_e (*func)(int argc, char *argv[]),const char *help)
+shell_error_e Shell_AddCommand(const char *module,const char *cmd,shell_error_e (*func)(int argc, char *argv[]),const char *help)
 {
 	int8_t idx = -1;
 	for(uint8_t i = 0;i<ShellHandle.ShellModuleCnt;i++)
 	{
-		if(!ustrcmp(module,ShellHandle.ShellModule[i].ShellModuleName))
+		if(!strcmp(module,ShellHandle.ShellModule[i].ShellModuleName))
 		{
 			idx = i;
 			break;
@@ -162,30 +162,30 @@ RTE_Shell_Err_e RTE_Shell_AddCommand(const char *module,const char *cmd,RTE_Shel
 	}
 	if(idx == -1)
         return SHELL_NOMODULE;
-	if(ShellHandle.ShellModule[idx].ModuleFucTable.length >= SHELL_MAX_MODULE_FUC)
+	if(Vector_Length(ShellHandle.ShellModule[idx].ModuleFucTable) >= SHELL_MAX_MODULE_FUC)
 		return SHELL_NOSPACEFORNEW;
-	for(uint8_t i = 0;i<ShellHandle.ShellModule[idx].ModuleFucTable.length;i++)
+	for(uint8_t i = 0;i<Vector_Length(ShellHandle.ShellModule[idx].ModuleFucTable);i++)
 	{
-		if(!strcmp(cmd,ShellHandle.ShellModule[idx].ModuleFucTable.data[i].pcCmd))
+		if(!strcmp(cmd,((shell_cmd_t *)Vector_GetElement(ShellHandle.ShellModule[idx].ModuleFucTable,i))->pcCmd))
 			return SHELL_ALREADYEXIST;
 	}
-	RTE_Shell_t v;
-	v.pcCmd = cmd;
-	v.pfnCmdLine = func;
-	v.pcHelp = help;
-	vec_push(&ShellHandle.ShellModule[idx].ModuleFucTable,v);
+	shell_cmd_t *v = Memory_Alloc0(MEM_RTE,sizeof(shell_cmd_t));
+	v->pcCmd = cmd;
+	v->pfnCmdLine = func;
+	v->pcHelp = help;
+	Vector_Pushback(ShellHandle.ShellModule[idx].ModuleFucTable,v);
 	return SHELL_NOERR;
 }
 /*************************************************
 *** Args:   *pcCmdLine 待处理命令行
 *** Function: 删除一条Shell命令行处理
 *************************************************/
-RTE_Shell_Err_e RTE_Shell_DeleteCommand(const char*module,const char *cmd)
+shell_error_e Shell_DeleteCommand(const char*module,const char *cmd)
 {
 	int8_t idx = -1;
 	for(uint8_t i = 0;i<ShellHandle.ShellModuleCnt;i++)
 	{
-		if(!ustrcmp(module,ShellHandle.ShellModule[i].ShellModuleName))
+		if(!strcmp(module,ShellHandle.ShellModule[i].ShellModuleName))
 		{
 			idx = i;
 			break;
@@ -194,9 +194,9 @@ RTE_Shell_Err_e RTE_Shell_DeleteCommand(const char*module,const char *cmd)
 	if(idx == -1)
         return SHELL_NOMODULE;
 	int8_t idx2 = -1;
-	for(uint8_t i = 0;i<ShellHandle.ShellModule[idx].ModuleFucTable.length;i++)
+	for(uint8_t i = 0;i<Vector_Length(ShellHandle.ShellModule[idx].ModuleFucTable);i++)
 	{
-		if(!ustrcmp(cmd,ShellHandle.ShellModule[idx].ModuleFucTable.data[i].pcCmd))
+		if(!strcmp(cmd,((shell_cmd_t *)Vector_GetElement(ShellHandle.ShellModule[idx].ModuleFucTable,i))->pcCmd))
 		{
 			idx2 = i;
 			break;
@@ -204,29 +204,29 @@ RTE_Shell_Err_e RTE_Shell_DeleteCommand(const char*module,const char *cmd)
 	}
 	if(idx2 == -1)
         return SHELL_NOSUCHCMD;
-    vec_splice(&ShellHandle.ShellModule[idx].ModuleFucTable, idx2, 1);
+    Vector_Erase(ShellHandle.ShellModule[idx].ModuleFucTable, idx2);
     return SHELL_NOERR;
 }
 /*************************************************
 *** Args:   NULL
 *** Function: shell自带的帮助函数
 *************************************************/
-static RTE_Shell_Err_e RTE_Shell_CMD_Help(int argc, char *argv[])
+static shell_error_e Shell_CMD_Help(int argc, char *argv[])
 {
-	RTE_Printf("--------------------------------------------------\r\n");
-	RTE_Printf("RTE Version:%s\r\n",RTE_VERSION);
-	RTE_Printf("--------------------------------------------------\r\n");
-	RTE_Printf("%10s    Available Module\r\n",DEBUG_STR);
+	uprintf("--------------------------------------------------\r\n");
+	uprintf("RTE Version:%s\r\n",RTE_VERSION);
+	uprintf("--------------------------------------------------\r\n");
+	uprintf("%10s    Available Module\r\n",DEBUG_STR);
 	for(uint8_t i = 0;i<ShellHandle.ShellModuleCnt;i++)
 	{
-	    RTE_Printf("---------------------------\r\n");
-	    RTE_Printf("%10s      Module Name:%s\r\n",DEBUG_STR,ShellHandle.ShellModule[i].ShellModuleName);
-	    for(uint8_t i2 = 0;i2<ShellHandle.ShellModule[i].ModuleFucTable.length;i2++)
+	    uprintf("---------------------------\r\n");
+	    uprintf("%10s      Module Name:%s\r\n",DEBUG_STR,ShellHandle.ShellModule[i].ShellModuleName);
+	    for(uint8_t i2 = 0;i2<Vector_Length(ShellHandle.ShellModule[i].ModuleFucTable);i2++)
         {
-            RTE_Printf("%10s        Fuction Name:%16s---:%s\r\n",
+            uprintf("%10s        Fuction Name:%16s---:%s\r\n",
                 DEBUG_STR,
-                ShellHandle.ShellModule[i].ModuleFucTable.data[i2].pcCmd,
-                ShellHandle.ShellModule[i].ModuleFucTable.data[i2].pcHelp);
+                ((shell_cmd_t *)Vector_GetElement(ShellHandle.ShellModule[i].ModuleFucTable,i2))->pcCmd,
+                ((shell_cmd_t *)Vector_GetElement(ShellHandle.ShellModule[i].ModuleFucTable,i2))->pcHelp);
         }
 	}
 	return(SHELL_NOERR);
@@ -235,27 +235,27 @@ static RTE_Shell_Err_e RTE_Shell_CMD_Help(int argc, char *argv[])
 *** Args:   NULL
 *** Function: shell自带的输出函数
 *************************************************/
-static RTE_Shell_Err_e RTE_Shell_CMD_Print(int argc, char *argv[])
+static shell_error_e Shell_CMD_Print(int argc, char *argv[])
 {
     if(argc == 3)
-        RTE_Printf("%s\r\n",argv[2]);
+        uprintf("%s\r\n",argv[2]);
     else if(argc%2 == 0)
     {
         for(uint8_t i=2;i<argc;i++)
         {
-            if(!ustrcmp("%d",argv[i]))
+            if(!strcmp("%d",argv[i]))
             {
 
             }
-            else if(!ustrcmp("%s",argv[i]))
+            else if(!strcmp("%s",argv[i]))
             {
 
             }
-            else if(!ustrcmp("%x",argv[i]))
+            else if(!strcmp("%x",argv[i]))
             {
 
             }
-            else if(!ustrcmp("%f",argv[i]))
+            else if(!strcmp("%f",argv[i]))
             {
 
             }
@@ -267,44 +267,44 @@ static RTE_Shell_Err_e RTE_Shell_CMD_Print(int argc, char *argv[])
 *** Args:   NULL
 *** Function: 初始化shell工具
 *************************************************/
-void RTE_Shell_Init(void)
+void Shell_Init(void)
 {
-	ShellHandle.ShellModule = (RTE_Shell_Module_t *)
-	Memory_Alloc0(BANK_RTE,sizeof(RTE_Shell_Module_t)*SHELL_MAX_MODULE);
+	ShellHandle.ShellModule = (shell_module_t *)
+	Memory_Alloc0(MEM_RTE,sizeof(shell_module_t)*SHELL_MAX_MODULE);
     ShellHandle.ShellModuleCnt = 0;
-    RTE_Shell_CreateModule("system");
-	RTE_Shell_AddCommand("system","help",RTE_Shell_CMD_Help,"Available help when using Shell Example:system.help");
-	RTE_Shell_AddCommand("system","print",RTE_Shell_CMD_Print,"Simple printf Example:system.print(str)");
-	RTE_MessageQuene_Init(&ShellQuene,SHELL_BUFSIZE);
+    Shell_CreateModule("system");
+	Shell_AddCommand("system","help",Shell_CMD_Help,"Available help when using Shell Example:system.help");
+	Shell_AddCommand("system","print",Shell_CMD_Print,"Simple uprintf Example:system.print(str)");
+	Stream_Init(&ShellStream,SHELL_QUENE_SIZE);
 }
 /*************************************************
 *** Args:   NULL
 *** Function: shell轮询
 *************************************************/
-void RTE_Shell_Poll(void *Params)
+void Shell_Poll(void *Params)
 {
-	char ShellBuffer[SHELL_BUFSIZE] = {0};
-	if(RTE_MessageQuene_Out(&ShellQuene,(uint8_t *)ShellBuffer,NULL) == MSG_NO_ERR)
+	char ShellBuffer[SHELL_BUF_SIZE] = {0};
+	if(Stream_Dequene(&ShellStream,(uint8_t *)ShellBuffer,NULL) == STREAM_NO_ERR)
 	{
 		int iStatus;
-		iStatus = RTE_Shell_CommandProcess(ShellBuffer);
+		iStatus = Shell_CommandProcess(ShellBuffer);
 		if(iStatus == SHELL_NOVALIDCMD)
 		{
-			RTE_Printf("%10s    Can't identify such command:%s!\r\n",DEBUG_STR,ShellBuffer);
+			uprintf("%10s    Can't identify such command:%s!\r\n",DEBUG_STR,ShellBuffer);
 		}
 		else if(iStatus == SHELL_TOOMANYARGS)
 		{
-			RTE_Printf("%10s    Input command's args' count is more than max!\r\n",DEBUG_STR);
+			uprintf("%10s    Input command's args' count is more than max!\r\n",DEBUG_STR);
 		}
 		else if(iStatus == SHELL_ARGSERROR)
         {
-            RTE_Printf("%10s    Input command's args' num error!\r\n",DEBUG_STR);
+            uprintf("%10s    Input command's args' num error!\r\n",DEBUG_STR);
         }
 	}
 }
 
-void RTE_Shell_Input(uint8_t *Data,uint16_t Length)
+void Shell_Input(uint8_t *Data,uint16_t Length)
 {
-	RTE_MessageQuene_In(&ShellQuene,Data,Length);
+	Stream_Enquene(&ShellStream,Data,Length);
 }
 #endif

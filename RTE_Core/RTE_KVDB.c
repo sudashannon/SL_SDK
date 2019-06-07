@@ -8,9 +8,9 @@
 
 *****************************************************************************/
 #if RTE_USE_KVDB == 1
-#include "RTE_UStdout.h"
+#include "RTE_Printf.h"
 #include "RTE_Memory.h"
-#include "RTE_MATH.h"
+#include "RTE_Math.h"
 #define KVDB_STR "[KVDB]"
 #if RTE_USE_OS == 1
 	osMutexId_t MutexIDKVDB;
@@ -314,7 +314,7 @@ static EfErrCode read_env(env_meta_data_t env)
         env->len = ENV_HDR_DATA_SIZE;
         if (env->status != ENV_ERR_HDR) {
             env->status = ENV_ERR_HDR;
-            RTE_Printf("%10s    Error: The ENV @0x%08X length has an error.\r\n",KVDB_STR, env->addr.start);
+            uprintf("%10s    Error: The ENV @0x%08X length has an error.\r\n",KVDB_STR, env->addr.start);
             write_status(env->addr.start, env_hdr.status_table, ENV_STATUS_NUM, ENV_ERR_HDR);
         }
         env->crc_is_ok = false;
@@ -392,7 +392,7 @@ static EfErrCode read_sector_meta_data(uint32_t addr, sector_meta_data_t sector,
                 read_env(&env_meta);
                 if (!env_meta.crc_is_ok) {
                     if (env_meta.status != ENV_PRE_WRITE && env_meta.status!= ENV_ERR_HDR) {
-                        RTE_Printf("%10s    Error: The ENV (@0x%08X) CRC32 check failed!\r\n",KVDB_STR, env_meta.addr.start);
+                        uprintf("%10s    Error: The ENV (@0x%08X) CRC32 check failed!\r\n",KVDB_STR, env_meta.addr.start);
                         sector->remain = 0;
                         result = EF_READ_ERR;
                         break;
@@ -535,7 +535,7 @@ size_t ef_get_env_blob(const char *key, void *value_buf, size_t buf_len, size_t 
     size_t read_len = 0;
 
     if (!init_ok) {
-        RTE_Printf("%10s    ENV isn't initialize OK.\r\n",KVDB_STR);
+        uprintf("%10s    ENV isn't initialize OK.\r\n",KVDB_STR);
         return 0;
     }
 
@@ -571,7 +571,7 @@ char *ef_get_env(const char *key)
             value[get_size] = '\0';
             return value;
         } else {
-            RTE_Printf("%10s    Warning: The ENV value isn't string. Could not be returned\r\n",KVDB_STR);
+            uprintf("%10s    Warning: The ENV value isn't string. Could not be returned\r\n",KVDB_STR);
             return NULL;
         }
     }
@@ -706,7 +706,7 @@ static uint32_t alloc_env(sector_meta_data_t sector, size_t env_size)
             sector_iterator(sector, SECTOR_STORE_EMPTY, &env_size, &empty_env, alloc_env_cb, true);
         } else {
             /* no space for new ENV now will GC and retry */
-            RTE_Printf("%10s    Trigger a GC check after alloc ENV failed.\r\n",KVDB_STR);
+            uprintf("%10s    Trigger a GC check after alloc ENV failed.\r\n",KVDB_STR);
             gc_request = true;
         }
     }
@@ -731,7 +731,7 @@ static EfErrCode del_env(const char *key, env_meta_data_t old_env, bool complete
         if (find_env(key, &env)) {
             old_env = &env;
         } else {
-            RTE_Printf("%10s    Not found '%s' in ENV.\r\n",KVDB_STR, key);
+            uprintf("%10s    Not found '%s' in ENV.\r\n",KVDB_STR, key);
             return EF_ENV_NAME_ERR;
         }
     }
@@ -801,7 +801,7 @@ static EfErrCode move_env(env_meta_data_t env)
     /* update the new ENV sector status */
     update_sec_status(&sector, env->len, NULL);
 
-    RTE_Printf("%10s    Moved the ENV (%.*s) from 0x%08X to 0x%08X.\r\n",KVDB_STR, env->name_len, env->name, env->addr.start, env_addr);
+    uprintf("%10s    Moved the ENV (%.*s) from 0x%08X to 0x%08X.\r\n",KVDB_STR, env->name_len, env->name, env->addr.start, env_addr);
 
 __exit:
     del_env(NULL, env, true);
@@ -817,7 +817,7 @@ static uint32_t new_env(sector_meta_data_t sector, size_t env_size)
 __retry:
 
     if ((empty_env = alloc_env(sector, env_size)) == FAILED_ADDR && gc_request && !already_gc) {
-        RTE_Printf("Warning: Alloc an ENV (size %d) failed when new ENV. Now will GC then retry.\r\n", KVDB_STR, env_size);
+        uprintf("Warning: Alloc an ENV (size %d) failed when new ENV. Now will GC then retry.\r\n", KVDB_STR, env_size);
         gc_collect();
         already_gc = true;
         goto __retry;
@@ -861,12 +861,12 @@ static bool do_gc(sector_meta_data_t sector, void *arg1, void *arg2)
             if (env.crc_is_ok && (env.status == ENV_WRITE || env.status == ENV_PRE_DELETE)) {
                 /* move the ENV to new space */
                 if (move_env(&env) != EF_NO_ERR) {
-                    RTE_Printf("%10s    Error: Moved the ENV (%.*s) for GC failed.\r\n",KVDB_STR, env.name_len, env.name);
+                    uprintf("%10s    Error: Moved the ENV (%.*s) for GC failed.\r\n",KVDB_STR, env.name_len, env.name);
                 }
             }
         }
         format_sector(sector->addr, SECTOR_NOT_COMBINED);
-        RTE_Printf("%10s    Collect a sector @0x%08X\r\n",KVDB_STR, sector->addr);
+        uprintf("%10s    Collect a sector @0x%08X\r\n",KVDB_STR, sector->addr);
     }
 
     return false;
@@ -886,7 +886,7 @@ static void gc_collect(void)
     sector_iterator(&sector, SECTOR_STORE_EMPTY, &empty_sec, NULL, gc_check_cb, false);
 
     /* do GC collect */
-    RTE_Printf("%10s    The remain empty sector is %d, GC threshold is %d.\r\n",KVDB_STR, empty_sec, EF_GC_EMPTY_SEC_THRESHOLD);
+    uprintf("%10s    The remain empty sector is %d, GC threshold is %d.\r\n",KVDB_STR, empty_sec, EF_GC_EMPTY_SEC_THRESHOLD);
     if (empty_sec <= EF_GC_EMPTY_SEC_THRESHOLD) {
         sector_iterator(&sector, SECTOR_STORE_UNUSED, NULL, NULL, do_gc, false);
     }
@@ -928,7 +928,7 @@ static EfErrCode create_env_blob(sector_meta_data_t sector, const char *key, con
     uint32_t env_addr = sector->empty_env;
 
     if (strlen(key) > EF_ENV_NAME_MAX) {
-        RTE_Printf("%10s    Error: The ENV name length is more than %d\r\n", KVDB_STR, EF_ENV_NAME_MAX);
+        uprintf("%10s    Error: The ENV name length is more than %d\r\n", KVDB_STR, EF_ENV_NAME_MAX);
         return EF_ENV_NAME_ERR;
     }
 
@@ -938,7 +938,7 @@ static EfErrCode create_env_blob(sector_meta_data_t sector, const char *key, con
     env_hdr.len = ENV_HDR_DATA_SIZE + EF_WG_ALIGN(env_hdr.name_len) + EF_WG_ALIGN(env_hdr.value_len);
 
     if (env_hdr.len > SECTOR_SIZE - SECTOR_HDR_DATA_SIZE) {
-        RTE_Printf("%10s    Error: The ENV size is too big\r\n",KVDB_STR);
+        uprintf("%10s    Error: The ENV size is too big\r\n",KVDB_STR);
         return EF_ENV_FULL;
     }
 
@@ -980,7 +980,7 @@ static EfErrCode create_env_blob(sector_meta_data_t sector, const char *key, con
         }
         /* trigger GC collect when current sector is full */
         if (result == EF_NO_ERR && is_full) {
-            RTE_Printf("%10s    Trigger a GC check after created ENV.\r\n",KVDB_STR);
+            uprintf("%10s    Trigger a GC check after created ENV.\r\n",KVDB_STR);
             gc_request = true;
         }
     } else {
@@ -1002,7 +1002,7 @@ EfErrCode ef_del_env(const char *key)
     EfErrCode result = EF_NO_ERR;
 
     if (!init_ok) {
-        RTE_Printf("%10s    Error: ENV isn't initialize OK.\r\n",KVDB_STR);
+        uprintf("%10s    Error: ENV isn't initialize OK.\r\n",KVDB_STR);
         return EF_ENV_INIT_FAILED;
     }
 
@@ -1084,7 +1084,7 @@ EfErrCode ef_set_env_blob(const char *key, const void *value_buf, size_t buf_len
 
 
     if (!init_ok) {
-        RTE_Printf("%10s    ENV isn't initialize OK.\r\n",KVDB_STR);
+        uprintf("%10s    ENV isn't initialize OK.\r\n",KVDB_STR);
         return EF_ENV_INIT_FAILED;
     }
 
@@ -1198,10 +1198,10 @@ static bool print_env_cb(env_meta_data_t env, void *arg1, void *arg2, char **key
         if (env->status == ENV_WRITE) {
 			char outstr[32] = {0};
 			memcpy(outstr,env->name,env->name_len);
-			RTE_Printf("%s=", outstr);
+			uprintf("%s=", outstr);
 			if(keylist != NULL)
 			{
-				keylist[keycnt] = Memory_Realloc(BANK_RTE,keylist[keycnt],env->name_len+1);
+				keylist[keycnt] = Memory_Realloc(MEM_RTE,keylist[keycnt],env->name_len+1);
 				memset(keylist[keycnt],0,env->name_len+1);
 				memcpy(keylist[keycnt],env->name,env->name_len);
 				keycnt++;
@@ -1221,7 +1221,7 @@ __reload:
                     if (print_value) {
 						memset(outstr,0,32);
 						memcpy(outstr,buf,size);
-						RTE_Printf("%s", outstr);
+						uprintf("%s", outstr);
                     } else if (!ef_is_str(buf, size)) {
                         value_is_str = false;
                         break;
@@ -1234,9 +1234,9 @@ __reload:
                 print_value = true;
                 goto __reload;
             } else if (!value_is_str) {
-                RTE_Printf("blob @0x%08X %dbytes", env->addr.value, env->value_len);
+                uprintf("blob @0x%08X %dbytes", env->addr.value, env->value_len);
             }
-            RTE_Printf("\r\n");
+            uprintf("\r\n");
         }
     }
 
@@ -1253,7 +1253,7 @@ uint8_t ef_print_env(char **keylist)
     size_t using_size = 0;
 
     if (!init_ok) {
-        RTE_Printf("%10s    ENV isn't initialize OK.\r\n",KVDB_STR);
+        uprintf("%10s    ENV isn't initialize OK.\r\n",KVDB_STR);
         return 0;
     }
 
@@ -1261,7 +1261,7 @@ uint8_t ef_print_env(char **keylist)
     ef_port_env_lock();
 	keycnt = 0;
     env_iterator(&env, &using_size,NULL, keylist, print_env_cb);
-    RTE_Printf("%10s    size: %d/%d bytes.\r\n",KVDB_STR, using_size + (SECTOR_NUM - EF_GC_EMPTY_SEC_THRESHOLD) * SECTOR_HDR_DATA_SIZE,
+    uprintf("%10s    size: %d/%d bytes.\r\n",KVDB_STR, using_size + (SECTOR_NUM - EF_GC_EMPTY_SEC_THRESHOLD) * SECTOR_HDR_DATA_SIZE,
             ENV_AREA_SIZE - SECTOR_SIZE * EF_GC_EMPTY_SEC_THRESHOLD);
 
     /* unlock the ENV cache */
@@ -1269,7 +1269,7 @@ uint8_t ef_print_env(char **keylist)
 	return keycnt;
 }
 
-#if EF_ENV_AUTO_UPDATE
+#if EF_ENV_AUTO_UPDATE == 1
 /*
  * Auto update ENV to latest default when current EF_ENV_VER_NUM is changed.
  */
@@ -1283,7 +1283,7 @@ static void env_auto_update(void)
             struct env_meta_data env;
             size_t i, value_len;
             struct sector_meta_data sector;
-            RTE_Printf("%10s    Update the ENV from version %d to %d.\r\n",KVDB_STR, saved_ver_num, setting_ver_num);
+            uprintf("%10s    Update the ENV from version %d to %d.\r\n",KVDB_STR, saved_ver_num, setting_ver_num);
             for (i = 0; i < default_env_set_size; i++) {
                 /* add a new ENV when it's not found */
                 if (!find_env(default_env_set[i].key, &env)) {
@@ -1311,7 +1311,7 @@ static void env_auto_update(void)
 static bool check_sec_hdr_cb(sector_meta_data_t sector, void *arg1, void *arg2)
 {
     if (!sector->check_ok) {
-        RTE_Printf("%10s    Warning: Sector header check failed. Set it to default.\r\n",KVDB_STR);
+        uprintf("%10s    Warning: Sector header check failed. Set it to default.\r\n",KVDB_STR);
         ef_port_env_unlock();
         ef_env_set_default();
         ef_port_env_lock();
@@ -1331,12 +1331,12 @@ static bool check_and_recovery_env_cb(env_meta_data_t env, void *arg1, void *arg
 	(void)keylist;
     /* recovery the prepare deleted ENV */
     if (env->crc_is_ok && env->status == ENV_PRE_DELETE) {
-        RTE_Printf("%10s    Found an ENV (%.*s) which has changed value failed. Now will recovery it.\r\n",KVDB_STR, env->name_len, env->name);
+        uprintf("%10s    Found an ENV (%.*s) which has changed value failed. Now will recovery it.\r\n",KVDB_STR, env->name_len, env->name);
         /* recovery the old ENV */
         if (move_env(env) == EF_NO_ERR) {
-            RTE_Printf("%10s    Recovery the ENV successful.\r\n",KVDB_STR);
+            uprintf("%10s    Recovery the ENV successful.\r\n",KVDB_STR);
         } else {
-            RTE_Printf("%10s    Warning: Moved an ENV (size %d) failed when recovery. Now will GC then retry.\r\n", KVDB_STR, env->len);
+            uprintf("%10s    Warning: Moved an ENV (size %d) failed when recovery. Now will GC then retry.\r\n", KVDB_STR, env->len);
             return true;
         }
     } else if (env->status == ENV_PRE_WRITE) {
@@ -1380,9 +1380,9 @@ __retry:
 
     return result;
 }
-#if RTE_USE_SHELL
+#if RTE_USE_SHELL == 1
 #include "RTE_Shell.h"
-static RTE_Shell_Err_e RTE_Shell_KV_PrintEnv(int argc, char *argv[])
+static shell_error_e RTE_Shell_KV_PrintEnv(int argc, char *argv[])
 {
     if(argc!=2)
         return SHELL_ARGSERROR;
@@ -1391,33 +1391,33 @@ static RTE_Shell_Err_e RTE_Shell_KV_PrintEnv(int argc, char *argv[])
 	KeyCnt = ef_print_env(KeyList);
 	for(uint8_t i=0;i<KeyCnt;i++)
 	{
-		RTE_Printf("%s\r\n",KeyList[i]);
-		Memory_Free(BANK_RTE,KeyList[i]);
+		uprintf("%s\r\n",KeyList[i]);
+		Memory_Free(MEM_RTE,KeyList[i]);
 	}
 	return(SHELL_NOERR);
 }
-static RTE_Shell_Err_e RTE_Shell_KV_NewEnv(int argc, char *argv[])
+static shell_error_e RTE_Shell_KV_NewEnv(int argc, char *argv[])
 {
     if(argc!=4)
         return SHELL_ARGSERROR;
 	ef_set_and_save_env(argv[2],argv[3]);
 	return(SHELL_NOERR);
 }
-static RTE_Shell_Err_e RTE_Shell_KV_SetEnv(int argc, char *argv[])
+static shell_error_e RTE_Shell_KV_SetEnv(int argc, char *argv[])
 {
     if(argc!=4)
         return SHELL_ARGSERROR;
 	ef_set_and_save_env(argv[2],argv[3]);
 	return(SHELL_NOERR);
 }
-static RTE_Shell_Err_e RTE_Shell_KV_DelEnv(int argc, char *argv[])
+static shell_error_e RTE_Shell_KV_DelEnv(int argc, char *argv[])
 {
     if(argc!=3)
         return SHELL_ARGSERROR;
 	ef_del_and_save_env(argv[2]);
 	return(SHELL_NOERR);
 }
-static RTE_Shell_Err_e RTE_Shell_KV_ResetEnv(int argc, char *argv[])
+static shell_error_e RTE_Shell_KV_ResetEnv(int argc, char *argv[])
 {
     if(argc!=2)
         return SHELL_ARGSERROR;
@@ -1453,11 +1453,11 @@ EfErrCode ef_env_init(ef_env const *default_env, size_t default_env_size) {
     default_env_set = default_env;
     default_env_set_size = default_env_size;
 
-    RTE_Printf("%10s    ENV start address is 0x%08X, size is %d bytes.\r\n", KVDB_STR, EF_START_ADDR, ENV_AREA_SIZE);
+    uprintf("%10s    ENV start address is 0x%08X, size is %d bytes.\r\n", KVDB_STR, EF_START_ADDR, ENV_AREA_SIZE);
 
     result = ef_load_env();
 
-#if EF_ENV_AUTO_UPDATE
+#if EF_ENV_AUTO_UPDATE == 1
     if (result == EF_NO_ERR) {
         env_auto_update();
     }
@@ -1466,13 +1466,13 @@ EfErrCode ef_env_init(ef_env const *default_env, size_t default_env_size) {
     if (result == EF_NO_ERR) {
         init_ok = true;
     }
-#if RTE_USE_SHELL
-    RTE_Shell_CreateModule("kvdb");
-    RTE_Shell_AddCommand("kvdb","printenv",RTE_Shell_KV_PrintEnv,"Print all env variables Example:kvdb.printenv");
-	RTE_Shell_AddCommand("kvdb","newenv",RTE_Shell_KV_NewEnv,"Create a env variable Example:kvdb.newenv(key,value)");
-	RTE_Shell_AddCommand("kvdb","setenv",RTE_Shell_KV_SetEnv,"Set a env variable Example:kvdb.setenv(key,value)");
-	RTE_Shell_AddCommand("kvdb","delenv",RTE_Shell_KV_DelEnv,"Delete a env variable Example:kvdb.delenv(key)");
-	RTE_Shell_AddCommand("kvdb","resetenv",RTE_Shell_KV_ResetEnv,"Reset all env variables Example:kvdb.resetenv");
+#if RTE_USE_SHELL == 1
+    Shell_CreateModule("kvdb");
+    Shell_AddCommand("kvdb","printenv",RTE_Shell_KV_PrintEnv,"Print all env variables Example:kvdb.printenv");
+	Shell_AddCommand("kvdb","newenv",RTE_Shell_KV_NewEnv,"Create a env variable Example:kvdb.newenv(key,value)");
+	Shell_AddCommand("kvdb","setenv",RTE_Shell_KV_SetEnv,"Set a env variable Example:kvdb.setenv(key,value)");
+	Shell_AddCommand("kvdb","delenv",RTE_Shell_KV_DelEnv,"Delete a env variable Example:kvdb.delenv(key)");
+	Shell_AddCommand("kvdb","resetenv",RTE_Shell_KV_ResetEnv,"Reset all env variables Example:kvdb.resetenv");
 #endif // RTE_USE_SHELL
     return result;
 }

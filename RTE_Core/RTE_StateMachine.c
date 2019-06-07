@@ -16,17 +16,17 @@
 					thisFunction 状态函数
 *** Function: 为状态机的不同状态设置状态函数
 *************************************************/
-RTE_SM_Err_e RTE_StateMachine_Add(RTE_StateMachine_t *thisStateMachine,uint8_t State, uint8_t(*StateFunction)(void *))
+sm_error_e StateMachine_Add(sm_t *thisStateMachine,uint8_t State, uint8_t(*StateFunction)(void *))
 {
-	for(uint8_t i = 0;i<thisStateMachine->SMTable.length;i++)
+	for(uint8_t i = 0;i<Vector_Length(thisStateMachine->SMTable);i++)
 	{
-		if(thisStateMachine->SMTable.data[i].StateName == State)
+		if(((sm_state_t *)(Vector_GetElement(thisStateMachine->SMTable,i)))->StateName == State)
 			return SM_ALREADYEXIST;
 	}
-	RTE_State_t v;
-	v.StateName = State;
-	v.StateFunction = StateFunction;
-	vec_push(&thisStateMachine->SMTable,v);
+	sm_state_t *v = Memory_Alloc0(MEM_RTE,sizeof(sm_state_t));
+	v->StateName = State;
+	v->StateFunction = StateFunction;
+	Vector_Pushback(thisStateMachine->SMTable,v);
 	return SM_NOERR;
 }
 /*************************************************
@@ -35,13 +35,13 @@ RTE_SM_Err_e RTE_StateMachine_Add(RTE_StateMachine_t *thisStateMachine,uint8_t S
 					InputArgs 状态机共享参数
 *** Function: 运行一个状态机
 *************************************************/
-void RTE_StateMachine_Run(RTE_StateMachine_t *thisStateMachine,void *InputArgs)
+void StateMachine_Run(sm_t *thisStateMachine,void *InputArgs)
 {
-#if RTE_USE_OS
+#if RTE_USE_OS == 1
 	osMutexAcquire(thisStateMachine->mutexid,osWaitForever);
 #endif
-	thisStateMachine->RunningState = thisStateMachine->SMTable.data[thisStateMachine->RunningState].StateFunction(InputArgs);
-#if RTE_USE_OS
+	thisStateMachine->RunningState = ((sm_state_t *)(Vector_GetElement(thisStateMachine->SMTable,thisStateMachine->RunningState)))->StateFunction(InputArgs);
+#if RTE_USE_OS == 1
 	osMutexRelease(thisStateMachine->mutexid);
 #endif
 }
@@ -50,12 +50,12 @@ void RTE_StateMachine_Run(RTE_StateMachine_t *thisStateMachine,void *InputArgs)
 					thisStateMachine 待处理状态机
 *** Function: 删除一个状态机
 *************************************************/
-RTE_SM_Err_e RTE_StateMachine_Remove(RTE_StateMachine_t *thisStateMachine,uint8_t State)
+sm_error_e StateMachine_Remove(sm_t *thisStateMachine,uint8_t State)
 {
 	int8_t idx = -1;
-	for(uint8_t i = 0;i<thisStateMachine->SMTable.length;i++)
+	for(uint8_t i = 0;i<Vector_Length(thisStateMachine->SMTable);i++)
 	{
-		if(thisStateMachine->SMTable.data[i].StateName == State)
+		if(((sm_state_t *)(Vector_GetElement(thisStateMachine->SMTable,i)))->StateName == State)
 		{
 			idx = i;
 			break;
@@ -63,7 +63,7 @@ RTE_SM_Err_e RTE_StateMachine_Remove(RTE_StateMachine_t *thisStateMachine,uint8_
 	}
 	if(idx!=-1)
 	{
-		vec_splice(&thisStateMachine->SMTable, idx, 1);
+		Vector_Erase(thisStateMachine->SMTable, idx);
 		return SM_NOERR;
 	}
 	return SM_NOSUCHSM;
@@ -74,13 +74,13 @@ RTE_SM_Err_e RTE_StateMachine_Remove(RTE_StateMachine_t *thisStateMachine,uint8_
 					NewStateNum 状态数目
 *** Function: 初始化一个状态机
 *************************************************/
-void RTE_StateMachine_ChangeTo(RTE_StateMachine_t *thisStateMachine,uint8_t NewStateNum)
+void StateMachine_ChangeTo(sm_t *thisStateMachine,uint8_t NewStateNum)
 {
-#if RTE_USE_OS
+#if RTE_USE_OS == 1
 	osMutexAcquire(thisStateMachine->mutexid,osWaitForever);
 #endif
 	thisStateMachine->RunningState = NewStateNum;
-#if RTE_USE_OS
+#if RTE_USE_OS == 1
 	osMutexRelease(thisStateMachine->mutexid);
 #endif
 }
@@ -90,11 +90,11 @@ void RTE_StateMachine_ChangeTo(RTE_StateMachine_t *thisStateMachine,uint8_t NewS
 					StateNum 状态数目
 *** Function: 初始化一个状态机
 *************************************************/
-void RTE_StateMachine_Init(RTE_StateMachine_t *thisStateMachine,uint8_t InitialState)
+void StateMachine_Init(sm_t *thisStateMachine,uint8_t InitialState)
 {
-	vec_init(&thisStateMachine->SMTable);
+	Vector_Init(&thisStateMachine->SMTable,MEM_RTE);
 	thisStateMachine->RunningState = InitialState;
-#if RTE_USE_OS
+#if RTE_USE_OS == 1
 	thisStateMachine->mutexid = osMutexNew(NULL);
 #endif
 }

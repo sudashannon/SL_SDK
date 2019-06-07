@@ -3,19 +3,20 @@
   * @file    RTE_LinkList.c
   * @author  Shan Lei ->>lurenjia.tech ->>https://github.com/sudashannon
   * @brief   RTE自带的双向链表实现。
-  * @version V1.0 2019/1/06 第一版
-	* @History V1.0 创建，修改自lvgl
+  * @version V1.0 2019/1/06
+  * @History V1.0 创建，修改自lvgl
   ******************************************************************************
   */
 #include "RTE_LinkList.h"
 #if RTE_USE_LL == 1
+#include <string.h>
 #include "RTE_Memory.h"
 /*********************
  *      DEFINES
  *********************/
-#define LL_NODE_META_SIZE (sizeof(RTE_LL_Node_t*) + sizeof(RTE_LL_Node_t*))
+#define LL_NODE_META_SIZE (sizeof(ll_node_t*) + sizeof(ll_node_t*))
 #define LL_PREV_P_OFFSET(ll_p) (ll_p->n_size)
-#define LL_NEXT_P_OFFSET(ll_p) (ll_p->n_size + sizeof(RTE_LL_Node_t*))
+#define LL_NEXT_P_OFFSET(ll_p) (ll_p->n_size + sizeof(ll_node_t*))
 
 /**********************
  *      TYPEDEFS
@@ -24,8 +25,8 @@
 /**********************
  *  STATIC PROTOTYPES
  **********************/
-static void node_set_prev(RTE_LL_t * ll_p, RTE_LL_Node_t * act, RTE_LL_Node_t * prev);
-static void node_set_next(RTE_LL_t * ll_p, RTE_LL_Node_t * act, RTE_LL_Node_t * next);
+static void node_set_prev(linklist_t * ll_p, ll_node_t * act, ll_node_t * prev);
+static void node_set_next(linklist_t * ll_p, ll_node_t * act, ll_node_t * next);
 
 /**********************
  *  STATIC VARIABLES
@@ -44,24 +45,10 @@ static void node_set_next(RTE_LL_t * ll_p, RTE_LL_Node_t * act, RTE_LL_Node_t * 
  * @param ll_dsc pointer to ll_dsc variable
  * @param n_size the size of 1 node in bytes
  */
-void RTE_LL_Init(RTE_LL_t * ll_p, uint32_t n_size)
+void LinkList_Init(linklist_t * ll_p, uint32_t n_size)
 {
     ll_p->head = NULL;
     ll_p->tail = NULL;
-//#if RTE_MEM_64BIT == 1
-//    /*Round the size up to 8*/
-//    if(n_size & 0x7) {
-//        n_size = n_size & (~0x7);
-//        n_size += 8;
-//    }
-//#else
-//    /*Round the size up to 4*/
-//    if(n_size & 0x3) {
-//        n_size = n_size & (~0x3);
-//        n_size += 4;
-//    }
-//#endif
-
     ll_p->n_size = n_size;
 }
 
@@ -70,11 +57,11 @@ void RTE_LL_Init(RTE_LL_t * ll_p, uint32_t n_size)
  * @param ll_p pointer to linked list
  * @return pointer to the new head
  */
-void * RTE_LL_InsHead(RTE_LL_t * ll_p)
+void * LinkList_InsHead(linklist_t * ll_p)
 {
-    RTE_LL_Node_t * n_new;
+    ll_node_t * n_new;
 
-    n_new = Memory_Alloc(BANK_RTE,ll_p->n_size + LL_NODE_META_SIZE);
+    n_new = Memory_Alloc(MEM_RTE,ll_p->n_size + LL_NODE_META_SIZE);
 
     if(n_new != NULL) {
         node_set_prev(ll_p, n_new, NULL);           /*No prev. before the new head*/
@@ -99,21 +86,21 @@ void * RTE_LL_InsHead(RTE_LL_t * ll_p)
  * @param n_act pointer a node
  * @return pointer to the new head
  */
-void * RTE_LL_InsPrev(RTE_LL_t * ll_p, void * n_act)
+void * LinkList_InsPrev(linklist_t * ll_p, void * n_act)
 {
-    RTE_LL_Node_t * n_new;
-    RTE_LL_Node_t * n_prev;
+    ll_node_t * n_new;
+    ll_node_t * n_prev;
 
     if(NULL == ll_p || NULL == n_act) return NULL;
 
-    if(RTE_LL_GetHead(ll_p) == n_act) {
-        n_new = RTE_LL_InsHead(ll_p);
+    if(LinkList_GetHead(ll_p) == n_act) {
+        n_new = LinkList_InsHead(ll_p);
         if(n_new == NULL) return NULL;
     } else {
-        n_new = Memory_Alloc(BANK_RTE,ll_p->n_size + LL_NODE_META_SIZE);
+        n_new = Memory_Alloc(MEM_RTE,ll_p->n_size + LL_NODE_META_SIZE);
         if(n_new == NULL) return NULL;
 
-        n_prev = RTE_LL_GetPrev(ll_p, n_act);
+        n_prev = LinkList_GetPrev(ll_p, n_act);
         node_set_next(ll_p, n_prev, n_new);
         node_set_prev(ll_p, n_new, n_prev);
         node_set_prev(ll_p, n_act, n_new);
@@ -128,11 +115,11 @@ void * RTE_LL_InsPrev(RTE_LL_t * ll_p, void * n_act)
  * @param ll_p pointer to linked list
  * @return pointer to the new tail
  */
-void * RTE_LL_InsTail(RTE_LL_t * ll_p)
+void * LinkList_InsTail(linklist_t * ll_p)
 {
-    RTE_LL_Node_t * n_new;
+    ll_node_t * n_new;
 
-    n_new = Memory_Alloc(BANK_RTE,ll_p->n_size + LL_NODE_META_SIZE);
+    n_new = Memory_Alloc(MEM_RTE,ll_p->n_size + LL_NODE_META_SIZE);
     if(n_new == NULL) return NULL;
 
     if(n_new != NULL) {
@@ -158,27 +145,27 @@ void * RTE_LL_InsTail(RTE_LL_t * ll_p)
  * @param ll_p pointer to the linked list of 'node_p'
  * @param node_p pointer to node in 'll_p' linked list
  */
-void RTE_LL_Remove(RTE_LL_t  * ll_p, void * node_p)
+void LinkList_Remove(linklist_t  * ll_p, void * node_p)
 {
-    if(RTE_LL_GetHead(ll_p) == node_p) {
+    if(LinkList_GetHead(ll_p) == node_p) {
         /*The new head will be the node after 'n_act'*/
-        ll_p->head = RTE_LL_GetNext(ll_p, node_p);
+        ll_p->head = LinkList_GetNext(ll_p, node_p);
         if(ll_p->head == NULL) {
             ll_p->tail = NULL;
         } else {
             node_set_prev(ll_p, ll_p->head, NULL);
         }
-    } else if(RTE_LL_GetTail(ll_p) == node_p) {
+    } else if(LinkList_GetTail(ll_p) == node_p) {
         /*The new tail will be the  node before 'n_act'*/
-        ll_p->tail = RTE_LL_GetPrev(ll_p, node_p);
+        ll_p->tail = LinkList_GetPrev(ll_p, node_p);
         if(ll_p->tail == NULL) {
             ll_p->head = NULL;
         } else {
             node_set_next(ll_p, ll_p->tail, NULL);
         }
     } else {
-        RTE_LL_Node_t * n_prev = RTE_LL_GetPrev(ll_p, node_p);
-        RTE_LL_Node_t * n_next = RTE_LL_GetNext(ll_p, node_p);
+        ll_node_t * n_prev = LinkList_GetPrev(ll_p, node_p);
+        ll_node_t * n_next = LinkList_GetNext(ll_p, node_p);
 
         node_set_next(ll_p, n_prev, n_next);
         node_set_prev(ll_p, n_next, n_prev);
@@ -189,19 +176,19 @@ void RTE_LL_Remove(RTE_LL_t  * ll_p, void * node_p)
  * Remove and free all elements from a linked list. The list remain valid but become empty.
  * @param ll_p pointer to linked list
  */
-void RTE_LL_Clear(RTE_LL_t * ll_p)
+void LinkList_Clear(linklist_t * ll_p)
 {
     void * i;
     void * i_next;
 
-    i = RTE_LL_GetHead(ll_p);
+    i = LinkList_GetHead(ll_p);
     i_next = NULL;
 
     while(i != NULL) {
-        i_next = RTE_LL_GetNext(ll_p, i);
+        i_next = LinkList_GetNext(ll_p, i);
 
-        RTE_LL_Remove(ll_p, i);
-        Memory_Free(BANK_RTE,i);
+        LinkList_Remove(ll_p, i);
+        Memory_Free(MEM_RTE,i);
 
         i = i_next;
     }
@@ -213,9 +200,9 @@ void RTE_LL_Clear(RTE_LL_t * ll_p)
  * @param ll_new_p pointer to the new linked list
  * @param node pointer to a node
  */
-void RTE_LL_MoveList(RTE_LL_t * ll_ori_p, RTE_LL_t * ll_new_p, void * node)
+void LinkList_MoveList(linklist_t * ll_ori_p, linklist_t * ll_new_p, void * node)
 {
-    RTE_LL_Remove(ll_ori_p, node);
+    LinkList_Remove(ll_ori_p, node);
 
     /*Set node as head*/
     node_set_prev(ll_new_p, node, NULL);
@@ -236,7 +223,7 @@ void RTE_LL_MoveList(RTE_LL_t * ll_ori_p, RTE_LL_t * ll_new_p, void * node)
  * @param ll_p pointer to linked list
  * @return pointer to the head of 'll_p'
  */
-void * RTE_LL_GetHead(const RTE_LL_t * ll_p)
+void * LinkList_GetHead(const linklist_t * ll_p)
 {
     void * head = NULL;
 
@@ -252,7 +239,7 @@ void * RTE_LL_GetHead(const RTE_LL_t * ll_p)
  * @param ll_p pointer to linked list
  * @return pointer to the head of 'll_p'
  */
-void * RTE_LL_GetTail(const RTE_LL_t * ll_p)
+void * LinkList_GetTail(const linklist_t * ll_p)
 {
     void * tail = NULL;
 
@@ -269,12 +256,12 @@ void * RTE_LL_GetTail(const RTE_LL_t * ll_p)
  * @param n_act pointer a node
  * @return pointer to the next node
  */
-void * RTE_LL_GetNext(const RTE_LL_t * ll_p, const  void * n_act)
+void * LinkList_GetNext(const linklist_t * ll_p, const  void * n_act)
 {
     void * next = NULL;
 
     if(ll_p != NULL)    {
-        const RTE_LL_Node_t * n_act_d = n_act;
+        const ll_node_t * n_act_d = n_act;
         memcpy(&next, n_act_d + LL_NEXT_P_OFFSET(ll_p), sizeof(void *));
     }
 
@@ -287,19 +274,19 @@ void * RTE_LL_GetNext(const RTE_LL_t * ll_p, const  void * n_act)
  * @param n_act pointer a node
  * @return pointer to the previous node
  */
-void * RTE_LL_GetPrev(const RTE_LL_t * ll_p, const  void * n_act)
+void * LinkList_GetPrev(const linklist_t * ll_p, const  void * n_act)
 {
     void * prev = NULL;
 
     if(ll_p != NULL) {
-        const RTE_LL_Node_t * n_act_d = n_act;
+        const ll_node_t * n_act_d = n_act;
         memcpy(&prev, n_act_d + LL_PREV_P_OFFSET(ll_p), sizeof(void *));
     }
 
     return prev;
 }
 
-void RTE_LL_swap(RTE_LL_t * ll_p, void * n1_p, void * n2_p)
+void LinkList_swap(linklist_t * ll_p, void * n1_p, void * n2_p)
 {
     (void)(ll_p);
     (void)(n1_p);
@@ -313,19 +300,19 @@ void RTE_LL_swap(RTE_LL_t * ll_p, void * n1_p, void * n2_p)
  * @param n_act pointer to node to move
  * @param n_after pointer to a node which should be after `n_act`
  */
-void RTE_LL_Movebefore(RTE_LL_t * ll_p, void * n_act, void * n_after)
+void LinkList_Movebefore(linklist_t * ll_p, void * n_act, void * n_after)
 {
     if(n_act == n_after) return;    /*Can't move before itself*/
 
 
     void * n_before;
-    if(n_after != NULL) n_before = RTE_LL_GetPrev(ll_p, n_after);
-    else n_before = RTE_LL_GetTail(ll_p);        /*if `n_after` is NULL `n_act` should be the new tail*/
+    if(n_after != NULL) n_before = LinkList_GetPrev(ll_p, n_after);
+    else n_before = LinkList_GetTail(ll_p);        /*if `n_after` is NULL `n_act` should be the new tail*/
 
     if(n_act == n_before) return;   /*Already before `n_after`*/
 
     /*It's much easier to remove from the list and add again*/
-    RTE_LL_Remove(ll_p, n_act);
+    LinkList_Remove(ll_p, n_act);
 
     /*Add again by setting the prev. and next nodes*/
     node_set_next(ll_p, n_before, n_act);
@@ -347,11 +334,11 @@ void RTE_LL_Movebefore(RTE_LL_t * ll_p, void * n_act, void * n_after)
  * @param act pointer to a node which prev. node pointer should be set
  * @param prev pointer to a node which should be the previous node before 'act'
  */
-static void node_set_prev(RTE_LL_t * ll_p, RTE_LL_Node_t * act, RTE_LL_Node_t * prev)
+static void node_set_prev(linklist_t * ll_p, ll_node_t * act, ll_node_t * prev)
 {
     if(act == NULL) return;     /*Can't set the prev node of `NULL`*/
 
-    uint32_t node_p_size = sizeof(RTE_LL_Node_t *);
+    uint32_t node_p_size = sizeof(ll_node_t *);
     if(prev) memcpy(act + LL_PREV_P_OFFSET(ll_p), &prev, node_p_size);
     else memset(act + LL_PREV_P_OFFSET(ll_p), 0, node_p_size);
 }
@@ -362,11 +349,11 @@ static void node_set_prev(RTE_LL_t * ll_p, RTE_LL_Node_t * act, RTE_LL_Node_t * 
  * @param act pointer to a node which next node pointer should be set
  * @param next pointer to a node which should be the next node before 'act'
  */
-static void node_set_next(RTE_LL_t * ll_p, RTE_LL_Node_t * act, RTE_LL_Node_t * next)
+static void node_set_next(linklist_t * ll_p, ll_node_t * act, ll_node_t * next)
 {
     if(act == NULL) return;     /*Can't set the next node of `NULL`*/
 
-    uint32_t node_p_size = sizeof(RTE_LL_Node_t *);
+    uint32_t node_p_size = sizeof(ll_node_t *);
     if(next) memcpy(act + LL_NEXT_P_OFFSET(ll_p), &next, node_p_size);
     else memset(act + LL_NEXT_P_OFFSET(ll_p), 0, node_p_size);
 }
