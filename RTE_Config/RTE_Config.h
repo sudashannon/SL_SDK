@@ -22,6 +22,9 @@ extern "C" {
 //      <q> 实时操作系统环境
 //      <i> 默认是RTX5
 #define RTE_USE_OS                 1
+//      <q> 运行在PC环境上
+//      <i> 默认是嵌入式环境
+#define RTE_USE_PC                 1
 //=======================
 //  </h> RTE基本配置
 //=======================
@@ -71,20 +74,20 @@ extern "C" {
 #if RTE_USE_MEMORY == 1
 // 		<o> 动态内存管理类型 <0=>LVGL <1=>TLSF
 // 		<i> 设置动态内存管理的类型
-// 		<i>                  LVGL（边界标定法，资源消耗少，碎片多）
-// 		<i>                  TLSF（TLSF法，资源消耗大，碎片少）
+// 		<i>                  LVGL（边界标定法，资源消耗少，碎片多，建议8K内存以下使用）
+// 		<i>                  TLSF（TLSF法，资源消耗大，碎片少，建议8K内存以上使用）
 #define MEMORY_TYPE                1
+// 		<q> 64位处理器使能
+#define MEMORY_64BIT               1
 // 		<q> 动态内存模块调试信息
 // 		<i> 使能动态内存模块调试信息输出
 #define MEMORY_DEBUG               1
 //      <o> RTE内存块大小
 //      <i> RTE使用得动态内存大小
 //      <i> 默认大小: 32（单位：K）
-#define RTE_MEM_SIZE    		        (32U)
+#define RTE_MEM_SIZE    		        (1024*1024U)
 #if MEMORY_TYPE == 0
 //      <h> LVGL类型下参数配置
-// 			<q> 64位处理器使能
-#define  MEMORY_SIMPLE_64BIT       0
 // 			<q> 自动碎片整理
 #define  MEMORY_SIMPLE_AUTODEFRAG  1
 //      </h> 简单模式
@@ -117,10 +120,13 @@ extern "C" {
 // 		<i>                SIMPLE（简单时间片轮询，静态管理，需要手动维护RR头文件中的定时器）
 // 		<i>                BASE（基础时间片轮询，动态管理，不分组，定时器名称由用户维护）
 // 		<i>                FULL（分组时间片轮询，动态管理，适合多线程环境，组名称和定时器名称由用户维护）
-#define RR_TYPE                       2   
+#define RR_TYPE                       1
 // 		<q> 时间片轮询调试信息
 // 		<i> 使能时间片轮询调试信息输出
 #define RR_DEBUG                      1
+// 		<q> DWT计数器
+// 		<i> 使能DWT计数器与US级别延时功能
+#define RR_DWT                        0
 #if RR_TYPE == 0
 
 #elif RR_TYPE == 1
@@ -149,7 +155,7 @@ extern "C" {
 //  <e> 双向链表模块
 //=======================
 //  <i> 使用RTE自带的双向链表模块，依赖模块：动态内存模块。
-#define RTE_USE_LL                    1
+#define RTE_USE_LL                    0
 #if RTE_USE_LL == 1
 #if RTE_USE_MEMORY == 0
 #error "需要动态内存模块的支持"
@@ -225,27 +231,27 @@ extern "C" {
 // <e> KV数据库模块
 //=======================
 // <i> 使用RTE自带的KV关系数据库，依赖模块：标准输出。
-#define RTE_USE_KVDB                  1
+#define RTE_USE_KVDB                  0
 	// <q> 环境变量自动更新功能
 	// <i> Auto update ENV to latest default when current ENV version number is changed.
-	#define EF_ENV_AUTO_UPDATE          0
+	#define EF_ENV_AUTO_UPDATE          1
 	#if EF_ENV_AUTO_UPDATE
 	// <o> 环境变量版本
-	#define EF_ENV_VER_NUM              0
+	#define EF_ENV_VER_NUM              3
 	#endif
 	// <q> IAP功能
 	#define EF_USING_IAP                0
 	// <o> 最小擦除大小
 	// <i> 单位：K
-	#define EF_ERASE_MIN_SIZE          4096 // 片外2048
+	#define EF_ERASE_MIN_SIZE          1024 // 片外2048
 	// <o> FLASH写入单元
 	// <i> support 1(nor flash)/ 8(stm32f4)/ 32(stm32f1)/ 64(stm32l4)
 	#define EF_WRITE_GRAN              32
 	// <o> 可用FLASH首地址
-	#define EF_START_ADDR              (0x08000000 + 250 * 1024) //  片外0
+	#define EF_START_ADDR              (0x08000000 + 30 * 1024) //  片外0
 	// <o> 环境变量大小
 	// <i> 至少两个扇区大小用于GC
-	#define ENV_AREA_SIZE             (4 * EF_ERASE_MIN_SIZE)
+	#define ENV_AREA_SIZE             (2 * EF_ERASE_MIN_SIZE)
 //=======================
 // </e> KV数据库模块
 //=======================

@@ -24,7 +24,11 @@ extern "C" {
 	#include "RTE_Shell.h"
 	#include "RTE_KVDB.h"
 	#include "RTE_Math.h"
+	#if RTE_USE_OS == 1
+	#include "cmsis_os2.h"
+	#endif // RTE_USE_OS
 	extern void RTE_Init(void);
+	extern void KVDB_Init(void) ;
 	#define ALIGN_NBYTES(buf,n) buf __attribute__ ((aligned (n)))
 	#ifndef UNUSED
 	#define UNUSED(x) ((void)(x))

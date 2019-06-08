@@ -28,11 +28,11 @@ typedef struct
 	mem_t mem;
 	pool_t pool;
 #if RTE_USE_OS == 1
-	osMutexId_t mutex_mem;
+	osMutexId_t mutexid;
 #endif
 }mem_control_t;
 #elif MEMORY_TYPE == 0
-#if MEMORY_SIMPLE_64BIT == 1
+#if MEMORY_64BIT == 1
 #define mem_unit uint64_t
 #else
 #define mem_unit uint32_t
@@ -53,7 +53,7 @@ typedef struct
 	uint8_t *work_mem;    //Work memory for allocation
 	size_t totalsize;
 #if RTE_USE_OS
-	osMutexId_t mutex_mem;
+	osMutexId_t mutexid;
 #endif
 }mem_control_t;
 typedef struct

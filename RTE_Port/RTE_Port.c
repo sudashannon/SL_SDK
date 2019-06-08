@@ -13,11 +13,11 @@
 *** Function: 断言功能
 *************************************************/
 void RTE_Assert(char *file, uint32_t line)
-{ 
+{
 	uprintf("[ASSERT]    Wrong parameters value: file %s on line %d\r\n", file, line);
 	while (1)
 	{
-		
+
 	}
 }
 /*************************************************
@@ -27,9 +27,17 @@ void RTE_Assert(char *file, uint32_t line)
 /* default ENV set for user */
 static const ef_env rte_kvdb_lib[] = {
 	{"boot_times","0"},
+	{"ch1out","1"},
+	{"ch2out","1"},
+	{"ch3out","1"},
+	{"ch4out","1"},
+	{"ch1per","100"},
+	{"ch2per","100"},
+	{"ch3per","100"},
+	{"ch4per","100"},
 };
 #define KVDB_TXT  "[KVDB]"
-void KVDB_Init(void) 
+void KVDB_Init(void)
 {
 	#if RTE_USE_OS == 1
 	static const osMutexAttr_t MutexIDKVDBAttr = {
@@ -72,6 +80,7 @@ static shell_error_e Shell_Memory_Demon(int argc, char *argv[])
 	uprintf("--------------------------------------------------\r\n");
 	uprintf("%10s    BANK COUNTS:%d\r\n","[MEM]",BANK_N);
 	uprintf("--------------------------------------------------\r\n");
+#if MEMORY_TYPE == 1
 	if(strstr(argv[2],"all"))
     {
         for(mem_bank_e i=(mem_bank_e)(BANK_NULL+1);i<BANK_N;i++)
@@ -79,6 +88,28 @@ static shell_error_e Shell_Memory_Demon(int argc, char *argv[])
     }
     else
         Memory_Demon((mem_bank_e)atoi(argv[2]));
+#elif MEMORY_TYPE == 0
+	mem_mon_t mon_p;
+	if(strstr(argv[2],"all"))
+    {
+        for(mem_bank_e i=(mem_bank_e)(BANK_NULL+1);i<BANK_N;i++)
+		{
+			uprintf("--------------------------------------------------\r\n");
+			uprintf("%10s    BANK%d\r\n","[MEM]",i);
+			uprintf("--------------------------------------------------\r\n");
+            Memory_Demon(i,&mon_p);
+			uprintf("%10s    size: %d free:%d \r\n","[MEM]", mon_p.total_size,mon_p.free_size);
+		}
+    }
+    else
+	{
+		uprintf("--------------------------------------------------\r\n");
+		uprintf("%10s    BANK%d\r\n","[MEM]",(mem_bank_e)atoi(argv[2]));
+		uprintf("--------------------------------------------------\r\n");
+		Memory_Demon((mem_bank_e)atoi(argv[2]),&mon_p);
+		uprintf("%10s    size: %d free:%d \r\n","[MEM]", mon_p.total_size,mon_p.free_size);
+	}
+#endif
 	return(SHELL_NOERR);
 }
 #endif
@@ -102,9 +133,15 @@ void RTE_Init(void)
         Shell_Init();
     #endif // RTE_USE_SHELL
 	RoundRobin_Init();
+	#if RR_TYPE == 2
 	RoundRobin_CreateGroup(0);
+	#endif
     #if RTE_USE_SHELL == 1
-        RoundRobin_CreateTimer(0,0,10,1,1,Shell_Poll,(void *)0);
+		#if RR_TYPE == 2
+			RoundRobin_CreateTimer(0,0,10,1,1,Shell_Poll,(void *)0);
+		#else
+            RoundRobin_CreateTimer(RoundRobin_GetTimerNum(),10,1,1,Shell_Poll,(void *)0);
+		#endif
 	#endif
 #endif
 #if RTE_USE_MEMORY == 1

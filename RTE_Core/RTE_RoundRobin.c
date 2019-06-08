@@ -21,8 +21,12 @@
 #include "RTE_Printf.h"
 #endif
 #define RR_STR "[RR]"
+#if RTE_USE_PC == 0
 #include "RTE_Components.h"
 #include CMSIS_device_header
+#else
+#include <SDL2/SDL.h>
+#endif
 #if RR_TYPE == 0
 /*************************************************
 *** 管理RoundRobin的结构体变量，静态管理
@@ -30,10 +34,21 @@
 static rr_softtimer_t RoundRobinTimerHandle[TIMER_N] = {0}
 #if RTE_USE_OS == 0
 static volatile uint32_t RoundRobinRunTick = 0;
-#endif	
+#endif
+static uint8_t TimerNum = 0;
 #elif RR_TYPE == 1 || RR_TYPE == 2
 static rr_t RoundRobinHandle = {0};
 #endif
+#if RTE_USE_SHELL == 1
+#include "RTE_Shell.h"
+static shell_error_e Shell_RR_Demon(int argc, char *argv[])
+{
+    if(argc!=2)
+        return SHELL_ARGSERROR;
+    RoundRobin_Demon();
+	return(SHELL_NOERR);
+}
+#endif // USE_SHELL
 /*************************************************
 *** Args:   NULL
 *** Function: RoundRobin初始化
@@ -57,6 +72,11 @@ void RoundRobin_Init(void)
 	RoundRobinHandle.RoundRobinRunTick = 0;
 #endif
 #endif
+#if RTE_USE_SHELL
+    Shell_CreateModule("timer");
+    Shell_AddCommand("timer","demon",Shell_RR_Demon,"Demon all running timers Example:timer.demon");
+#endif // RTE_USE_SHELL
+#if RR_DWT == 1
 #ifndef RTE_Compiler_EventRecorder
 	/* Enable TRC */
 	CoreDebug->DEMCR &= ~0x01000000;
@@ -65,10 +85,11 @@ void RoundRobin_Init(void)
 	DWT->CTRL &= ~0x00000001;
 	DWT->CTRL |=  0x00000001;
 	/* Reset counter */
-	DWT->CYCCNT = 0;	
+	DWT->CYCCNT = 0;
 	/* 2 dummys */
 	__ASM volatile ("NOP");
 	__ASM volatile ("NOP");
+#endif
 #endif
 }
 /*************************************************
@@ -85,49 +106,58 @@ inline static void RoundRobin_CheckTimer(
 {
 #if RR_TYPE == 0
 	/* Check if count is zero */
-	if(RoundRobinTimerHandle[TimerID].Flags.F.CNTEN && RoundRobinTimerHandle[TimerID].CNT == 0)
+	if(RoundRobinTimerHandle[TimerID].Flags.F.CNTEN)
 	{
-		/* Call user callback function */
-		RoundRobinTimerHandle[TimerID].Callback(RoundRobinTimerHandle[TimerID].UserParameters);
-		/* Set new counter value */
-		RoundRobinTimerHandle[TimerID].CNT = RoundRobinTimerHandle[TimerID].ARR;
-		/* Disable timer if auto reload feature is not used */
-		if (!RoundRobinTimerHandle[TimerID].Flags.F.AREN)
+		if(RoundRobinTimerHandle[TimerID].CNT == 0)
 		{
-			/* Disable counter */
-			RoundRobin_RemoveTimer(TimerID);
+			/* Call user callback function */
+			RoundRobinTimerHandle[TimerID].Callback(RoundRobinTimerHandle[TimerID].UserParameters);
+			/* Set new counter value */
+			RoundRobinTimerHandle[TimerID].CNT = RoundRobinTimerHandle[TimerID].ARR;
+			/* Disable timer if auto reload feature is not used */
+			if (!RoundRobinTimerHandle[TimerID].Flags.F.AREN)
+			{
+				/* Disable counter */
+				RoundRobin_RemoveTimer(TimerID);
+			}
 		}
 	}
 #elif RR_TYPE == 1
     rr_softtimer_t *Timer = ((rr_softtimer_t*)Vector_GetElement(RoundRobinHandle.SoftTimerTable,TimerID));
 	/* Check if count is zero */
-	if(Timer->Flags.F.CNTEN && Timer->CNT == 0)
+	if(Timer->Flags.F.CNTEN)
 	{
-		/* Call user callback function */
-		Timer->Callback(Timer->UserParameters);
-		/* Set new counter value */
-		Timer->CNT = Timer->ARR;
-		/* Disable timer if auto reload feature is not used */
-		if (!Timer->Flags.F.AREN)
+		if(Timer->CNT == 0)
 		{
-			/* Disable counter */
-			RoundRobin_RemoveTimer(TimerID);
+			/* Call user callback function */
+			Timer->Callback(Timer->UserParameters);
+			/* Set new counter value */
+			Timer->CNT = Timer->ARR;
+			/* Disable timer if auto reload feature is not used */
+			if (!Timer->Flags.F.AREN)
+			{
+				/* Disable counter */
+				RoundRobin_RemoveTimer(TimerID);
+			}
 		}
 	}
 #elif RR_TYPE == 2
     rr_softtimer_t *Timer = ((rr_softtimer_t *)Vector_GetElement(RoundRobinHandle.TimerGroup[GroupID].SoftTimerTable,TimerID));
 	/* Check if count is zero */
-	if(Timer->Flags.F.CNTEN && Timer->CNT == 0)
+	if(Timer->Flags.F.CNTEN )
 	{
-		/* Call user callback function */
-		Timer->Callback(Timer->UserParameters);
-		/* Set new counter value */
-		Timer->CNT = Timer->ARR;
-		/* Disable timer if auto reload feature is not used */
-		if (!Timer->Flags.F.AREN)
+		if(Timer->CNT == 0)
 		{
-			/* Disable counter */
-			RoundRobin_RemoveTimer(GroupID,TimerID);
+			/* Call user callback function */
+			Timer->Callback(Timer->UserParameters);
+			/* Set new counter value */
+			Timer->CNT = Timer->ARR;
+			/* Disable timer if auto reload feature is not used */
+			if (!Timer->Flags.F.AREN)
+			{
+				/* Disable counter */
+				RoundRobin_RemoveTimer(GroupID,TimerID);
+			}
 		}
 	}
 #endif
@@ -145,7 +175,7 @@ void RoundRobin_TickHandler(void)
 	// Loop through each timer in the timer table.
 	for(uint8_t i = 0; i < TIMER_N; i++)
 	{
-		if (RoundRobinTimerHandle[i].Flags.F.CNTEN) 
+		if (RoundRobinTimerHandle[i].Flags.F.CNTEN)
 		{
 			/* Decrease counter if needed */
 			if (RoundRobinTimerHandle[i].CNT)
@@ -153,6 +183,9 @@ void RoundRobin_TickHandler(void)
 		}
 	}
 #elif RR_TYPE == 1
+#if RTE_USE_OS == 0
+	RoundRobinHandle.RoundRobinRunTick++;
+#endif
 	// Loop through each task in the task table.
 	for(uint8_t i = 0; i < Vector_Length(RoundRobinHandle.SoftTimerTable); i++)
 	{
@@ -165,7 +198,11 @@ void RoundRobin_TickHandler(void)
 				Timer->CNT--;
 		}
 	}
+	RoundRobin_Run();
 #elif RR_TYPE == 2
+#if RTE_USE_OS == 0
+	RoundRobinHandle.RoundRobinRunTick++;
+#endif
 	// Loop through each group in the group table.
 	for(uint8_t i = 0; i < RoundRobinHandle.TimerGroupCnt; i++)
 	{
@@ -192,7 +229,7 @@ void RoundRobin_TickHandler(void)
 *** Function: RoundRobin运行函数，在主函数或线程中调用
 *************************************************/
 void RoundRobin_Run(
-#if RR_TYPE == 2 
+#if RR_TYPE == 2
 	uint8_t GroupID
 #else
 	void
@@ -213,6 +250,7 @@ void RoundRobin_Run(
 		RoundRobin_CheckTimer(GroupID,i);
 #endif
 }
+#if RR_TYPE == 2
 /*************************************************
 *** Args: NULL
 *** Function: 创建一个定时器组，仅在FULL模式下可用
@@ -227,6 +265,7 @@ rr_error_e RoundRobin_CreateGroup(uint8_t GroupID)
 	RoundRobinHandle.TimerGroupCnt++;
 	return RR_NOERR;
 }
+#endif
 /*************************************************
 *** Args:
           GroupID 定时器所属Group的ID 该参数只针对FULL模式生效
@@ -252,6 +291,7 @@ extern rr_error_e RoundRobin_CreateTimer(
 #if RR_TYPE == 0
 	if(TimerID>TIMER_N)
 		return RR_NOSPACEFORNEW;
+	TimerNum++;
 	RoundRobinTimerHandle[TimerID].Flags.F.AREN = ReloadEnable;
 	RoundRobinTimerHandle[TimerID].Flags.F.CNTEN = RunEnable;
 	RoundRobinTimerHandle[TimerID].ARR = ReloadValue;
@@ -302,6 +342,7 @@ rr_error_e RoundRobin_RemoveTimer(
 #if RR_TYPE == 0
 	if(TimerID>TIMER_N)
 		return RR_NOSUCHTIMER;
+	TimerNum--;
 	memset(&RoundRobinTimerHandle[TimerID],0,sizeof(rr_softtimer_t));
 	return RR_NOERR;
 #elif RR_TYPE == 1
@@ -380,7 +421,7 @@ rr_error_e RoundRobin_ResetTimer(
 	RTE_AssertParam(Timer->TimerID == TimerID);
 	Timer->CNT = Timer->ARR;
 	return RR_NOERR;
-#endif	
+#endif
 }
 /*************************************************
 *** Args:
@@ -479,20 +520,69 @@ bool RoundRobin_IfRunTimer(
 #endif
 }
 /*************************************************
+*** Args:
+          GroupID 定时器所属Group的ID 该参数只针对FULL模式生效
+          TimerID 待判断定时器ID
+*** Function: 判断当前RoundRobin环境中的存在多少个定时器
+*************************************************/
+uint32_t RoundRobin_GetTimerCNT(
+#if RR_TYPE == 2
+	uint8_t GroupID,
+#endif
+	uint8_t TimerID
+)
+{
+	#if RR_TYPE == 0
+	return RoundRobinTimerHandle[TimerID].CNT;
+	#elif RR_TYPE == 1
+    rr_softtimer_t *Timer = ((rr_softtimer_t*)Vector_GetElement(RoundRobinHandle.SoftTimerTable,TimerID));
+	RTE_AssertParam(Timer->TimerID == TimerID);
+	return Timer->CNT;
+	#elif RR_TYPE == 2
+	rr_softtimer_t *Timer = ((rr_softtimer_t*)Vector_GetElement(RoundRobinHandle.TimerGroup[GroupID].SoftTimerTable,TimerID));
+	RTE_AssertParam(Timer->TimerID == TimerID);
+	return Timer->CNT;
+	#endif
+}
+/*************************************************
+*** Args:
+          GroupID 定时器所属Group的ID 该参数只针对FULL模式生效
+*** Function: 判断当前RoundRobin环境指定定时器的计数值
+*************************************************/
+uint8_t RoundRobin_GetTimerNum(
+#if RR_TYPE == 2
+	uint8_t GroupID
+#else
+	void
+#endif
+)
+{
+	#if RR_TYPE == 0
+	return TimerNum;
+	#elif RR_TYPE == 1
+	return Vector_Length(RoundRobinHandle.SoftTimerTable);
+	#elif RR_TYPE == 2
+	return Vector_Length(RoundRobinHandle.TimerGroup[GroupID].SoftTimerTable);
+	#endif
+}
+/*************************************************
 *** Args: Null
 *** Function: 获取当前RoundRobin环境运行时间
 *************************************************/
-uint32_t RoundRobin_GetTick(void) 
+uint32_t RoundRobin_GetTick(void)
 {
 	/* Return current time in milliseconds */
 #if RTE_USE_OS == 1
-	if (osKernelGetState () == osKernelRunning) 
+#if RTE_USE_PC == 1
+    return SDL_GetTicks();
+#else
+	if (osKernelGetState () == osKernelRunning)
 		return osKernelGetTickCount();
 	else
 	{
 		static uint32_t ticks = 0U;
 					 uint32_t i;
-		/* If Kernel is not running wait approximately 1 ms then increment 
+		/* If Kernel is not running wait approximately 1 ms then increment
 			 and return auxiliary tick counter value */
 		for (i = (SystemCoreClock >> 14U); i > 0U; i--) {
 			__NOP(); __NOP(); __NOP(); __NOP(); __NOP(); __NOP();
@@ -500,13 +590,14 @@ uint32_t RoundRobin_GetTick(void)
 		}
 		return ++ticks;
 	}
+#endif
 #else
 #if RR_TYPE == 0
 	return RoundRobinRunTick;
 #elif RR_TYPE == 1||RR_TYPE == 2
 	return RoundRobinHandle.RoundRobinRunTick;
 #endif
-#endif 
+#endif
 }
 /*************************************************
 *** Args: prev_tick a previous time stamp (return value of systick_get() )
@@ -516,9 +607,9 @@ uint32_t RoundRobin_TickElaps(uint32_t prev_tick)
 {
 	uint32_t act_time = RoundRobin_GetTick();
 	/*If there is no overflow in sys_time simple subtract*/
-	if(act_time >= prev_tick) 
+	if(act_time >= prev_tick)
 		prev_tick = act_time - prev_tick;
-	else 
+	else
 	{
 		prev_tick = UINT32_MAX - prev_tick + 1;
 		prev_tick += act_time;
@@ -526,36 +617,43 @@ uint32_t RoundRobin_TickElaps(uint32_t prev_tick)
 	return prev_tick;
 }
 /*************************************************
-*** Args: Delay延时一段时钟基准 
+*** Args: Delay延时一段时钟基准
 *** Function: 延时一段毫秒
 *************************************************/
 void RoundRobin_Delay(uint32_t Delay) {
 	/* Delay for amount of milliseconds */
+#if RTE_USE_PC == 0
 	/* Check if we are called from ISR */
-	if (__get_IPSR() == 0) 
+	if (__get_IPSR() == 0)
 	{
+#endif
 		/* Called from thread mode */
 		uint32_t tickstart = RoundRobin_GetTick();
 		/* Count interrupts */
 		while ((RoundRobin_GetTick() - tickstart) < Delay)
 		{
+#if RTE_USE_PC == 0
 #if RTE_USE_OS == 0
 			/* Go sleep, wait systick interrupt */
 			__WFI();
 #endif
+#endif
 		}
+#if RTE_USE_PC == 0
 	}
-	else 
+	else
 	{
 		/* Called from interrupt mode */
-		while (Delay) 
+		while (Delay)
 		{
 			/* Check if timer reached zero after we last checked COUNTFLAG bit */
 			if (SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk)
 				Delay--;
 		}
 	}
+#endif
 }
+#if RR_DWT == 1
 /*************************************************
 *** Args: micros 微秒
 *** Function: 延时微秒，不影响系统调度
@@ -567,6 +665,7 @@ __inline void RoundRobin_DelayUS(volatile uint32_t micros) {
 	/* Delay till end */
 	while ((DWT->CYCCNT - start) < micros);
 }
+#endif
 /*************************************************
 *** Args: Null
 *** Function: 获取当前RoundRobin环境信息

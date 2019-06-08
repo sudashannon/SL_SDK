@@ -1391,7 +1391,6 @@ static shell_error_e RTE_Shell_KV_PrintEnv(int argc, char *argv[])
 	KeyCnt = ef_print_env(KeyList);
 	for(uint8_t i=0;i<KeyCnt;i++)
 	{
-		uprintf("%s\r\n",KeyList[i]);
 		Memory_Free(MEM_RTE,KeyList[i]);
 	}
 	return(SHELL_NOERR);

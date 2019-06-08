@@ -17,7 +17,6 @@ void Vector_Init(vector_t **v,mem_bank_e bank)
     vector_t *vector = Memory_Alloc0(bank,sizeof(vector_t));
     vector->bank = bank;
     vector->length = 0;
-    vector->data = Memory_Realloc(vector->bank, vector->data, 0);
     vector->data   = NULL;
     *v = vector;
 }

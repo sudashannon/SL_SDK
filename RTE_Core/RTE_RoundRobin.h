@@ -118,14 +118,28 @@ extern "C" {
 		uint8_t GroupID,
 	#endif
 		uint8_t TimerID);
-
+	extern uint8_t RoundRobin_GetTimerNum(
+	#if RR_TYPE == 2
+		uint8_t GroupID
+	#else
+		void
+	#endif
+	);
+	extern uint32_t RoundRobin_GetTimerCNT(
+	#if RR_TYPE == 2
+		uint8_t GroupID,
+	#endif
+		uint8_t TimerID
+	);
 
 
 	extern void RoundRobin_Demon(void);
 	extern uint32_t RoundRobin_GetTick(void);
 	extern uint32_t RoundRobin_TickElaps(uint32_t prev_tick);
 	extern void RoundRobin_Delay(uint32_t Delay);
+	#if RR_DWT == 1
 	extern __inline void RoundRobin_DelayUS(volatile uint32_t micros);
+	#endif
 	#endif
 #ifdef __cplusplus
 }

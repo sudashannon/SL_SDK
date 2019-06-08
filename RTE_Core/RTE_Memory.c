@@ -69,7 +69,7 @@ static inline int mem_fls(unsigned int word)
 }
 #endif
 /* Possibly 64-bit version of mem_fls. */
-#if RTE_MEM_64BIT == 1
+#if MEMORY_64BIT == 1
 static inline int mem_fls_sizet(size_t size)
 {
 	int high = (int)(size >> 32);
@@ -103,7 +103,7 @@ enum mem_public
 /* Private constants: do not modify. */
 enum mem_private
 {
-#if RTE_MEM_64BIT == 1
+#if MEMORY_64BIT == 1
 	/* All allocation sizes and addresses are aligned to 8 bytes. */
 	ALIGN_SIZE_LOG2 = 3,
 #else
@@ -122,7 +122,7 @@ enum mem_private
 	** blocks below that size into the 0th first-level list.
 	*/
 
-#if RTE_MEM_64BIT == 1
+#if MEMORY_64BIT == 1
 	/*
 	** TODO: We can increase this to support larger sizes, at the expense
 	** of more overhead in the mem structure.
@@ -638,7 +638,7 @@ static pool_t mem_add_pool(mem_t mem, void* mem_pool, size_t mem_pool_size)
 
 	if (pool_bytes < block_size_min || pool_bytes > block_size_max)
 	{
-#if RTE_MEM_64BIT == 1
+#if MEMORY_64BIT == 1
 		uprintf("mem_add_pool: Memory size must be between 0x%x and 0x%x00 bytes.\r\n",
 			(unsigned int)(pool_overhead + block_size_min),
 			(unsigned int)((pool_overhead + block_size_max) / 256));
@@ -679,13 +679,13 @@ void Memory_Pool(mem_bank_e bank,void *mem_pool,size_t mem_pool_size)
 	const static osMutexAttr_t MemoryMutexattr = {
 	  .attr_bits = osMutexRecursive|osMutexPrioInherit,    // attr_bits
 	};
-	MemoryHandle[bank].mutex_mem = osMutexNew(&MemoryMutexattr);
+	MemoryHandle[bank].mutexid = osMutexNew(&MemoryMutexattr);
 #endif
 }
 void* Memory_Alloc(mem_bank_e bank, size_t size)
 {
 #if RTE_USE_OS == 1
-	osMutexAcquire(MemoryHandle[bank].mutex_mem,osWaitForever);
+	osMutexAcquire(MemoryHandle[bank].mutexid,osWaitForever);
 #endif
     void *p = NULL;
     if(size)
@@ -698,7 +698,7 @@ void* Memory_Alloc(mem_bank_e bank, size_t size)
     else
         p = &zeroval;
 #if RTE_USE_OS == 1
-	osMutexRelease(MemoryHandle[bank].mutex_mem);
+	osMutexRelease(MemoryHandle[bank].mutexid);
 #endif
     if(!p)
     {
@@ -719,7 +719,7 @@ void *Memory_Alloc0(mem_bank_e bank,size_t size)
 void* Memory_AllocAlign(mem_bank_e bank, size_t align, size_t size)
 {
 #if RTE_USE_OS == 1
-	osMutexAcquire(MemoryHandle[bank].mutex_mem,osWaitForever);
+	osMutexAcquire(MemoryHandle[bank].mutexid,osWaitForever);
 #endif
 	control_t* control = mem_cast(control_t*, MemoryHandle[bank].mem);
 	const size_t adjust = adjust_request_size(size, ALIGN_SIZE);
@@ -765,7 +765,7 @@ void* Memory_AllocAlign(mem_bank_e bank, size_t align, size_t size)
 		}
 	}
 #if RTE_USE_OS == 1
-	osMutexRelease(MemoryHandle[bank].mutex_mem);
+	osMutexRelease(MemoryHandle[bank].mutexid);
 #endif
 	return block_prepare_used(control, block, adjust);
 }
@@ -775,7 +775,7 @@ void Memory_Free(mem_bank_e bank,void* ptr)
 	if (ptr&&ptr!=&zeroval)
 	{
 #if RTE_USE_OS == 1
-		osMutexAcquire(MemoryHandle[bank].mutex_mem,osWaitForever);
+		osMutexAcquire(MemoryHandle[bank].mutexid,osWaitForever);
 #endif
 		control_t* control = mem_cast(control_t*, MemoryHandle[bank].mem);
 		block_header_t* block = block_from_ptr(ptr);
@@ -785,7 +785,7 @@ void Memory_Free(mem_bank_e bank,void* ptr)
 		block = block_merge_next(control, block);
 		block_insert(control, block);
 #if RTE_USE_OS == 1
-		osMutexRelease(MemoryHandle[bank].mutex_mem);
+		osMutexRelease(MemoryHandle[bank].mutexid);
 #endif
 	}
 }
@@ -806,7 +806,7 @@ void* Memory_Realloc(mem_bank_e bank,void* ptr, size_t size)
 {
 	/* Protect the critical section... */
 #if RTE_USE_OS == 1
-	osMutexAcquire(MemoryHandle[bank].mutex_mem,osWaitForever);
+	osMutexAcquire(MemoryHandle[bank].mutexid,osWaitForever);
 #endif
 	control_t* control = mem_cast(control_t*, MemoryHandle[bank].mem);
 	void* p = 0;
@@ -858,7 +858,7 @@ void* Memory_Realloc(mem_bank_e bank,void* ptr, size_t size)
 		}
 	}
 #if RTE_USE_OS == 1
-	osMutexRelease(MemoryHandle[bank].mutex_mem);
+	osMutexRelease(MemoryHandle[bank].mutexid);
 #endif
 	return p;
 }
@@ -896,7 +896,7 @@ void *Memory_AllocMaxFree(mem_bank_e bank,size_t *size)
 {
 	/* Protect the critical section... */
 #if RTE_USE_OS == 1
-	osMutexAcquire(MemoryHandle[bank].mutex_mem,osWaitForever);
+	osMutexAcquire(MemoryHandle[bank].mutexid,osWaitForever);
 #endif
 	block_header_t* retval = NULL;
 	block_header_t* block =
@@ -918,13 +918,13 @@ void *Memory_AllocMaxFree(mem_bank_e bank,size_t *size)
 		block_mark_as_used(retval);
   /* Release the critical section... */
 #if RTE_USE_OS == 1
-		osMutexRelease(MemoryHandle[bank].mutex_mem);
+		osMutexRelease(MemoryHandle[bank].mutexid);
 #endif
 		return (void *)block_to_ptr(retval);
 	}
   /* Release the critical section... */
 #if RTE_USE_OS == 1
-	osMutexRelease(MemoryHandle[bank].mutex_mem);
+	osMutexRelease(MemoryHandle[bank].mutexid);
 #endif
 	return NULL;
 }
@@ -937,7 +937,7 @@ void *Memory_AllocMaxFree(mem_bank_e bank,size_t *size)
 static mem_ent_t * ent_get_next(mem_bank_e mem_name,mem_ent_t * act_e)
 {
 #if RTE_USE_OS == 1
-	osMutexAcquire(MemoryHandle[mem_name].MutexIDMEM,osWaitForever);
+	osMutexAcquire(MemoryHandle[mem_name].mutexid,osWaitForever);
 #endif
 	mem_ent_t * next_e = NULL;
 	if(act_e == NULL) { /*NULL means: get the first entry*/
@@ -948,7 +948,7 @@ static mem_ent_t * ent_get_next(mem_bank_e mem_name,mem_ent_t * act_e)
 		if(&next_e->first_data >= &MemoryHandle[mem_name].work_mem[MemoryHandle[mem_name].totalsize]) next_e = NULL;
 	}
 #if RTE_USE_OS == 1
-	osMutexRelease(MemoryHandle[mem_name].MutexIDMEM);
+	osMutexRelease(MemoryHandle[mem_name].mutexid);
 #endif
 	return next_e;
 }
@@ -960,7 +960,7 @@ static mem_ent_t * ent_get_next(mem_bank_e mem_name,mem_ent_t * act_e)
  */
 static void ent_trunc(mem_ent_t * e, uint32_t size)
 {
-#if MEMORY_SIMPLE_64BIT == 1
+#if MEMORY_64BIT == 1
 	/*Round the size up to 8*/
 	if(size & 0x7) {
 		size = size & (~0x7);
@@ -1016,7 +1016,7 @@ void Memory_Pool(mem_bank_e mem_name,void *buf,size_t len)
 	/*The total mem size id reduced by the first header and the close patterns */
 	full->head.d_size = len - sizeof(mem_head_t);
 #if RTE_USE_OS == 1
-	MemoryHandle[mem_name].MutexIDMEM = osMutexNew(NULL);
+	MemoryHandle[mem_name].mutexid = osMutexNew(NULL);
 #endif
 }
 /*************************************************
@@ -1029,7 +1029,7 @@ void *Memory_Alloc(mem_bank_e mem_name,size_t size)
 	if(size == 0) {
 		return &zeroval;
 	}
-#if MEMORY_SIMPLE_64BIT == 1
+#if MEMORY_64BIT == 1
 	/*Round the size up to 8*/
 	if(size & 0x7) {
 		size = size & (~0x7);
@@ -1054,7 +1054,7 @@ void *Memory_Alloc(mem_bank_e mem_name,size_t size)
 		}
 		//End if there is not next entry OR the alloc. is successful
 	} while(e != NULL && alloc == NULL);
-	if(alloc == NULL) 
+	if(alloc == NULL)
 		uprintf("%10s    Couldn't allocate memory\r\n",MEM_STR);
 	return alloc;
 }
@@ -1067,9 +1067,9 @@ void *Memory_Alloc0(mem_bank_e mem_name,size_t size)
 {
 	void * alloc = NULL;
 	alloc = Memory_Alloc(mem_name,size);
-	if(alloc != NULL) 
+	if(alloc != NULL)
 		memset(alloc, 0, size);
-	else 
+	else
 		uprintf("%10s    Couldn't allocate memory\r\n",MEM_STR);
 	return alloc;
 }
@@ -1203,14 +1203,14 @@ void Memory_Demon(mem_bank_e mem_name,mem_mon_t * mon_p)
 *** Args:   *buf 申请的内存地址;
 *** Function: 获取该申请内存的实际空间大小
 *************************************************/
-uint32_t Memory_GetDataSize(void * data)
+size_t Memory_GetDataSize(void * data)
 {
 	if(data == NULL) return 0;
 	if(data == &zeroval) return 0;
 	mem_ent_t * e = (mem_ent_t *)((uint8_t *) data - sizeof(mem_head_t));
 	return e->head.d_size;
 }
-uint32_t Memory_AllocMaxFree(mem_bank_e mem_name)
+size_t Memory_AllocMaxFree(mem_bank_e mem_name)
 {
 	mem_mon_t mon_infor = {0};
 	Memory_Demon(mem_name,&mon_infor);
