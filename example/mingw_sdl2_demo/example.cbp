@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="example" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/example" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+					<Add directory="../../inc" />
+					<Add directory="SDL2/include/SDL2" />
+				</Compiler>
+				<Linker>
+					<Add option="-m64  -lSDL2main -lSDL2" />
+					<Add library="SDL2/lib/libSDL2.a" />
+					<Add library="SDL2/lib/libSDL2.dll.a" />
+					<Add library="SDL2/lib/libSDL2_test.a" />
+					<Add library="SDL2/lib/libSDL2main.a" />
+					<Add directory="SDL2/lib" />
+				</Linker>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/example" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+		</Compiler>
+		<Unit filename="../../src/data_structure/ds_hashmap.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/data_structure/ds_linklist.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/data_structure/ds_ringbuffer.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/data_structure/ds_vector.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/middleware/rte_log.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/middleware/rte_memory.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/middleware/rte_timer.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../rte_adapter_sdl2.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../test_hashmap.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../test_linklist.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../test_log.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../test_mempool.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../test_ringbuffer.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../test_timer.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../test_vector.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="SDL2/include/SDL2/SDL.h" />
+		<Unit filename="main.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Extensions>
+			<lib_finder disable_auto="1" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
