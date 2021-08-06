@@ -27,7 +27,7 @@ typedef struct _ds_ringbuffer {
     uint32_t tail;
     rte_mutex_t *mutex;
     rte_allocator_t *allocator;
-} ds_ringbuffer_t;
+} ds_ringbuffer_impl_t;
 
 #define BUFFER_LOCK(buffer)           RTE_LOCK(buffer->mutex)
 #define BUFFER_UNLOCK(buffer)         RTE_UNLOCK(buffer->mutex)
@@ -40,7 +40,7 @@ typedef struct _ds_ringbuffer {
  * @param handle
  * @return rte_error_t
  */
-rte_error_t ds_ringbuffer_create(uint32_t capacity, rte_mutex_t *mutex, void **handle)
+rte_error_t ds_ringbuffer_create(uint32_t capacity, rte_mutex_t *mutex, ds_ringbuffer_t *handle)
 {
     if (RTE_UNLIKELY(handle == NULL) ||
         RTE_UNLIKELY(capacity == 0)) {
@@ -50,9 +50,9 @@ rte_error_t ds_ringbuffer_create(uint32_t capacity, rte_mutex_t *mutex, void **h
     if (RTE_UNLIKELY(allocator == NULL)) {
         return RTE_ERR_NO_RSRC;
     }
-    ds_ringbuffer_t *buffer = NULL;
+    ds_ringbuffer_impl_t *buffer = NULL;
 
-    buffer = allocator->calloc(sizeof(ds_ringbuffer_t));
+    buffer = allocator->calloc(sizeof(ds_ringbuffer_impl_t));
     if (!buffer)
         return RTE_ERR_NO_MEM;
 
@@ -76,9 +76,9 @@ rte_error_t ds_ringbuffer_create(uint32_t capacity, rte_mutex_t *mutex, void **h
  * @param handle
  * @return rte_error_t
  */
-rte_error_t ds_ringbuffer_destroy(void *handle)
+rte_error_t ds_ringbuffer_destroy(ds_ringbuffer_t handle)
 {
-    ds_ringbuffer_t *buffer = (ds_ringbuffer_t *)handle;
+    ds_ringbuffer_impl_t *buffer = (ds_ringbuffer_impl_t *)handle;
     if (RTE_UNLIKELY(buffer == NULL) ||
         RTE_UNLIKELY(buffer->allocator == NULL)) {
         return RTE_ERR_PARAM;
@@ -93,7 +93,7 @@ rte_error_t ds_ringbuffer_destroy(void *handle)
     return RTE_SUCCESS;
 }
 
-static inline uint32_t ds_ringbuffer_free_size(ds_ringbuffer_t *buffer)
+static inline uint32_t ds_ringbuffer_free_size(ds_ringbuffer_impl_t *buffer)
 {
     return buffer->capacity - (buffer->tail - buffer->head);
 }
@@ -108,9 +108,9 @@ static inline uint32_t ds_ringbuffer_free_size(ds_ringbuffer_t *buffer)
  * @param size
  * @return rte_error_t
  */
-rte_error_t ds_ringbuffer_write(void *handle, uint8_t *data, uint32_t size)
+rte_error_t ds_ringbuffer_write(ds_ringbuffer_t handle, uint8_t *data, uint32_t size)
 {
-    ds_ringbuffer_t *buffer = (ds_ringbuffer_t *)handle;
+    ds_ringbuffer_impl_t *buffer = (ds_ringbuffer_impl_t *)handle;
     if (RTE_UNLIKELY(buffer == NULL) ||
         RTE_UNLIKELY(data == NULL)) {
         return RTE_ERR_PARAM;
@@ -172,9 +172,9 @@ rte_error_t ds_ringbuffer_write(void *handle, uint8_t *data, uint32_t size)
  * @param size
  * @return rte_error_t
  */
-rte_error_t ds_ringbuffer_read(void *handle, uint8_t *data, uint32_t *size)
+rte_error_t ds_ringbuffer_read(ds_ringbuffer_t handle, uint8_t *data, uint32_t *size)
 {
-    ds_ringbuffer_t *buffer = (ds_ringbuffer_t *)handle;
+    ds_ringbuffer_impl_t *buffer = (ds_ringbuffer_impl_t *)handle;
     if (RTE_UNLIKELY(buffer == NULL) ||
         RTE_UNLIKELY(data == NULL) ||
         RTE_UNLIKELY(size == NULL)) {

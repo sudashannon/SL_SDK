@@ -14,7 +14,7 @@
 
 #include "../middle_layer/rte.h"
 
-typedef void (*vector_element_free_cb)(void *element, uint8_t index);
+typedef void (*vector_element_free_cb)(void *element, uint32_t index);
 
 typedef struct {
     uint8_t if_deep_copy:1;
@@ -26,7 +26,7 @@ typedef struct {
     vector_element_free_cb free_cb;
 } vector_configuration_t;
 
-#define VECTOR_INITIALIZER {                                \
+#define VECTOR_CONFIG_INITIALIZER {                         \
     .capacity = 0,                                          \
     .element_size = 0,                                      \
     .free_cb = NULL,                                        \
@@ -35,6 +35,9 @@ typedef struct {
     .mutex = NULL,                                          \
 }
 
+#define VECTOR_FOR_EACH(index, element, vector)             \
+    for (index = 0; (index < ds_vector_length(vector)) && ((element = ds_vector_at(vector, index)) != false); index++)
+
 /**
  * @brief Creat a queue with fixed capacity.
  *
@@ -42,7 +45,7 @@ typedef struct {
  * @param handle
  * @return rte_error_t
  */
-extern rte_error_t ds_vector_create(vector_configuration_t *config, void **handle);
+extern rte_error_t ds_vector_create(vector_configuration_t *config, ds_vector_t *handle);
 /**
  * @brief Destroy a created queue. If the user has registed the free data cb,
  *        each data will call such function.
@@ -50,7 +53,7 @@ extern rte_error_t ds_vector_create(vector_configuration_t *config, void **handl
  * @param handle
  * @return rte_error_t
  */
-extern rte_error_t ds_vector_destroy(void *handle);
+extern rte_error_t ds_vector_destroy(ds_vector_t handle);
 /**
  * @brief Push a data into the selected queue. If the space of queue is
  *        not enough, this api will double the queue's formal capacity.
@@ -59,7 +62,7 @@ extern rte_error_t ds_vector_destroy(void *handle);
  * @param value
  * @return rte_error_t
  */
-extern rte_error_t ds_vector_push(void *handle, void *value);
+extern rte_error_t ds_vector_push(ds_vector_t handle, void *value);
 /**
  * @brief Pop the first data in the queue.
  *
@@ -67,7 +70,7 @@ extern rte_error_t ds_vector_push(void *handle, void *value);
  * @param buffer
  * @return rte_error_t
  */
-extern rte_error_t ds_vector_pop(void *handle, void *buffer);
+extern rte_error_t ds_vector_pop(ds_vector_t handle, void *buffer);
 /**
  * @brief Get the vector's element count.
  *        NOTE: this API is not thread-safe, user should lock the vector
@@ -76,7 +79,7 @@ extern rte_error_t ds_vector_pop(void *handle, void *buffer);
  * @param handle
  * @return uint32_t
  */
-extern uint32_t ds_vector_length(void *handle);
+extern uint32_t ds_vector_length(ds_vector_t handle);
 /**
  * @brief Get the vector's certain index's element.
  *        NOTE: this API is not thread-safe, user should lock the vector
@@ -85,7 +88,7 @@ extern uint32_t ds_vector_length(void *handle);
  * @param handle
  * @return uint32_t
  */
-extern void *ds_vector_at(void *handle, uint32_t index);
+extern void *ds_vector_at(ds_vector_t handle, uint32_t index);
 /**
  * @brief Remove the selected element at the input index.
  *
@@ -93,7 +96,7 @@ extern void *ds_vector_at(void *handle, uint32_t index);
  * @param index
  * @return rte_error_t
  */
-extern rte_error_t ds_vector_remove_by_index(void *handle, uint32_t index);
+extern rte_error_t ds_vector_remove_by_index(ds_vector_t handle, uint32_t index);
 /**
  * @brief Remove the selected element at the input pointer.
  *
@@ -101,5 +104,17 @@ extern rte_error_t ds_vector_remove_by_index(void *handle, uint32_t index);
  * @param index
  * @return rte_error_t
  */
-extern rte_error_t ds_vector_remove_by_pointer(void *handle, void *pointer);
+extern rte_error_t ds_vector_remove_by_pointer(ds_vector_t handle, void *pointer);
+/**
+ * @brief Lock the vector.
+ *
+ * @param handle
+ */
+extern void ds_vector_lock(ds_vector_t handle);
+/**
+ * @brief Unlock the vector.
+ *
+ * @param handle
+ */
+extern void ds_vector_unlock(ds_vector_t handle);
 #endif

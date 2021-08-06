@@ -3,7 +3,7 @@
 #include "SDL.h"
 
 static uint8_t *store_ptr[8] = {NULL};
-static void data_free(void *element, uint8_t index) {
+static void data_free(void *element, uint32_t index) {
     RTE_LOGI("element 0x%p store 0x%p index %d", element, store_ptr[index], index);
     RTE_ASSERT((uint8_t *)element == store_ptr[index]);
     rte_get_general_allocator()->free(element);
@@ -16,7 +16,7 @@ void test_vector(void)
     // Test vector's basic function which is without deep copy, free_cb and expand.
     {
         void *vector = NULL;
-        vector_configuration_t configuration = VECTOR_INITIALIZER;
+        vector_configuration_t configuration = VECTOR_CONFIG_INITIALIZER;
         configuration.capacity = 8;
         rte_error_t result = ds_vector_create(&configuration, &vector);
         RTE_ASSERT(result == RTE_SUCCESS);
@@ -59,7 +59,7 @@ void test_vector(void)
     // Test vector's remove api in wrapped vector at first section.
     {
         void *vector = NULL;
-        vector_configuration_t configuration = VECTOR_INITIALIZER;
+        vector_configuration_t configuration = VECTOR_CONFIG_INITIALIZER;
         configuration.capacity = 8;
         rte_error_t result = ds_vector_create(&configuration, &vector);
         RTE_ASSERT(result == RTE_SUCCESS);
@@ -103,7 +103,7 @@ void test_vector(void)
     {
         memory_demon(BANK_DEFAULT);
         void *vector = NULL;
-        vector_configuration_t configuration = VECTOR_INITIALIZER;
+        vector_configuration_t configuration = VECTOR_CONFIG_INITIALIZER;
         configuration.capacity = 8;
         configuration.free_cb = data_free;
         rte_error_t result = ds_vector_create(&configuration, &vector);
@@ -124,7 +124,7 @@ void test_vector(void)
     // Test vector with expand.
     {
         void *vector = NULL;
-        vector_configuration_t configuration = VECTOR_INITIALIZER;
+        vector_configuration_t configuration = VECTOR_CONFIG_INITIALIZER;
         configuration.capacity = 8;
         configuration.if_expand = true;
         rte_error_t result = ds_vector_create(&configuration, &vector);
@@ -148,7 +148,7 @@ void test_vector(void)
     // Test vector with expand and wrap the first section.
     {
         void *vector = NULL;
-        vector_configuration_t configuration = VECTOR_INITIALIZER;
+        vector_configuration_t configuration = VECTOR_CONFIG_INITIALIZER;
         // Create a vector like:
         //  h
         // |-|-|-|-|-|-|-|-|
@@ -189,7 +189,7 @@ void test_vector(void)
     // Test vector with expand and wrap the second section.
     {
         void *vector = NULL;
-        vector_configuration_t configuration = VECTOR_INITIALIZER;
+        vector_configuration_t configuration = VECTOR_CONFIG_INITIALIZER;
         // Create a vector like:
         //  h
         // |-|-|-|-|-|-|-|-|
@@ -226,7 +226,7 @@ void test_vector(void)
     // Replay the formal test with deep copy.
     {
         void *vector = NULL;
-        vector_configuration_t configuration = VECTOR_INITIALIZER;
+        vector_configuration_t configuration = VECTOR_CONFIG_INITIALIZER;
         configuration.capacity = 8;
         configuration.if_deep_copy = 1;
         configuration.element_size = sizeof(uint8_t);
@@ -270,7 +270,7 @@ void test_vector(void)
     // Test vector with expand and wrap the first section.
     {
         void *vector = NULL;
-        vector_configuration_t configuration = VECTOR_INITIALIZER;
+        vector_configuration_t configuration = VECTOR_CONFIG_INITIALIZER;
         // Create a vector like:
         //  h
         // |-|-|-|-|-|-|-|-|
@@ -314,7 +314,7 @@ void test_vector(void)
     // Test vector with expand and wrap the second section.
     {
         void *vector = NULL;
-        vector_configuration_t configuration = VECTOR_INITIALIZER;
+        vector_configuration_t configuration = VECTOR_CONFIG_INITIALIZER;
         // Create a vector like:
         //  h
         // |-|-|-|-|-|-|-|-|

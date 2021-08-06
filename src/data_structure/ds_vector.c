@@ -32,7 +32,7 @@ typedef struct __ds_vector {
     vector_element_free_cb free_cb;
     rte_mutex_t *mutex;              // mutex for the whole vector.
     rte_allocator_t *allocator;
-} ds_vector_t;
+} ds_vector_impl_t;
 
 #define VECTOR_LOCK(vector)           RTE_LOCK(vector->mutex)
 #define VECTOR_UNLOCK(vector)         RTE_UNLOCK(vector->mutex)
@@ -44,7 +44,7 @@ typedef struct __ds_vector {
  * @param handle
  * @return rte_error_t
  */
-rte_error_t ds_vector_create(vector_configuration_t *config, void **handle)
+rte_error_t ds_vector_create(vector_configuration_t *config, ds_vector_t *handle)
 {
     if (RTE_UNLIKELY(handle == NULL) ||
         RTE_UNLIKELY(config == NULL) ||
@@ -56,9 +56,9 @@ rte_error_t ds_vector_create(vector_configuration_t *config, void **handle)
     if (RTE_UNLIKELY(allocator == NULL)) {
         return RTE_ERR_NO_RSRC;
     }
-    ds_vector_t *vector = NULL;
+    ds_vector_impl_t *vector = NULL;
 
-    vector = allocator->calloc(sizeof(ds_vector_t));
+    vector = allocator->calloc(sizeof(ds_vector_impl_t));
     if (!vector)
         return RTE_ERR_NO_MEM;
 
@@ -92,9 +92,9 @@ rte_error_t ds_vector_create(vector_configuration_t *config, void **handle)
  * @param handle
  * @return rte_error_t
  */
-rte_error_t ds_vector_destroy(void *handle)
+rte_error_t ds_vector_destroy(ds_vector_t handle)
 {
-    ds_vector_t *vector = (ds_vector_t *)handle;
+    ds_vector_impl_t *vector = (ds_vector_impl_t *)handle;
     if (RTE_UNLIKELY(vector == NULL) ||
         RTE_UNLIKELY(vector->allocator == NULL)) {
         return RTE_ERR_PARAM;
@@ -126,9 +126,9 @@ rte_error_t ds_vector_destroy(void *handle)
  * @param value
  * @return rte_error_t
  */
-rte_error_t ds_vector_push(void *handle, void *value)
+rte_error_t ds_vector_push(ds_vector_t handle, void *value)
 {
-    ds_vector_t *vector = (ds_vector_t *)handle;
+    ds_vector_impl_t *vector = (ds_vector_impl_t *)handle;
     if (RTE_UNLIKELY(vector == NULL) ||
         RTE_UNLIKELY(vector->allocator == NULL) ||
         RTE_UNLIKELY(vector->if_deep_copy == true && value == NULL)) {
@@ -209,9 +209,9 @@ rte_error_t ds_vector_push(void *handle, void *value)
  * @param buffer
  * @return rte_error_t
  */
-rte_error_t ds_vector_pop(void *handle, void *buffer)
+rte_error_t ds_vector_pop(ds_vector_t handle, void *buffer)
 {
-    ds_vector_t *vector = (ds_vector_t *)handle;
+    ds_vector_impl_t *vector = (ds_vector_impl_t *)handle;
     if (RTE_UNLIKELY(vector == NULL)||
         RTE_UNLIKELY(buffer == NULL)) {
         return RTE_ERR_PARAM;
@@ -240,9 +240,9 @@ rte_error_t ds_vector_pop(void *handle, void *buffer)
  * @param handle
  * @return uint32_t
  */
-uint32_t ds_vector_length(void *handle)
+uint32_t ds_vector_length(ds_vector_t handle)
 {
-    ds_vector_t *vector = (ds_vector_t *)handle;
+    ds_vector_impl_t *vector = (ds_vector_impl_t *)handle;
     return vector->length;
 }
 /**
@@ -253,9 +253,9 @@ uint32_t ds_vector_length(void *handle)
  * @param handle
  * @return uint32_t
  */
-void *ds_vector_at(void *handle, uint32_t index)
+void *ds_vector_at(ds_vector_t handle, uint32_t index)
 {
-    ds_vector_t *vector = (ds_vector_t *)handle;
+    ds_vector_impl_t *vector = (ds_vector_impl_t *)handle;
     if (RTE_UNLIKELY(vector == NULL) ||
         RTE_UNLIKELY(index > vector->length)) {
         return NULL;
@@ -273,9 +273,9 @@ void *ds_vector_at(void *handle, uint32_t index)
  * @param index
  * @return rte_error_t
  */
-rte_error_t ds_vector_remove_by_index(void *handle, uint32_t index)
+rte_error_t ds_vector_remove_by_index(ds_vector_t handle, uint32_t index)
 {
-    ds_vector_t *vector = (ds_vector_t *)handle;
+    ds_vector_impl_t *vector = (ds_vector_impl_t *)handle;
     if (RTE_UNLIKELY(vector == NULL)) {
         return RTE_ERR_PARAM;
     }
@@ -301,7 +301,9 @@ rte_error_t ds_vector_remove_by_index(void *handle, uint32_t index)
                         vector->element_size * (first_section_size - real_index - 1));
             } else {
                 uint32_t real_index = (vector->head + index) & (vector->capacity - 1);
-                void **start_ptr = &((void **)vector->data)[(vector->head + real_index) & (vector->capacity - 1)];
+                void **start_ptr = &((void **)vector->data)[real_index];
+                if(vector->free_cb)
+                    (*vector->free_cb)(*start_ptr, index);
                 memmove(start_ptr, start_ptr + 1,
                         vector->element_size * (first_section_size - real_index - 1));
             }
@@ -327,6 +329,8 @@ rte_error_t ds_vector_remove_by_index(void *handle, uint32_t index)
                         vector->element_size * (first_section_size - 1));
             } else {
                 void **start_ptr = &((void **)vector->data)[vector->head + index];
+                if(vector->free_cb)
+                    (*vector->free_cb)(*start_ptr, index);
                 memmove(start_ptr, start_ptr + 1,
                         vector->element_size * (second_section_size - index - 1));
                 ((void **)(vector->data))[vector->capacity - 1] = ((void **)vector->data)[0];
@@ -345,6 +349,8 @@ rte_error_t ds_vector_remove_by_index(void *handle, uint32_t index)
                     vector->element_size * (vector->length - index - 1));
         } else {
             void **start_ptr = &((void **)vector->data)[vector->head + index];
+            if(vector->free_cb)
+                (*vector->free_cb)(*start_ptr, index);
             memmove(start_ptr, start_ptr + 1,
                     vector->element_size * (vector->length - index - 1));
         }
@@ -359,9 +365,9 @@ rte_error_t ds_vector_remove_by_index(void *handle, uint32_t index)
  * @param index
  * @return rte_error_t
  */
-rte_error_t ds_vector_remove_by_pointer(void *handle, void *pointer)
+rte_error_t ds_vector_remove_by_pointer(ds_vector_t handle, void *pointer)
 {
-    ds_vector_t *vector = (ds_vector_t *)handle;
+    ds_vector_impl_t *vector = (ds_vector_impl_t *)handle;
     if (RTE_UNLIKELY(vector == NULL)) {
         return RTE_ERR_PARAM;
     }
@@ -384,9 +390,9 @@ rte_error_t ds_vector_remove_by_pointer(void *handle, void *pointer)
  *
  * @param handle
  */
-void ds_vector_lock(void *handle)
+void ds_vector_lock(ds_vector_t handle)
 {
-    ds_vector_t *vector = (ds_vector_t *)handle;
+    ds_vector_impl_t *vector = (ds_vector_impl_t *)handle;
     VECTOR_LOCK(vector);
 }
 /**
@@ -394,8 +400,8 @@ void ds_vector_lock(void *handle)
  *
  * @param handle
  */
-void ds_vector_unlock(void *handle)
+void ds_vector_unlock(ds_vector_t handle)
 {
-    ds_vector_t *vector = (ds_vector_t *)handle;
+    ds_vector_impl_t *vector = (ds_vector_impl_t *)handle;
     VECTOR_UNLOCK(vector);
 }

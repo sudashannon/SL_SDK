@@ -13,7 +13,7 @@
 #include <stdio.h>
 #include "SDL.h"
 /**
- * @brief Ram buffer used for memory pool.
+ * @brief Ram buffer and allocator used for memory pool.
  *
  */
 MEM_ALIGN_NBYTES (static uint8_t mempool_buffer[RTE_MEMPOOL_SIZE], MEM_BLOCK_ALIGN) = {0};
@@ -24,6 +24,11 @@ static rte_allocator_t rte_allocator_instance = {
     .realloc = NULL,
     .free = NULL,
 };
+/**
+ * @brief Used for main timer group internal.
+ *
+ */
+static timer_group_id_t rte_timer_group = 0;
 /**
  * @brief Mutex used for log, which is adapted for CMSIS-RTOS2.
  *
@@ -59,7 +64,7 @@ rte_error_t rte_mutex_unlock(void *mutex)
  *
  * @return uint32_t
  */
-static uint32_t rte_get_tick(void)
+uint32_t rte_get_tick(void)
 {
     return SDL_GetTicks();
 }
@@ -139,6 +144,8 @@ void rte_init(void)
     log_mutex_instance.unlock = rte_mutex_unlock;
     log_mutex_instance.trylock = NULL;
     log_init(NULL, rte_log_output, rte_get_tick);
+    timer_init(4, true);
+    timer_create_group(&rte_timer_group, NULL);
 }
 
 /**
@@ -151,6 +158,7 @@ rte_error_t rte_deinit(void)
     for (uint8_t i = 0; i < BANK_CNT; i++)
         SDL_DestroyMutex(mem_mutex_instance[i].mutex);
     SDL_DestroyMutex(log_mutex_instance.mutex);
+    timer_deinit();
     return RTE_SUCCESS;
 }
 /**
@@ -161,4 +169,13 @@ rte_error_t rte_deinit(void)
 rte_allocator_t *rte_get_general_allocator(void)
 {
     return &rte_allocator_instance;
+}
+/**
+ * @brief Get the main timer group.
+ *
+ * @return timer_group_id_t
+ */
+timer_group_id_t rte_get_main_timergroup(void)
+{
+    return rte_timer_group;
 }

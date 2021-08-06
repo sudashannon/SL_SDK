@@ -25,6 +25,8 @@
 #define RTE_MEMPOOL_SIZE            64 * 1024 * 1024
 #define RTE_MEMPOOL_USE_64BIT       1
 
+#define RTE_TIMER_GROUP_CAPACITY    8
+
 /**
  * @brief General include.
  *
@@ -99,6 +101,11 @@ static inline uint32_t rte_roundup_pow_of_two(uint32_t v) {
 extern "C" {
 #endif
 
+typedef void *ds_vector_t;
+typedef void *ds_ringbuffer_t;
+typedef uint8_t timer_id_t;
+typedef uint8_t timer_group_id_t;
+
 typedef struct {
     void *mutex;
     rte_error_t (*lock)(void *mutex);
@@ -158,6 +165,12 @@ extern rte_error_t rte_mutex_lock(void *mutex);
  * @return rte_error_t
  */
 extern rte_error_t rte_mutex_unlock(void *mutex);
+/**
+ * @brief Get the main timer group.
+ *
+ * @return timer_group_id_t
+ */
+extern timer_group_id_t rte_get_main_timergroup(void);
 
 #ifdef __cplusplus
 }

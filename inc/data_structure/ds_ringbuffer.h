@@ -12,7 +12,6 @@
 #define __DS_RINGBUFFER_H
 
 #include "../middle_layer/rte.h"
-
 /**
  * @brief Create a fix size buffer.
  *
@@ -21,14 +20,14 @@
  * @param handle
  * @return rte_error_t
  */
-extern rte_error_t ds_ringbuffer_create(uint32_t capacity, rte_mutex_t *mutex, void **handle);
+extern rte_error_t ds_ringbuffer_create(uint32_t capacity, rte_mutex_t *mutex, ds_ringbuffer_t *handle);
 /**
  * @brief Destroy a created buffer.
  *
  * @param handle
  * @return rte_error_t
  */
-extern rte_error_t ds_ringbuffer_destroy(void *handle);
+extern rte_error_t ds_ringbuffer_destroy(ds_ringbuffer_t handle);
 /**
  * @brief Write some data into a created buffer.
  *        NOTE: this function support DMA, user needs to register the
@@ -39,7 +38,7 @@ extern rte_error_t ds_ringbuffer_destroy(void *handle);
  * @param size
  * @return rte_error_t
  */
-extern rte_error_t ds_ringbuffer_write(void *handle, uint8_t *data, uint32_t size);
+extern rte_error_t ds_ringbuffer_write(ds_ringbuffer_t handle, uint8_t *data, uint32_t size);
 /**
  * @brief Read some data from the ds_ringbuffer into the user's buffer.
  *
@@ -48,5 +47,5 @@ extern rte_error_t ds_ringbuffer_write(void *handle, uint8_t *data, uint32_t siz
  * @param size
  * @return rte_error_t
  */
-extern rte_error_t ds_ringbuffer_read(void *handle, uint8_t *data, uint32_t *size);
+extern rte_error_t ds_ringbuffer_read(ds_ringbuffer_t handle, uint8_t *data, uint32_t *size);
 #endif

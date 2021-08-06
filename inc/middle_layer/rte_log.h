@@ -77,12 +77,13 @@ typedef uint32_t (*log_get_tick_f)(void);
 #define LOG_DEBUG(MODULE, ...)
 #define LOG_VERBOSE(MODULE, ...)
 #endif
-#define LOG_ASSERT(MODULE, v)   do{														        \
-                                    if(!(v)) {											        \
-                                        LOG_FATAL(MODULE, "assert [%s] fail! at %s %d", LOG_STR(v), __FILE__, __LINE__);     \
-                                        while(1);                                               \
-                                    }													        \
-						        }while(0)
+#define LOG_ASSERT(MODULE, v)                                                                   \
+    do {														                                \
+        if(!(v)) {											                                    \
+            LOG_FATAL(MODULE, "assert [%s] fail! at %s %d", LOG_STR(v), __FILE__, __LINE__);    \
+            UNUSED(*((uint8_t *)NULL));                                                         \
+        }													                                    \
+    } while(0)
 
 /* For include header in CPP code */
 #ifdef __cplusplus
