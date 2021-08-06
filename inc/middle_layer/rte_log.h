@@ -146,6 +146,12 @@ extern int log_snprintf(char * restrict s, size_t n, const char * restrict forma
  * @return int
  */
 extern int log_sprintf(char * restrict s, const char *format, ...);
+/**
+ * @brief Output some text to the log output.
+ *
+ * @param buffer
+ */
+extern void log_output(const char *buffer);
 /* For include header in CPP code */
 #ifdef __cplusplus
 }

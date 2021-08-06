@@ -792,3 +792,14 @@ rte_error_t log_control(log_command_t command, void *param)
     LOG_UNLOCK(&log_config_handle);
     return retval;
 }
+/**
+ * @brief Output some text to the log output.
+ *
+ * @param buffer
+ */
+void log_output(const char *buffer)
+{
+    LOG_LOCK(&log_config_handle);
+    log_config_handle.out_func(buffer, strlen(buffer));
+    LOG_UNLOCK(&log_config_handle);
+}

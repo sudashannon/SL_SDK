@@ -171,7 +171,13 @@ extern rte_error_t rte_mutex_unlock(void *mutex);
  * @return timer_group_id_t
  */
 extern timer_group_id_t rte_get_main_timergroup(void);
-
+/**
+ * @brief Push a character into the shell buffer.
+ *
+ * @param data
+ * @return ret_error_t
+ */
+extern rte_error_t rte_push_character_into_shell(char data);
 #ifdef __cplusplus
 }
 #endif

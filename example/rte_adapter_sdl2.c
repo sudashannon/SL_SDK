@@ -12,6 +12,7 @@
 #include "../inc/rte_include.h"
 #include <stdio.h>
 #include "SDL.h"
+#include "shell.h"
 /**
  * @brief Ram buffer and allocator used for memory pool.
  *
@@ -24,6 +25,15 @@ static rte_allocator_t rte_allocator_instance = {
     .realloc = NULL,
     .free = NULL,
 };
+/**
+ * @brief Used for letter-shell.
+ *
+ */
+static ds_vector_t shell_buffer = NULL;
+void *_shell_command_start = NULL;
+void *_shell_command_end = NULL;
+static Shell shell;
+static char shellBuffer[512];
 /**
  * @brief Used for main timer group internal.
  *
@@ -67,6 +77,10 @@ rte_error_t rte_mutex_unlock(void *mutex)
 uint32_t rte_get_tick(void)
 {
     return SDL_GetTicks();
+}
+unsigned int userGetTick()
+{
+    return rte_get_tick();
 }
 /**
  * @brief Wrapper for memory malloc, which is adapted for internal memory pool.
@@ -113,11 +127,47 @@ static void rte_free(void *ptr)
  *
  * @param ptr
  */
-static size_t rte_log_output(uint8_t *data,size_t length)
+static size_t rte_log_output(uint8_t *data, size_t length)
 {
     printf("%.*s", (int)length, (char *)data);
     fflush(stdout);
     return length;
+}
+/**
+ * @brief 用户shell写
+ *
+ * @param data 数据
+ */
+unsigned short userShellWrite(char *data, unsigned short len)
+{
+    return 0;
+}
+/**
+ * @brief 用户shell读
+ *
+ * @param data 数据
+ * @return char 状态
+ */
+unsigned short userShellRead(char *data, unsigned short len)
+{
+    // unsigned short length = len;
+    // unsigned short retval = 0;
+    // while (length--) {
+    //     rte_error_t result = ds_vector_pop(shell_buffer, data++);
+    //     if(result != RTE_SUCCESS)
+    //         return retval;
+    //     else
+    //         retval++;
+    // }
+    // char buffer[128] = {0};
+    // for (uint8_t i = 0; i < 128; i++) {
+    //     rte_error_t result = ds_vector_pop(shell_buffer, &buffer[i]);
+    //     if(result == RTE_ERR_NO_RSRC && i > 0) {
+    //         printf("%d %s\n", i, buffer);
+    //         break;
+    //     }
+    // }
+    return 0;
 }
 /**
  * @brief Init the rte, must be called before tbe system begins.
@@ -146,6 +196,22 @@ void rte_init(void)
     log_init(NULL, rte_log_output, rte_get_tick);
     timer_init(4, true);
     timer_create_group(&rte_timer_group, NULL);
+    vector_configuration_t vector_config = VECTOR_CONFIG_INITIALIZER;
+    vector_config.if_deep_copy = true;
+    vector_config.capacity = 1024;
+    vector_config.element_size = sizeof(char);
+    ds_vector_create(&vector_config, &shell_buffer);
+    _shell_command_start = rte_calloc(10 * 1024);
+    _shell_command_end = (uint8_t *)_shell_command_start + 10 * 1024;
+    shell.write = userShellWrite;
+    shell.read = userShellRead;
+    shellInit(&shell, shellBuffer, 512);
+    timer_id_t running_timer_id = 0;
+    timer_configuration_t timer_config = TIMER_CONFIG_INITIALIZER;
+    timer_config.repeat_period_tick = 50;
+    timer_config.timer_callback = shellTask;
+    timer_config.parameter = &shell;
+    timer_create_new(rte_get_main_timergroup(), &timer_config, &running_timer_id);
 }
 
 /**
@@ -178,4 +244,15 @@ rte_allocator_t *rte_get_general_allocator(void)
 timer_group_id_t rte_get_main_timergroup(void)
 {
     return rte_timer_group;
+}
+/**
+ * @brief Push a character into the shell buffer.
+ *
+ * @param data
+ * @return rte_error_t
+ */
+rte_error_t rte_push_character_into_shell(char data)
+{
+    printf("%c\n", data);
+    //return ds_vector_push(shell_buffer, &data);
 }
