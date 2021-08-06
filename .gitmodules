@@ -1,0 +1,9 @@
+[submodule "src/utils/lvgl"]
+	path = src/utils/lvgl
+	url = https://github.com/littlevgl/lvgl
+[submodule "src/utils/argoat"]
+	path = src/utils/argoat
+	url = https://github.com/nullgemm/argoat
+[submodule "src/utils/letter-shell"]
+	path = src/utils/letter-shell
+	url = https://github.com/NevermindZZT/letter-shell
