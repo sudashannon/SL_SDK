@@ -1,0 +1,4 @@
+load STM32H743VITx 
+project name STCubeGenerated 
+project toolchain "MDK-ARM V5" 
+project path "E:\01Work\00AfterSchool\02Noname\CameraBoard\cam_h7_pro\RTE\Device\STM32H743VITx\" 

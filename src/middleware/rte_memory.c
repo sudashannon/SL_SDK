@@ -831,7 +831,6 @@ void* memory_realloc(mem_bank_t bank, void* ptr, size_t size)
 {
     MEM_LOCK(bank);
     /* Protect the critical section... */
-    control_t* control = mem_cast(control_t*, mem_handle[bank].mem);
     void* p = NULL;
     /* Zero-size requests are treated as free. */
     if (ptr && size == 0) {
@@ -857,8 +856,7 @@ void* memory_realloc(mem_bank_t bank, void* ptr, size_t size)
         if (adjust > cursize && (!block_is_free(next) || adjust > combined)) {
             if(size) {
                 control_t* control = mem_cast(control_t*, mem_handle[bank].mem);
-                const size_t adjust = adjust_request_size(size, ALIGN_SIZE);
-                block_header_t* block = block_locate_free(control, adjust);
+                block = block_locate_free(control, adjust);
                 p = block_prepare_used(control, block, adjust);
             }
             if (p) {
@@ -867,6 +865,7 @@ void* memory_realloc(mem_bank_t bank, void* ptr, size_t size)
                 memory_free(bank, ptr);
             }
         } else {
+            control_t* control = mem_cast(control_t*, mem_handle[bank].mem);
             /* Do we need to expand to the next block? */
             if (adjust > cursize) {
                 block_merge_next(control, block);

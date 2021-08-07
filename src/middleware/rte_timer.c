@@ -57,7 +57,7 @@ static timer_handle_t timer_handle_instance;
 
 static void single_timer_free_cb(void *timer, uint32_t index)
 {
-    UNUSED(index);
+    RTE_UNUSED(index);
     TIMER_ASSERT(timer == ds_vector_at(timer_handle_instance.timer_group[((timer_t *)timer)->group_id].timer_table, index));
     rte_get_general_allocator()->free(timer);
 }
@@ -322,7 +322,7 @@ uint32_t rte_tick_consume(uint32_t prev_tick)
  *
  * @param delay
  */
-void rte_delay_ms(uint32_t delay)
+__attribute__((weak)) void rte_delay_ms(uint32_t delay)
 {
     /* Delay for amount of milliseconds */
     uint32_t tickstart = rte_get_tick();

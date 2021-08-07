@@ -10,21 +10,22 @@
  */
 
 #include "../inc/rte_include.h"
+#include "RTE_Components.h"
+#include CMSIS_device_header
+#include "cmsis_os2.h"
 
 /**
  * @brief Ram buffer used for memory pool.
  *
  */
 MEM_ALIGN_NBYTES (__attribute__((section (".RAM_RTE"))) static uint8_t mempool_buffer[RTE_MEMPOOL_SIZE], MEM_BLOCK_ALIGN) = {0};
-MEM_ALIGN_NBYTES (static uint8_t dma_buffer[10 * 1024], MEM_BLOCK_ALIGN) = {0};
+MEM_ALIGN_NBYTES (__attribute__((section (".RAM_DMA"))) static uint8_t dma_buffer[32 * 1024], MEM_BLOCK_ALIGN) = {0};
 static rte_allocator_t rte_allocator_instance = {
     .malloc = NULL,
     .calloc = NULL,
     .realloc = NULL,
     .free = NULL,
 };
-
-#if RTE_USE_OS == 1
 /**
  * @brief Mutex used for log, which is adapted for CMSIS-RTOS2.
  *
@@ -49,7 +50,6 @@ static const osMutexAttr_t mem_mutex_attr[BANK_CNT] = {
     }
 };
 static rte_mutex_t mem_mutex_instance[BANK_CNT] = {NULL};
-#endif
 /**
  * @brief Wrapper for mutex lock, which is adapted for CMSIS-RTOS2.
  *
@@ -58,11 +58,7 @@ static rte_mutex_t mem_mutex_instance[BANK_CNT] = {NULL};
  */
 rte_error_t rte_mutex_lock(void *mutex)
 {
-#if RTE_USE_OS == 1
     return (osOK == osMutexAcquire(mutex, osWaitForever) ? RTE_SUCCESS : RTE_ERR_UNDEFINE );
-#else
-    return RTE_SUCCESS;
-#endif
 }
 /**
  * @brief Wrapper for mutex unlock, which is adapted for CMSIS-RTOS2.
@@ -72,24 +68,43 @@ rte_error_t rte_mutex_lock(void *mutex)
  */
 rte_error_t rte_mutex_unlock(void *mutex)
 {
-#if RTE_USE_OS == 1
     return (osOK == osMutexRelease(mutex) ? RTE_SUCCESS : RTE_ERR_UNDEFINE );
-#else
-    return RTE_SUCCESS;
-#endif
+}
+/**
+ * @brief Wrapper for get hal's tick, which is adapted for CMSIS-RTOS2.
+ *
+ * @return uint32_t
+ */
+uint32_t HAL_GetTick(void)
+{
+    return osKernelGetTickCount();
 }
 /**
  * @brief Wrapper for get system's tick, which is adapted for CMSIS-RTOS2.
  *
  * @return uint32_t
  */
-static uint32_t rte_get_tick(void)
+uint32_t rte_get_tick(void)
 {
-#if RTE_USE_OS == 1
     return osKernelGetTickCount();
-#else
-    return 0;
-#endif
+}
+/**
+ * @brief Wrapper for hal delay, which is adapted for CMSIS-RTOS2.
+ *
+ * @return uint32_t
+ */
+void HAL_Delay(uint32_t Delay)
+{
+    osDelay(Delay);
+}
+/**
+ * @brief Wrapper for system delay, which is adapted for CMSIS-RTOS2.
+ *
+ * @return uint32_t
+ */
+void rte_delay_ms(uint32_t ms)
+{
+    osDelay(ms);
 }
 /**
  * @brief Wrapper for memory malloc, which is adapted for internal memory pool.
@@ -137,7 +152,6 @@ static void rte_free(void *ptr)
  */
 void rte_init(void)
 {
-#if RTE_USE_OS == 1
     mem_mutex_instance[BANK_DEFAULT].mutex = (void *)osMutexNew(&mem_mutex_attr[BANK_DEFAULT]);
     mem_mutex_instance[BANK_DEFAULT].lock = rte_mutex_lock;
     mem_mutex_instance[BANK_DEFAULT].unlock = rte_mutex_unlock;
@@ -148,22 +162,15 @@ void rte_init(void)
     mem_mutex_instance[BANK_DMA].unlock = rte_mutex_unlock;
     mem_mutex_instance[BANK_DMA].trylock = NULL;
     memory_pool(BANK_DMA, &mem_mutex_instance[BANK_DMA], dma_buffer, sizeof(dma_buffer));
-#else
-    memory_pool(NULL, BANK_DEFAULT, RAM_RTE, RTE_MEMPOOL_SIZE);
-#endif
     rte_allocator_instance.malloc = rte_malloc;
     rte_allocator_instance.calloc = rte_calloc;
     rte_allocator_instance.realloc = rte_realloc;
     rte_allocator_instance.free = rte_free;
-#if RTE_USE_OS == 1
     log_mutex_instance.mutex = (void *)osMutexNew(NULL);
     log_mutex_instance.lock = rte_mutex_lock;
     log_mutex_instance.unlock = rte_mutex_unlock;
     log_mutex_instance.trylock = NULL;
     log_init(&log_mutex_instance, NULL, rte_get_tick);
-#else
-    log_init(NULL, NULL, rte_get_tick);
-#endif
 }
 
 /**
@@ -173,12 +180,10 @@ void rte_init(void)
  */
 rte_error_t rte_deinit(void)
 {
-#if RTE_USE_OS == 1
     for(uint8_t i = 0; i < BANK_CNT; i++)
         osMutexDelete(mem_mutex_instance[i].mutex);
     osMutexDelete(log_mutex_instance.mutex);
     return RTE_SUCCESS;
-#endif
 }
 /**
  * @brief Get the general rte allocator.

@@ -701,11 +701,11 @@ rte_error_t log_control(log_command_t command, void *param)
     LOG_LOCK(&log_config_handle);
     switch(command) {
     case LOG_CMD_ENABLE:
-        UNUSED(param);
+        RTE_UNUSED(param);
         log_config_handle.enable = true;
         break;
     case LOG_CMD_DISABLE:
-        UNUSED(param);
+        RTE_UNUSED(param);
         log_config_handle.enable = false;
         break;
     case LOG_CMD_LEVEL_UP:

@@ -21,8 +21,9 @@
 #define RTE_USE_SFUD                0
 #define RTE_USE_EASYFLASH           0
 #define RTE_USE_LETTER_SHELL        0
-
+#ifndef RTE_MEMPOOL_SIZE
 #define RTE_MEMPOOL_SIZE            64 * 1024 * 1024
+#endif
 #define RTE_MEMPOOL_USE_64BIT       1
 
 #define RTE_TIMER_GROUP_CAPACITY    8
@@ -54,8 +55,8 @@ typedef int8_t  rte_error_t;
 #define RTE_ERR_NO_RSRC                         -5
 
 /* Typedef for unused */
-#ifndef UNUSED
-#define UNUSED(x)               (void)x
+#ifndef RTE_UNUSED
+#define RTE_UNUSED(x)                           (void)x
 #endif
 /* Typedef for memory align */
 #define MEM_BLOCK_ALIGN         (sizeof(void *) * 2)

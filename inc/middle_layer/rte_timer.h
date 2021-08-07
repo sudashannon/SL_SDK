@@ -10,7 +10,7 @@
  */
 
 #ifndef __RTE_TIMER_H
-#define __RTE_TIMET_H
+#define __RTE_TIMER_H
 
 #include "rte.h"
 
