@@ -151,7 +151,7 @@ extern int log_sprintf(char * restrict s, const char *format, ...);
  *
  * @param buffer
  */
-extern void log_output(const char *buffer);
+extern void log_output(const char *buffer, size_t length);
 /* For include header in CPP code */
 #ifdef __cplusplus
 }

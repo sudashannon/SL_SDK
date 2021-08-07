@@ -23,18 +23,63 @@ typedef struct {
     uint8_t *buffer;
     rte_mutex_t mutex;
     osSemaphoreId_t sema;
-} bsp_com_handle_t;
+    // Inherit section from hal device.
+    hal_device_t device;
+} com_device_t;
 
-static bsp_com_handle_t com_control_handle[COM_N] = {
+static com_device_t com_control_handle[COM_N] = {
     {
 		.name = COM_1,
         .capacity = 128,
 	},
 };
 
-rte_error_t com_init(com_name_t com_name, com_configuration_t *config)
+static rte_error_t com_send(hal_device_t *device, uint8_t *data, uint16_t size, uint32_t timeout)
 {
-    if (RTE_UNLIKELY(config == NULL))
+    HAL_StatusTypeDef result = HAL_ERROR;
+    if (size == 0)
+        return RTE_SUCCESS;
+    result = HAL_UART_Transmit(
+                com_control_handle[device->device_id].uart_handle,
+                data, size, timeout);
+    if (result == HAL_OK)
+        return RTE_SUCCESS;
+    else if(result == HAL_TIMEOUT)
+        return RTE_ERR_TIMEOUT;
+    else
+        return RTE_ERR_UNDEFINE;
+}
+
+static rte_error_t com_recv(hal_device_t *device, uint8_t *buffer, uint16_t *size, uint32_t timeout_ms)
+{
+    com_name_t com_name = device->device_id;
+    if (com_control_handle[com_name].dma_handle != NULL) {
+        com_control_handle[com_name].recv_length = *size;
+        HAL_UART_Receive_DMA(com_control_handle[com_name].uart_handle,
+                            com_control_handle[com_name].buffer,
+                            *size);
+        HAL_UART_DMAResume(com_control_handle[com_name].uart_handle);
+        if (osSemaphoreAcquire(com_control_handle[com_name].sema, timeout_ms) == osOK) {
+            *size = com_control_handle[com_name].recv_length;
+            memcpy(buffer, com_control_handle[com_name].buffer, *size);
+            return RTE_SUCCESS;
+        }
+        *size = 0;
+        HAL_UART_DMAStop(com_control_handle[com_name].uart_handle);
+        return RTE_ERR_TIMEOUT;
+    } else {
+        HAL_UART_Receive_IT(com_control_handle[com_name].uart_handle, buffer, *size);
+        if (osSemaphoreAcquire(com_control_handle[com_name].sema, timeout_ms) == osOK)
+            return RTE_SUCCESS;
+        *size = 0;
+        return RTE_ERR_TIMEOUT;
+    }
+}
+
+rte_error_t com_create(com_name_t com_name, com_configuration_t *config, hal_device_t **device)
+{
+    if (RTE_UNLIKELY(config == NULL) ||
+        RTE_UNLIKELY(device == NULL))
         return RTE_ERR_PARAM;
     // Given hal lib's resources
     com_control_handle[com_name].uart_handle = config->user_arg1;
@@ -51,42 +96,15 @@ rte_error_t com_init(com_name_t com_name, com_configuration_t *config)
         __HAL_UART_ENABLE_IT(com_control_handle[com_name].uart_handle, UART_IT_IDLE);
         __HAL_UART_CLEAR_IDLEFLAG(com_control_handle[com_name].uart_handle);
     }
+    com_control_handle[com_name].device.device_id = com_name;
+    com_control_handle[com_name].device.read = com_recv;
+    com_control_handle[com_name].device.write = com_send;
+    com_control_handle[com_name].device.read_async = NULL;
+    com_control_handle[com_name].device.write_async = NULL;
+    com_control_handle[com_name].device.op_callback = NULL;
+    com_control_handle[com_name].device.user_arg = NULL;
+    *device = &com_control_handle[com_name].device;
     return RTE_SUCCESS;
-}
-
-rte_error_t com_send_sync(com_name_t com_name, uint8_t *data, uint16_t size)
-{
-    if (RTE_UNLIKELY(data == NULL))
-        return RTE_ERR_PARAM;
-    if (size == 0)
-        return RTE_SUCCESS;
-    HAL_UART_Transmit(com_control_handle[com_name].uart_handle, data, size, HAL_MAX_DELAY);
-    return RTE_SUCCESS;
-}
-
-rte_error_t com_recv_async(com_name_t com_name, uint8_t *buffer, uint16_t *size, uint32_t timeout_ms)
-{
-    if(com_control_handle[com_name].dma_handle != NULL) {
-        com_control_handle[com_name].recv_length = *size;
-        HAL_UART_Receive_DMA(com_control_handle[com_name].uart_handle,
-                            com_control_handle[com_name].buffer,
-                            *size);
-        HAL_UART_DMAResume(com_control_handle[com_name].uart_handle);
-        if(osSemaphoreAcquire(com_control_handle[com_name].sema, timeout_ms) == osOK) {
-            *size = com_control_handle[com_name].recv_length;
-            memcpy(buffer, com_control_handle[com_name].buffer, *size);
-            return RTE_SUCCESS;
-        }
-        *size = 0;
-        HAL_UART_DMAStop(com_control_handle[com_name].uart_handle);
-        return RTE_ERR_TIMEOUT;
-    } else {
-        HAL_UART_Receive_IT(com_control_handle[com_name].uart_handle, buffer, *size);
-        if(osSemaphoreAcquire(com_control_handle[com_name].sema, timeout_ms) == osOK)
-            return RTE_SUCCESS;
-        *size = 0;
-        return RTE_ERR_TIMEOUT;
-    }
 }
 
 void com_recv_callback(com_name_t com_name)
@@ -108,7 +126,11 @@ void com_recv_callback(com_name_t com_name)
         osSemaphoreRelease(com_control_handle[com_name].sema);
     }
 }
-
+/**
+ * @brief Will be called by hal lib only in normal mode.
+ *
+ * @param huart
+ */
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
     for(com_name_t com_name = 0; com_name < COM_N; com_name++) {

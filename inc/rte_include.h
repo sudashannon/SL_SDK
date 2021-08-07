@@ -18,4 +18,43 @@
 #define RTE_LOGV(...) LOG_VERBOSE(COMMON_MODULE, __VA_ARGS__)
 #define RTE_ASSERT(v) LOG_ASSERT(COMMON_MODULE, v)
 
+/**
+ * @brief Should be called firstly to ensure dynamic memory can be used.
+ *
+ */
+extern void rte_init(void);
+/**
+ * @brief Deinit the rte.
+ *
+ * @return rte_error_t
+ */
+extern rte_error_t rte_deinit(void);
+/**
+ * @brief Wrapper for mutex lock, which is adapted for different OS.
+ *
+ * @param mutex
+ * @return rte_error_t
+ */
+extern rte_error_t rte_mutex_lock(void *mutex);
+/**
+ * @brief Wrapper for mutex unlock, which is adapted for different OS.
+ *
+ * @param mutex
+ * @return rte_error_t
+ */
+extern rte_error_t rte_mutex_unlock(void *mutex);
+/**
+ * @brief Get the main timer group.
+ *
+ * @return timer_group_id_t
+ */
+extern timer_group_id_t rte_get_main_timergroup(void);
+/**
+ * @brief Push a character into the shell buffer.
+ *
+ * @param data
+ * @return ret_error_t
+ */
+extern rte_error_t rte_push_character_into_shell(char data);
+
 #endif

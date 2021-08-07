@@ -6,6 +6,7 @@
 #include "hal_include.h"
 
 osThreadId_t system_thread_id;
+static hal_device_t *com_debug = NULL;
 /**
  * @brief Used for letter-shell.
  *
@@ -15,7 +16,7 @@ static char shellBuffer[512];
 
 static size_t rte_data_out(uint8_t *data, size_t length)
 {
-    com_send_sync(COM_1, data, (uint16_t)length);
+    hal_device_write_sync(com_debug, data, (uint16_t)length, HAL_MAX_DELAY);
     return length;
 }
 
@@ -26,7 +27,7 @@ static size_t rte_data_out(uint8_t *data, size_t length)
  */
 unsigned short userShellWrite(char *data, unsigned short len)
 {
-    com_send_sync(COM_1, (uint8_t *)data, (uint16_t)len);
+    log_output(data, len);
     return len;
 }
 /**
@@ -37,7 +38,7 @@ unsigned short userShellWrite(char *data, unsigned short len)
  */
 unsigned short userShellRead(char *data, unsigned short len)
 {
-    rte_error_t result = com_recv_async(COM_1, data, &len, 50);
+    rte_error_t result = hal_device_read_sync(com_debug, data, &len, 50);
     if(result == RTE_SUCCESS) {
         return len;
     }
@@ -58,7 +59,7 @@ __NO_RETURN void system_thread(void *argument)
     extern DMA_HandleTypeDef hdma_usart1_rx;
     com_config.user_arg1 = &huart1;
     com_config.user_arg2 = &hdma_usart1_rx;
-    com_init(COM_1, &com_config);
+    com_create(COM_1, &com_config, &com_debug);
     log_level_t log_level = LOG_LEVEL_INFO;
     log_control(LOG_CMD_SET_LEVEL, &log_level);
     log_control(LOG_CMD_SET_OUTPUT, rte_data_out);

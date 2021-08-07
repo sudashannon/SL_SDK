@@ -89,6 +89,8 @@ typedef int8_t  rte_error_t;
                                     (((v)->unlock))((v)->mutex);                         \
                             }while(0)
 
+typedef void (*rte_callback_f)(void *arg);
+
 static inline uint32_t rte_roundup_pow_of_two(uint32_t v) {
     v--;
     v |= v >> 1;
@@ -138,49 +140,12 @@ typedef struct {
 } rte_msg_t;
 
 /**
- * @brief Should be called firstly to ensure dynamic memory can be used.
- *
- */
-extern void rte_init(void);
-/**
- * @brief Deinit the rte.
- *
- * @return rte_error_t
- */
-extern rte_error_t rte_deinit(void);
-/**
  * @brief Get the general rte allocator.
  *
  * @return rte_allocator_t*
  */
 extern rte_allocator_t *rte_get_general_allocator(void);
-/**
- * @brief Wrapper for mutex lock, which is adapted for different OS.
- *
- * @param mutex
- * @return rte_error_t
- */
-extern rte_error_t rte_mutex_lock(void *mutex);
-/**
- * @brief Wrapper for mutex unlock, which is adapted for different OS.
- *
- * @param mutex
- * @return rte_error_t
- */
-extern rte_error_t rte_mutex_unlock(void *mutex);
-/**
- * @brief Get the main timer group.
- *
- * @return timer_group_id_t
- */
-extern timer_group_id_t rte_get_main_timergroup(void);
-/**
- * @brief Push a character into the shell buffer.
- *
- * @param data
- * @return ret_error_t
- */
-extern rte_error_t rte_push_character_into_shell(char data);
+
 #ifdef __cplusplus
 }
 #endif

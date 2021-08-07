@@ -12,8 +12,7 @@
 #define __HAL_GPIO_H
 #include "RTE_Components.h"
 #include CMSIS_device_header
-#include "../rte_include.h"
-
+#include "hal.h"
 typedef enum
 {
 	GPIO_RUN = 0,

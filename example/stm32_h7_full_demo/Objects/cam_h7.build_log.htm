@@ -27,85 +27,40 @@ Project File Date:  08/07/2021
 <h2>Output:</h2>
 *** Using Compiler 'V6.16', folder: 'C:\UserProfession\Keil_v5\ARM\ARMCLANG\Bin'
 Build target 'Target 1'
-../../src/utils/letter-shell/src/shell_cmd_list.c(12): warning: In file included from...
-../../src/utils/letter-shell/src/shell.h(380): warning: padding size of 'struct shell_command::(anonymous at ../../src/utils/letter-shell/src/shell.h:380:9)' with 4 bits to alignment boundary [-Wpadded]
-        struct
-        ^
-../../src/utils/letter-shell/src/shell.h(397): warning: this function declaration is not a prototype [-Wstrict-prototypes]
-            int (*function)();                                  /**< 命令执行函数 */
-                           ^
-                            void
-../../src/utils/letter-shell/src/shell.h(427): warning: this function declaration is not a prototype [-Wstrict-prototypes]
-    int (*get)();                                               /**< 变量get方法 */
-              ^
-               void
-../../src/utils/letter-shell/src/shell.h(428): warning: this function declaration is not a prototype [-Wstrict-prototypes]
-    int (*set)();                                               /**< 变量set方法 */
-              ^
-               void
-4 warnings generated.
-compiling shell_cmd_list.c...
-../../src/utils/letter-shell/src/shell_companion.c(11): warning: In file included from...
-../../src/utils/letter-shell/src/shell.h(380): warning: padding size of 'struct shell_command::(anonymous at ../../src/utils/letter-shell/src/shell.h:380:9)' with 4 bits to alignment boundary [-Wpadded]
-        struct
-        ^
-../../src/utils/letter-shell/src/shell.h(397): warning: this function declaration is not a prototype [-Wstrict-prototypes]
-            int (*function)();                                  /**< 命令执行函数 */
-                           ^
-                            void
-../../src/utils/letter-shell/src/shell.h(427): warning: this function declaration is not a prototype [-Wstrict-prototypes]
-    int (*get)();                                               /**< 变量get方法 */
-              ^
-               void
-../../src/utils/letter-shell/src/shell.h(428): warning: this function declaration is not a prototype [-Wstrict-prototypes]
-    int (*set)();                                               /**< 变量set方法 */
-              ^
-               void
-4 warnings generated.
-compiling shell_companion.c...
-../../src/utils/letter-shell/src/shell_ext.c(13): warning: In file included from...
-../../src/utils/letter-shell/src/shell.h(380): warning: padding size of 'struct shell_command::(anonymous at ../../src/utils/letter-shell/src/shell.h:380:9)' with 4 bits to alignment boundary [-Wpadded]
-        struct
-        ^
-../../src/utils/letter-shell/src/shell.h(397): warning: this function declaration is not a prototype [-Wstrict-prototypes]
-            int (*function)();                                  /**< 命令执行函数 */
-                           ^
-                            void
-../../src/utils/letter-shell/src/shell.h(427): warning: this function declaration is not a prototype [-Wstrict-prototypes]
-    int (*get)();                                               /**< 变量get方法 */
-              ^
-               void
-../../src/utils/letter-shell/src/shell.h(428): warning: this function declaration is not a prototype [-Wstrict-prototypes]
-    int (*set)();                                               /**< 变量set方法 */
-              ^
-               void
-../../src/utils/letter-shell/src/shell_ext.c(230): warning: implicit conversion from 'unsigned int' to 'float' may lose precision [-Wimplicit-int-float-conversion]
-        valueFloat = (float)valueInt / devide * sign;
-                                     ~ ^~~~~~
-../../src/utils/letter-shell/src/shell_ext.c(235): warning: implicit conversion changes signedness: 'signed char' to 'unsigned int' [-Wsign-conversion]
-        return valueInt * sign;
-                        ~ ^~~~
-../../src/utils/letter-shell/src/shell_ext.c(255): warning: implicit conversion changes signedness: 'int' to 'unsigned int' [-Wsign-conversion]
-        return shellGetVarValue(shell, command);
-        ~~~~~~ ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-../../src/utils/letter-shell/src/shell_ext.c(287): warning: cast from function call of type 'char *' to non-matching type 'unsigned int' [-Wbad-function-cast]
-        return (unsigned int)shellExtParseString(string);
-                             ^~~~~~~~~~~~~~~~~~~~~~~~~~~
-../../src/utils/letter-shell/src/shell_ext.c(13): warning: In file included from...
-../../src/utils/letter-shell/src/shell.h(345): warning: padding size of 'struct shell_def::(anonymous at ../../src/utils/letter-shell/src/shell.h:345:5)' with 2 bytes to alignment boundary [-Wpadded]
-    struct
-    ^
-../../src/utils/letter-shell/src/shell.h(353): warning: padding size of 'struct shell_def::(anonymous at ../../src/utils/letter-shell/src/shell.h:353:5)' with 2 bytes to alignment boundary [-Wpadded]
-    struct
-    ^
-../../src/utils/letter-shell/src/shell.h(358): warning: padding size of 'struct shell_def::(anonymous at ../../src/utils/letter-shell/src/shell.h:358:5)' with 5 bits to alignment boundary [-Wpadded]
-    struct
-    ^
-../../src/utils/letter-shell/src/shell.h(364): warning: padding struct 'struct shell_def' with 3 bytes to align 'read' [-Wpadded]
-    signed short (*read)(char *, unsigned short);               /**< shell读函数 */
+../../src/middleware/rte_timer.c(12): warning: In file included from...
+../../src/middleware/../../inc/middle_layer/rte_timer.h(15): warning: In file included from...
+../../src/middleware/../../inc/middle_layer/rte.h(139): warning: zero size arrays are an extension [-Wzero-length-array]
+    uint8_t msg_buf[0];
+                    ^
+../../src/middleware/rte_timer.c(34): warning: padding struct 'timer_t' with 1 byte to align 'ARR' [-Wpadded]
+    volatile uint32_t ARR;          /*!< Auto reload value */
+                      ^
+../../src/middleware/rte_timer.c(52): warning: padding struct 'timer_handle_t' with 1 byte to align 'timer_group' [-Wpadded]
+    timer_group_t *timer_group;
                    ^
-12 warnings generated.
-compiling shell_ext.c...
+../../src/middleware/rte_timer.c(43): warning: padding struct 'timer_group_t' with 3 bytes to align 'timer_table' [-Wpadded]
+    ds_vector_t timer_table;
+                ^
+../../src/middleware/rte_timer.c(15): warning: In file included from...
+../../src/middleware/../../inc/data_structure/ds_vector.h(23): warning: padding struct 'vector_configuration_t' with 3 bytes to align 'element_size' [-Wpadded]
+    uint32_t element_size;
+             ^
+../../src/middleware/rte_timer.c(149): warning: implicit conversion loses integer precision: 'uint32_t' (aka 'unsigned int') to 'timer_id_t' (aka 'unsigned char') [-Wimplicit-int-conversion]
+    v->index = ds_vector_length(timer_handle_instance.timer_group[group_id].timer_table);
+             ~ ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+../../src/middleware/rte_timer.c(12): warning: In file included from...
+../../src/middleware/../../inc/middle_layer/rte_timer.h(21): warning: padding struct 'timer_configuration_t' with 3 bytes to align 'repeat_period_tick' [-Wpadded]
+    uint32_t repeat_period_tick;
+             ^
+7 warnings generated.
+compiling rte_timer.c...
+../rte_adapter_cmsis_rtos2.c(12): warning: In file included from...
+../../inc/rte_include.h(4): warning: In file included from...
+../../inc/middle_layer/rte.h(139): warning: zero size arrays are an extension [-Wzero-length-array]
+    uint8_t msg_buf[0];
+                    ^
+1 warning generated.
+compiling rte_adapter_cmsis_rtos2.c...
 user_app/system_thread.c(4): warning: In file included from...
 ../../src/utils/letter-shell/src\shell.h(380): warning: padding size of 'struct shell_command::(anonymous at ../../src/utils/letter-shell/src\shell.h:380:9)' with 4 bits to alignment boundary [-Wpadded]
         struct
@@ -124,33 +79,45 @@ user_app/system_thread.c(4): warning: In file included from...
                void
 user_app/system_thread.c(5): warning: In file included from...
 ../../inc\rte_include.h(4): warning: In file included from...
-../../inc/middle_layer/rte.h(137): warning: zero size arrays are an extension [-Wzero-length-array]
+../../inc/middle_layer/rte.h(139): warning: zero size arrays are an extension [-Wzero-length-array]
     uint8_t msg_buf[0];
                     ^
-user_app/system_thread.c(27): warning: no previous prototype for function 'userShellWrite' [-Wmissing-prototypes]
+user_app/system_thread.c(28): warning: no previous prototype for function 'userShellWrite' [-Wmissing-prototypes]
 unsigned short userShellWrite(char *data, unsigned short len)
                ^
-user_app/system_thread.c(27): note: declare 'static' if the function is not intended to be used outside of this translation unit
+user_app/system_thread.c(28): note: declare 'static' if the function is not intended to be used outside of this translation unit
 unsigned short userShellWrite(char *data, unsigned short len)
 ^
 static 
-user_app/system_thread.c(40): warning: passing 'char *' to parameter of type 'uint8_t *' (aka 'unsigned char *') converts between pointers to integer types where one is of the unique plain 'char' type and the other is not [-Wpointer-sign]
-    rte_error_t result = com_recv_async(COM_1, data, &len, 50);
-                                               ^~~~
-../../inc/hal/hal_com.h(69): note: passing argument to parameter 'buffer' here
-extern rte_error_t com_recv_async(com_name_t com_name, uint8_t *buffer, uint16_t *size, uint32_t timeout_ms);
-                                                                ^
-user_app/system_thread.c(38): warning: no previous prototype for function 'userShellRead' [-Wmissing-prototypes]
+user_app/system_thread.c(41): warning: passing 'char *' to parameter of type 'uint8_t *' (aka 'unsigned char *') converts between pointers to integer types where one is of the unique plain 'char' type and the other is not [-Wpointer-sign]
+    rte_error_t result = hal_device_read_sync(com_debug, data, &len, 50);
+                                                         ^~~~
+../../inc/hal/hal.h(46): note: passing argument to parameter 'dest_buf' here
+static inline rte_error_t hal_device_read_sync(hal_device_t *device, uint8_t *dest_buf,
+                                                                              ^
+user_app/system_thread.c(41): warning: incompatible pointer types passing 'unsigned short *' to parameter of type 'uint32_t *' (aka 'unsigned int *') [-Wincompatible-pointer-types]
+    rte_error_t result = hal_device_read_sync(com_debug, data, &len, 50);
+                                                               ^~~~
+../../inc/hal/hal.h(47): note: passing argument to parameter 'buf_size' here
+                                        uint32_t *buf_size, uint32_t timeout_ms)
+                                                  ^
+user_app/system_thread.c(39): warning: no previous prototype for function 'userShellRead' [-Wmissing-prototypes]
 unsigned short userShellRead(char *data, unsigned short len)
                ^
-user_app/system_thread.c(38): note: declare 'static' if the function is not intended to be used outside of this translation unit
+user_app/system_thread.c(39): note: declare 'static' if the function is not intended to be used outside of this translation unit
 unsigned short userShellRead(char *data, unsigned short len)
 ^
 static 
-user_app/system_thread.c(47): warning: unused parameter 'arg' [-Wunused-parameter]
+user_app/system_thread.c(6): warning: In file included from...
+../../inc\hal_include.h(4): warning: In file included from...
+../../inc/hal/hal_com.h(15): warning: In file included from...
+../../inc/hal/hal.h(38): warning: padding struct 'struct __hal_device' with 3 bytes to align 'read' [-Wpadded]
+    device_read_sync_f read;
+                       ^
+user_app/system_thread.c(48): warning: unused parameter 'arg' [-Wunused-parameter]
 static void running_timer(void *arg)
                                 ^
-user_app/system_thread.c(64): warning: passing 'size_t (uint8_t *, size_t)' (aka 'unsigned int (unsigned char *, unsigned int)') to parameter of type 'void *' converts between void pointer and function pointer [-Wpedantic]
+user_app/system_thread.c(65): warning: passing 'size_t (uint8_t *, size_t)' (aka 'unsigned int (unsigned char *, unsigned int)') to parameter of type 'void *' converts between void pointer and function pointer [-Wpedantic]
     log_control(LOG_CMD_SET_OUTPUT, rte_data_out);
                                     ^~~~~~~~~~~~
 ../../inc/middle_layer/rte_log.h(122): note: passing argument to parameter 'param' here
@@ -161,16 +128,16 @@ user_app/system_thread.c(5): warning: In file included from...
 ../../inc/middle_layer/rte_timer.h(21): warning: padding struct 'timer_configuration_t' with 3 bytes to align 'repeat_period_tick' [-Wpadded]
     uint32_t repeat_period_tick;
              ^
-user_app/system_thread.c(70): warning: incompatible function pointer types assigning to 'short (*)(char *, unsigned short)' from 'unsigned short (char *, unsigned short)' [-Wincompatible-function-pointer-types]
+user_app/system_thread.c(71): warning: incompatible function pointer types assigning to 'short (*)(char *, unsigned short)' from 'unsigned short (char *, unsigned short)' [-Wincompatible-function-pointer-types]
     shell.write = userShellWrite;
                 ^ ~~~~~~~~~~~~~~
-user_app/system_thread.c(71): warning: incompatible function pointer types assigning to 'short (*)(char *, unsigned short)' from 'unsigned short (char *, unsigned short)' [-Wincompatible-function-pointer-types]
+user_app/system_thread.c(72): warning: incompatible function pointer types assigning to 'short (*)(char *, unsigned short)' from 'unsigned short (char *, unsigned short)' [-Wincompatible-function-pointer-types]
     shell.read = userShellRead;
                ^ ~~~~~~~~~~~~~
-user_app/system_thread.c(52): warning: no previous prototype for function 'system_thread' [-Wmissing-prototypes]
+user_app/system_thread.c(53): warning: no previous prototype for function 'system_thread' [-Wmissing-prototypes]
 __NO_RETURN void system_thread(void *argument)
                  ^
-user_app/system_thread.c(52): note: declare 'static' if the function is not intended to be used outside of this translation unit
+user_app/system_thread.c(53): note: declare 'static' if the function is not intended to be used outside of this translation unit
 __NO_RETURN void system_thread(void *argument)
             ^
             static 
@@ -210,1057 +177,305 @@ osThreadId_t system_thread_id;
 user_app/system_thread.c(8): note: declare 'static' if the variable is not intended to be used outside of this translation unit
 osThreadId_t system_thread_id;
 ^
-22 warnings generated.
+24 warnings generated.
 compiling system_thread.c...
-../../src/utils/letter-shell/src/shell.c(11): warning: In file included from...
-../../src/utils/letter-shell/src/shell.h(380): warning: padding size of 'struct shell_command::(anonymous at ../../src/utils/letter-shell/src/shell.h:380:9)' with 4 bits to alignment boundary [-Wpadded]
-        struct
-        ^
-../../src/utils/letter-shell/src/shell.h(397): warning: this function declaration is not a prototype [-Wstrict-prototypes]
-            int (*function)();                                  /**< 命令执行函数 */
-                           ^
-                            void
-../../src/utils/letter-shell/src/shell.h(427): warning: this function declaration is not a prototype [-Wstrict-prototypes]
-    int (*get)();                                               /**< 变量get方法 */
-              ^
-               void
-../../src/utils/letter-shell/src/shell.h(428): warning: this function declaration is not a prototype [-Wstrict-prototypes]
-    int (*set)();                                               /**< 变量set方法 */
-              ^
-               void
-../../src/utils/letter-shell/src/shell.c(22): warning: no previous extern declaration for non-static variable 'shellCmdDefaultUser' [-Wmissing-variable-declarations]
-const char shellCmdDefaultUser[] = SHELL_DEFAULT_USER;
-           ^
-../../src/utils/letter-shell/src/shell.c(22): note: declare 'static' if the variable is not intended to be used outside of this translation unit
-const char shellCmdDefaultUser[] = SHELL_DEFAULT_USER;
-      ^
-../../src/utils/letter-shell/src/shell.c(23): warning: no previous extern declaration for non-static variable 'shellPasswordDefaultUser' [-Wmissing-variable-declarations]
-const char shellPasswordDefaultUser[] = SHELL_DEFAULT_USER_PASSWORD;
-           ^
-../../src/utils/letter-shell/src/shell.c(23): note: declare 'static' if the variable is not intended to be used outside of this translation unit
-const char shellPasswordDefaultUser[] = SHELL_DEFAULT_USER_PASSWORD;
-      ^
-../../src/utils/letter-shell/src/shell.c(24): warning: no previous extern declaration for non-static variable 'shellDesDefaultUser' [-Wmissing-variable-declarations]
-const char shellDesDefaultUser[] = "default user";
-           ^
-../../src/utils/letter-shell/src/shell.c(24): note: declare 'static' if the variable is not intended to be used outside of this translation unit
-const char shellDesDefaultUser[] = "default user";
-      ^
-../../src/utils/letter-shell/src/shell.c(25): warning: no previous extern declaration for non-static variable 'shellUserDefault' [-Wmissing-variable-declarations]
-SHELL_USED const ShellCommand shellUserDefault SHELL_SECTION("shellCommand") =
-                              ^
-../../src/utils/letter-shell/src/shell.c(25): note: declare 'static' if the variable is not intended to be used outside of this translation unit
-SHELL_USED const ShellCommand shellUserDefault SHELL_SECTION("shellCommand") =
-                 ^
-../../src/utils/letter-shell/src/shell.c(11): warning: In file included from...
-../../src/utils/letter-shell/src/shell.h(345): warning: padding size of 'struct shell_def::(anonymous at ../../src/utils/letter-shell/src/shell.h:345:5)' with 2 bytes to alignment boundary [-Wpadded]
-    struct
-    ^
-../../src/utils/letter-shell/src/shell.h(353): warning: padding size of 'struct shell_def::(anonymous at ../../src/utils/letter-shell/src/shell.h:353:5)' with 2 bytes to alignment boundary [-Wpadded]
-    struct
-    ^
-../../src/utils/letter-shell/src/shell.h(358): warning: padding size of 'struct shell_def::(anonymous at ../../src/utils/letter-shell/src/shell.h:358:5)' with 5 bits to alignment boundary [-Wpadded]
-    struct
-    ^
-../../src/utils/letter-shell/src/shell.h(364): warning: padding struct 'struct shell_def' with 3 bytes to align 'read' [-Wpadded]
-    signed short (*read)(char *, unsigned short);               /**< shell读函数 */
-                   ^
-../../src/utils/letter-shell/src/shell.c(36): warning: '$' in identifier [-Wdollar-in-identifier-extension]
-        extern const unsigned int shellCommand$$Base;
-                                              ^
-../../src/utils/letter-shell/src/shell.c(36): warning: '$' in identifier [-Wdollar-in-identifier-extension]
-        extern const unsigned int shellCommand$$Base;
-                                               ^
-../../src/utils/letter-shell/src/shell.c(37): warning: '$' in identifier [-Wdollar-in-identifier-extension]
-        extern const unsigned int shellCommand$$Limit;
-                                              ^
-../../src/utils/letter-shell/src/shell.c(37): warning: '$' in identifier [-Wdollar-in-identifier-extension]
-        extern const unsigned int shellCommand$$Limit;
-                                               ^
-../../src/utils/letter-shell/src/shell.c(95): warning: expansion of date or time macro is not reproducible [-Wdate-time]
-        "Build:       "__DATE__" "__TIME__"\r\n"
-                       ^
-../../src/utils/letter-shell/src/shell.c(95): warning: expansion of date or time macro is not reproducible [-Wdate-time]
-        "Build:       "__DATE__" "__TIME__"\r\n"
-                                  ^
-../../src/utils/letter-shell/src/shell.c(190): warning: '$' in identifier [-Wdollar-in-identifier-extension]
-        shell->commandList.base = (ShellCommand *)(&shellCommand$$Base);
-                                                                ^
-../../src/utils/letter-shell/src/shell.c(190): warning: '$' in identifier [-Wdollar-in-identifier-extension]
-        shell->commandList.base = (ShellCommand *)(&shellCommand$$Base);
-                                                                 ^
-../../src/utils/letter-shell/src/shell.c(190): warning: cast from 'const unsigned int *' to 'struct shell_command *' drops const qualifier [-Wcast-qual]
-        shell->commandList.base = (ShellCommand *)(&shellCommand$$Base);
-                                                  ^
-../../src/utils/letter-shell/src/shell.c(191): warning: '$' in identifier [-Wdollar-in-identifier-extension]
-        shell->commandList.count = ((unsigned int)(&shellCommand$$Limit)
-                                                                ^
-../../src/utils/letter-shell/src/shell.c(191): warning: '$' in identifier [-Wdollar-in-identifier-extension]
-        shell->commandList.count = ((unsigned int)(&shellCommand$$Limit)
-                                                                 ^
-../../src/utils/letter-shell/src/shell.c(192): warning: '$' in identifier [-Wdollar-in-identifier-extension]
-                                - (unsigned int)(&shellCommand$$Base))
-                                                              ^
-../../src/utils/letter-shell/src/shell.c(192): warning: '$' in identifier [-Wdollar-in-identifier-extension]
-                                - (unsigned int)(&shellCommand$$Base))
-                                                               ^
-../../src/utils/letter-shell/src/shell.c(193): warning: implicit conversion loses integer precision: 'unsigned int' to 'unsigned short' [-Wimplicit-int-conversion]
-                                / sizeof(ShellCommand);
-                                ^~~~~~~~~~~~~~~~~~~~~~
-../../src/utils/letter-shell/src/shell.c(283): warning: empty expression statement has no effect; remove unnecessary ';' to silence this warning [-Wextra-semi-stmt]
-    SHELL_ASSERT(shell->write, return 0);
-                                        ^
-../../src/utils/letter-shell/src/shell.c(288): warning: cast from 'const char *' to 'char *' drops const qualifier [-Wcast-qual]
-    return shell->write((char *)string, count);
-                                ^
-../../src/utils/letter-shell/src/shell.c(288): warning: implicit conversion changes signedness: 'short' to 'unsigned short' [-Wsign-conversion]
-    return shell->write((char *)string, count);
-    ~~~~~~ ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-../../src/utils/letter-shell/src/shell.c(304): warning: empty expression statement has no effect; remove unnecessary ';' to silence this warning [-Wextra-semi-stmt]
-    SHELL_ASSERT(shell->write, return 0);
-                                        ^
-../../src/utils/letter-shell/src/shell.c(313): warning: cast from 'const char *' to 'char *' drops const qualifier [-Wcast-qual]
-        shell->write((char *)string, 36);
-                             ^
-../../src/utils/letter-shell/src/shell.c(318): warning: cast from 'const char *' to 'char *' drops const qualifier [-Wcast-qual]
-        shell->write((char *)string, count);
-                             ^
-../../src/utils/letter-shell/src/shell.c(364): warning: empty expression statement has no effect; remove unnecessary ';' to silence this warning [-Wextra-semi-stmt]
-    SHELL_ASSERT(shell, return);
-                               ^
-../../src/utils/letter-shell/src/shell.c(367): warning: format string is not a string literal [-Wformat-nonliteral]
-    vsnprintf(buffer, SHELL_PRINT_BUFFER - 1, fmt, vargs);
-                                              ^~~
-../../src/utils/letter-shell/src/shell.c(420): warning: no previous prototype for function 'shellCheckPermission' [-Wmissing-prototypes]
-signed char shellCheckPermission(Shell *shell, ShellCommand *command)
-            ^
-../../src/utils/letter-shell/src/shell.c(420): note: declare 'static' if the function is not intended to be used outside of this translation unit
-signed char shellCheckPermission(Shell *shell, ShellCommand *command)
-^
-static 
-../../src/utils/letter-shell/src/shell.c(451): warning: implicit conversion changes signedness: 'int' to 'signed char' [-Wsign-conversion]
-    return 8 - i;
-    ~~~~~~ ~~^~~
-../../src/utils/letter-shell/src/shell.c(440): warning: no previous prototype for function 'shellToHex' [-Wmissing-prototypes]
-signed char shellToHex(unsigned int value, char *buffer)
-            ^
-../../src/utils/letter-shell/src/shell.c(440): note: declare 'static' if the function is not intended to be used outside of this translation unit
-signed char shellToHex(unsigned int value, char *buffer)
-^
-static 
-../../src/utils/letter-shell/src/shell.c(474): warning: implicit conversion changes signedness: 'int' to 'char' [-Wsign-conversion]
-        buffer[--i] = v % 10 + 48;
-                    ~ ~~~~~~~^~~~
-../../src/utils/letter-shell/src/shell.c(484): warning: implicit conversion changes signedness: 'int' to 'signed char' [-Wsign-conversion]
-    return 11 - i;
-    ~~~~~~ ~~~^~~
-../../src/utils/letter-shell/src/shell.c(463): warning: no previous prototype for function 'shellToDec' [-Wmissing-prototypes]
-signed char shellToDec(int value, char *buffer)
-            ^
-../../src/utils/letter-shell/src/shell.c(463): note: declare 'static' if the function is not intended to be used outside of this translation unit
-signed char shellToDec(int value, char *buffer)
-^
-static 
-../../src/utils/letter-shell/src/shell.c(560): warning: implicit conversion changes signedness: 'int' to 'unsigned int' [-Wsign-conversion]
-        shellToHex(command->data.key.value, buffer);
-        ~~~~~~~~~~ ~~~~~~~~~~~~~~~~~~^~~~~
-../../src/utils/letter-shell/src/shell.c(602): warning: implicit conversion changes signedness: 'int' to 'short' [-Wsign-conversion]
-    spaceLength = 22 - shellWriteString(shell, shellGetCommandName(item));
-                ~ ~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-../../src/utils/letter-shell/src/shell.c(598): warning: no previous prototype for function 'shellListItem' [-Wmissing-prototypes]
-void shellListItem(Shell *shell, ShellCommand *item)
-     ^
-../../src/utils/letter-shell/src/shell.c(598): note: declare 'static' if the function is not intended to be used outside of this translation unit
-void shellListItem(Shell *shell, ShellCommand *item)
-^
-static 
-../../src/utils/letter-shell/src/shell.c(645): warning: no previous prototype for function 'shellListCommand' [-Wmissing-prototypes]
-void shellListCommand(Shell *shell)
-     ^
-../../src/utils/letter-shell/src/shell.c(645): note: declare 'static' if the function is not intended to be used outside of this translation unit
-void shellListCommand(Shell *shell)
-^
-static 
-../../src/utils/letter-shell/src/shell.c(665): warning: no previous prototype for function 'shellListVar' [-Wmissing-prototypes]
-void shellListVar(Shell *shell)
-     ^
-../../src/utils/letter-shell/src/shell.c(665): note: declare 'static' if the function is not intended to be used outside of this translation unit
-void shellListVar(Shell *shell)
-^
-static 
-../../src/utils/letter-shell/src/shell.c(686): warning: no previous prototype for function 'shellListUser' [-Wmissing-prototypes]
-void shellListUser(Shell *shell)
-     ^
-../../src/utils/letter-shell/src/shell.c(686): note: declare 'static' if the function is not intended to be used outside of this translation unit
-void shellListUser(Shell *shell)
-^
-static 
-../../src/utils/letter-shell/src/shell.c(707): warning: no previous prototype for function 'shellListKey' [-Wmissing-prototypes]
-void shellListKey(Shell *shell)
-     ^
-../../src/utils/letter-shell/src/shell.c(707): note: declare 'static' if the function is not intended to be used outside of this translation unit
-void shellListKey(Shell *shell)
-^
-static 
-../../src/utils/letter-shell/src/shell.c(728): warning: no previous prototype for function 'shellListAll' [-Wmissing-prototypes]
-void shellListAll(Shell *shell)
-     ^
-../../src/utils/letter-shell/src/shell.c(728): note: declare 'static' if the function is not intended to be used outside of this translation unit
-void shellListAll(Shell *shell)
-^
-static 
-../../src/utils/letter-shell/src/shell.c(749): warning: no previous prototype for function 'shellDeleteCommandLine' [-Wmissing-prototypes]
-void shellDeleteCommandLine(Shell *shell, unsigned char length)
-     ^
-../../src/utils/letter-shell/src/shell.c(749): note: declare 'static' if the function is not intended to be used outside of this translation unit
-void shellDeleteCommandLine(Shell *shell, unsigned char length)
-^
-static 
-../../src/utils/letter-shell/src/shell.c(765): warning: implicit conversion changes signedness: 'int' to 'short' [-Wsign-conversion]
-    for (short i = shell->parser.length - shell->parser.cursor; i > 0; i--)
-               ~   ~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~
-../../src/utils/letter-shell/src/shell.c(769): warning: implicit conversion loses integer precision: 'unsigned short' to 'unsigned char' [-Wimplicit-int-conversion]
-    shellDeleteCommandLine(shell, shell->parser.length);
-    ~~~~~~~~~~~~~~~~~~~~~~        ~~~~~~~~~~~~~~^~~~~~
-../../src/utils/letter-shell/src/shell.c(763): warning: no previous prototype for function 'shellClearCommandLine' [-Wmissing-prototypes]
-void shellClearCommandLine(Shell *shell)
-     ^
-../../src/utils/letter-shell/src/shell.c(763): note: declare 'static' if the function is not intended to be used outside of this translation unit
-void shellClearCommandLine(Shell *shell)
-^
-static 
-../../src/utils/letter-shell/src/shell.c(800): warning: implicit conversion changes signedness: 'int' to 'short' [-Wsign-conversion]
-        for (short i = shell->parser.length - shell->parser.cursor; i > 0; i--)
-                   ~   ~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~
-../../src/utils/letter-shell/src/shell.c(807): warning: implicit conversion changes signedness: 'int' to 'short' [-Wsign-conversion]
-        for (short i = shell->parser.cursor - 1; i < shell->parser.length; i++)
-                   ~   ~~~~~~~~~~~~~~~~~~~~~^~~
-../../src/utils/letter-shell/src/shell.c(811): warning: implicit conversion changes signedness: 'int' to 'short' [-Wsign-conversion]
-        for (short i = shell->parser.length - shell->parser.cursor; i > 0; i--)
-                   ~   ~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~
-../../src/utils/letter-shell/src/shell.c(779): warning: no previous prototype for function 'shellInsertByte' [-Wmissing-prototypes]
-void shellInsertByte(Shell *shell, char data)
-     ^
-../../src/utils/letter-shell/src/shell.c(779): note: declare 'static' if the function is not intended to be used outside of this translation unit
-void shellInsertByte(Shell *shell, char data)
-^
-static 
-../../src/utils/letter-shell/src/shell.c(855): warning: implicit conversion changes signedness: 'unsigned short' to 'short' [-Wsign-conversion]
-        for (short i = shell->parser.cursor; i < shell->parser.length; i++)
-                   ~   ~~~~~~~~~~~~~~^~~~~~
-../../src/utils/letter-shell/src/shell.c(860): warning: implicit conversion changes signedness: 'int' to 'short' [-Wsign-conversion]
-        for (short i = shell->parser.length - shell->parser.cursor + 1; i > 0; i--)
-                   ~   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
-../../src/utils/letter-shell/src/shell.c(825): warning: no previous prototype for function 'shellDeleteByte' [-Wmissing-prototypes]
-void shellDeleteByte(Shell *shell, signed char direction)
-     ^
-../../src/utils/letter-shell/src/shell.c(825): note: declare 'static' if the function is not intended to be used outside of this translation unit
-void shellDeleteByte(Shell *shell, signed char direction)
-^
-static 
-../../src/utils/letter-shell/src/shell.c(933): warning: implicit conversion loses integer precision: 'unsigned int' to 'unsigned short' [-Wimplicit-int-conversion]
-        paramLength = strlen(shell->parser.param[i]);
-                    ~ ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-../../src/utils/letter-shell/src/shell.c(957): warning: implicit conversion loses integer precision: 'unsigned int' to 'unsigned short' [-Wimplicit-int-conversion]
-    unsigned short count = shell->commandList.count -
-                   ~~~~~   ~~~~~~~~~~~~~~~~~~~~~~~~~^
-../../src/utils/letter-shell/src/shell.c(958): warning: implicit conversion changes signedness: 'int' to 'unsigned int' [-Wsign-conversion]
-        ((int)base - (int)shell->commandList.base) / sizeof(ShellCommand);
-         ~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  ~
-../../src/utils/letter-shell/src/shell.c(996): warning: 4 enumeration values not explicitly handled in switch: 'SHELL_TYPE_CMD_MAIN', 'SHELL_TYPE_CMD_FUNC', 'SHELL_TYPE_USER'... [-Wswitch-enum]
-    switch (command->attr.attrs.type)
-            ^
-../../src/utils/letter-shell/src/shell.c(993): warning: unused parameter 'shell' [-Wunused-parameter]
-int shellGetVarValue(Shell *shell, ShellCommand *command)
-                            ^
-../../src/utils/letter-shell/src/shell.c(993): warning: no previous prototype for function 'shellGetVarValue' [-Wmissing-prototypes]
-int shellGetVarValue(Shell *shell, ShellCommand *command)
-    ^
-../../src/utils/letter-shell/src/shell.c(993): note: declare 'static' if the function is not intended to be used outside of this translation unit
-int shellGetVarValue(Shell *shell, ShellCommand *command)
-^
-static 
-../../src/utils/letter-shell/src/shell.c(1045): warning: implicit conversion loses integer precision: 'int' to 'short' [-Wimplicit-int-conversion]
-            *((short *)(command->data.var.value)) = value;
-                                                  ~ ^~~~~
-../../src/utils/letter-shell/src/shell.c(1048): warning: implicit conversion loses integer precision: 'int' to 'char' [-Wimplicit-int-conversion]
-            *((char *)(command->data.var.value)) = value;
-                                                 ~ ^~~~~
-../../src/utils/letter-shell/src/shell.c(1039): warning: 4 enumeration values not explicitly handled in switch: 'SHELL_TYPE_CMD_MAIN', 'SHELL_TYPE_CMD_FUNC', 'SHELL_TYPE_USER'... [-Wswitch-enum]
-        switch (command->attr.attrs.type)
-                ^
-../../src/utils/letter-shell/src/shell.c(1031): warning: no previous prototype for function 'shellSetVarValue' [-Wmissing-prototypes]
-int shellSetVarValue(Shell *shell, ShellCommand *command, int value)
-    ^
-../../src/utils/letter-shell/src/shell.c(1031): note: declare 'static' if the function is not intended to be used outside of this translation unit
-int shellSetVarValue(Shell *shell, ShellCommand *command, int value)
-^
-static 
-../../src/utils/letter-shell/src/shell.c(1111): warning: implicit conversion changes signedness: 'int' to 'unsigned int' [-Wsign-conversion]
-        shellToHex(value, buffer);
-        ~~~~~~~~~~ ^~~~~
-../../src/utils/letter-shell/src/shell.c(1093): warning: 9 enumeration values not explicitly handled in switch: 'SHELL_TYPE_CMD_MAIN', 'SHELL_TYPE_CMD_FUNC', 'SHELL_TYPE_VAR_INT'... [-Wswitch-enum]
-    switch (command->attr.attrs.type)
-            ^
-../../src/utils/letter-shell/src/shell.c(1128): warning: no previous prototype for function 'shellSetVar' [-Wmissing-prototypes]
-int shellSetVar(char *name, int value)
-    ^
-../../src/utils/letter-shell/src/shell.c(1128): note: declare 'static' if the function is not intended to be used outside of this translation unit
-int shellSetVar(char *name, int value)
-^
-static 
-../../src/utils/letter-shell/src/shell.c(1153): warning: no previous extern declaration for non-static variable 'shellCmdsetVar' [-Wmissing-variable-declarations]
-SHELL_EXPORT_CMD(
-^
-../../src/utils/letter-shell/src/shell.h(133): note: expanded from macro 'SHELL_EXPORT_CMD'
-            const char shellCmd##_name[] = #_name; \
-                       ^
-<scratch space>(6): note: expanded from here
-shellCmdsetVar
-^
-../../src/utils/letter-shell/src/shell.c(1153): note: declare 'static' if the variable is not intended to be used outside of this translation unit
-../../src/utils/letter-shell/src/shell.h(133): note: expanded from macro 'SHELL_EXPORT_CMD'
-            const char shellCmd##_name[] = #_name; \
-                  ^
-../../src/utils/letter-shell/src/shell.c(1153): warning: no previous extern declaration for non-static variable 'shellDescsetVar' [-Wmissing-variable-declarations]
-SHELL_EXPORT_CMD(
-^
-../../src/utils/letter-shell/src/shell.h(134): note: expanded from macro 'SHELL_EXPORT_CMD'
-            const char shellDesc##_name[] = #_desc; \
-                       ^
-<scratch space>(7): note: expanded from here
-shellDescsetVar
-^
-../../src/utils/letter-shell/src/shell.c(1153): note: declare 'static' if the variable is not intended to be used outside of this translation unit
-../../src/utils/letter-shell/src/shell.h(134): note: expanded from macro 'SHELL_EXPORT_CMD'
-            const char shellDesc##_name[] = #_desc; \
-                  ^
-../../src/utils/letter-shell/src/shell.c(1153): warning: this function declaration is not a prototype [-Wstrict-prototypes]
-SHELL_EXPORT_CMD(
-^
-../../src/utils/letter-shell/src/shell.h(140): note: expanded from macro 'SHELL_EXPORT_CMD'
-                .data.cmd.function = (int (*)())_func, \
-                                             ^
-../../src/utils/letter-shell/src/shell.c(1153): warning: no previous extern declaration for non-static variable 'shellCommandsetVar' [-Wmissing-variable-declarations]
-../../src/utils/letter-shell/src/shell.h(136): note: expanded from macro 'SHELL_EXPORT_CMD'
-            shellCommand##_name SHELL_SECTION("shellCommand") =  \
-            ^
-<scratch space>(8): note: expanded from here
-shellCommandsetVar
-^
-../../src/utils/letter-shell/src/shell.c(1153): note: declare 'static' if the variable is not intended to be used outside of this translation unit
-../../src/utils/letter-shell/src/shell.h(135): note: expanded from macro 'SHELL_EXPORT_CMD'
-            SHELL_USED const ShellCommand \
-                             ^
-../../src/utils/letter-shell/src/shell.c(1202): warning: implicit conversion changes signedness: 'int' to 'unsigned int' [-Wsign-conversion]
-    return returnValue;
-    ~~~~~~ ^~~~~~~~~~~
-../../src/utils/letter-shell/src/shell.c(1166): warning: no previous prototype for function 'shellRunCommand' [-Wmissing-prototypes]
-unsigned int shellRunCommand(Shell *shell, ShellCommand *command)
-             ^
-../../src/utils/letter-shell/src/shell.c(1166): note: declare 'static' if the function is not intended to be used outside of this translation unit
-unsigned int shellRunCommand(Shell *shell, ShellCommand *command)
-^
-static 
-../../src/utils/letter-shell/src/shell.c(1272): warning: implicit conversion changes signedness: 'int' to 'unsigned int' [-Wsign-conversion]
-    shellToHex(value, buffer);
-    ~~~~~~~~~~ ^~~~~
-../../src/utils/letter-shell/src/shell.c(1324): warning: implicit conversion changes signedness: 'int' to 'short' [-Wsign-conversion]
-            shell->history.offset = -((shell->history.number > shell->history.record)
-                                  ~ ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-../../src/utils/letter-shell/src/shell.c(1367): warning: no previous prototype for function 'shellNormalInput' [-Wmissing-prototypes]
-void shellNormalInput(Shell *shell, char data)
-     ^
-../../src/utils/letter-shell/src/shell.c(1367): note: declare 'static' if the function is not intended to be used outside of this translation unit
-void shellNormalInput(Shell *shell, char data)
-^
-static 
-../../src/utils/letter-shell/src/shell.c(1379): warning: no previous prototype for function 'shellExec' [-Wmissing-prototypes]
-void shellExec(Shell *shell)
-     ^
-../../src/utils/letter-shell/src/shell.c(1379): note: declare 'static' if the function is not intended to be used outside of this translation unit
-void shellExec(Shell *shell)
-^
-static 
-../../src/utils/letter-shell/src/shell.c(1428): warning: no previous prototype for function 'shellUp' [-Wmissing-prototypes]
-void shellUp(Shell *shell)
-     ^
-../../src/utils/letter-shell/src/shell.c(1428): note: declare 'static' if the function is not intended to be used outside of this translation unit
-void shellUp(Shell *shell)
-^
-static 
-../../src/utils/letter-shell/src/shell.c(1432): warning: no previous extern declaration for non-static variable 'shellDesc0x1B5B4100' [-Wmissing-variable-declarations]
-SHELL_EXPORT_KEY(SHELL_CMD_PERMISSION(0), 0x1B5B4100, shellUp, up);
-^
-../../src/utils/letter-shell/src/shell.h(207): note: expanded from macro 'SHELL_EXPORT_KEY'
-            const char shellDesc##_value[] = #_desc; \
-                       ^
-<scratch space>(12): note: expanded from here
-shellDesc0x1B5B4100
-^
-../../src/utils/letter-shell/src/shell.c(1432): note: declare 'static' if the variable is not intended to be used outside of this translation unit
-../../src/utils/letter-shell/src/shell.h(207): note: expanded from macro 'SHELL_EXPORT_KEY'
-            const char shellDesc##_value[] = #_desc; \
-                  ^
-../../src/utils/letter-shell/src/shell.c(1432): warning: no previous extern declaration for non-static variable 'shellKey0x1B5B4100' [-Wmissing-variable-declarations]
-SHELL_EXPORT_KEY(SHELL_CMD_PERMISSION(0), 0x1B5B4100, shellUp, up);
-^
-../../src/utils/letter-shell/src/shell.h(209): note: expanded from macro 'SHELL_EXPORT_KEY'
-            shellKey##_value SHELL_SECTION("shellCommand") =  \
-            ^
-<scratch space>(13): note: expanded from here
-shellKey0x1B5B4100
-^
-../../src/utils/letter-shell/src/shell.c(1432): note: declare 'static' if the variable is not intended to be used outside of this translation unit
-../../src/utils/letter-shell/src/shell.h(208): note: expanded from macro 'SHELL_EXPORT_KEY'
-            SHELL_USED const ShellCommand \
-                             ^
-../../src/utils/letter-shell/src/shell.c(1440): warning: no previous prototype for function 'shellDown' [-Wmissing-prototypes]
-void shellDown(Shell *shell)
-     ^
-../../src/utils/letter-shell/src/shell.c(1440): note: declare 'static' if the function is not intended to be used outside of this translation unit
-void shellDown(Shell *shell)
-^
-static 
-../../src/utils/letter-shell/src/shell.c(1444): warning: no previous extern declaration for non-static variable 'shellDesc0x1B5B4200' [-Wmissing-variable-declarations]
-SHELL_EXPORT_KEY(SHELL_CMD_PERMISSION(0), 0x1B5B4200, shellDown, down);
-^
-../../src/utils/letter-shell/src/shell.h(207): note: expanded from macro 'SHELL_EXPORT_KEY'
-            const char shellDesc##_value[] = #_desc; \
-                       ^
-<scratch space>(16): note: expanded from here
-shellDesc0x1B5B4200
-^
-../../src/utils/letter-shell/src/shell.c(1444): note: declare 'static' if the variable is not intended to be used outside of this translation unit
-../../src/utils/letter-shell/src/shell.h(207): note: expanded from macro 'SHELL_EXPORT_KEY'
-            const char shellDesc##_value[] = #_desc; \
-                  ^
-../../src/utils/letter-shell/src/shell.c(1444): warning: no previous extern declaration for non-static variable 'shellKey0x1B5B4200' [-Wmissing-variable-declarations]
-SHELL_EXPORT_KEY(SHELL_CMD_PERMISSION(0), 0x1B5B4200, shellDown, down);
-^
-../../src/utils/letter-shell/src/shell.h(209): note: expanded from macro 'SHELL_EXPORT_KEY'
-            shellKey##_value SHELL_SECTION("shellCommand") =  \
-            ^
-<scratch space>(17): note: expanded from here
-shellKey0x1B5B4200
-^
-../../src/utils/letter-shell/src/shell.c(1444): note: declare 'static' if the variable is not intended to be used outside of this translation unit
-../../src/utils/letter-shell/src/shell.h(208): note: expanded from macro 'SHELL_EXPORT_KEY'
-            SHELL_USED const ShellCommand \
-                             ^
-../../src/utils/letter-shell/src/shell.c(1453): warning: no previous prototype for function 'shellRight' [-Wmissing-prototypes]
-void shellRight(Shell *shell)
-     ^
-../../src/utils/letter-shell/src/shell.c(1453): note: declare 'static' if the function is not intended to be used outside of this translation unit
-void shellRight(Shell *shell)
-^
-static 
-../../src/utils/letter-shell/src/shell.c(1460): warning: no previous extern declaration for non-static variable 'shellDesc0x1B5B4300' [-Wmissing-variable-declarations]
-SHELL_EXPORT_KEY(SHELL_CMD_PERMISSION(0)|SHELL_CMD_ENABLE_UNCHECKED,
-^
-../../src/utils/letter-shell/src/shell.h(207): note: expanded from macro 'SHELL_EXPORT_KEY'
-            const char shellDesc##_value[] = #_desc; \
-                       ^
-<scratch space>(20): note: expanded from here
-shellDesc0x1B5B4300
-^
-../../src/utils/letter-shell/src/shell.c(1460): note: declare 'static' if the variable is not intended to be used outside of this translation unit
-../../src/utils/letter-shell/src/shell.h(207): note: expanded from macro 'SHELL_EXPORT_KEY'
-            const char shellDesc##_value[] = #_desc; \
-                  ^
-../../src/utils/letter-shell/src/shell.c(1460): warning: no previous extern declaration for non-static variable 'shellKey0x1B5B4300' [-Wmissing-variable-declarations]
-SHELL_EXPORT_KEY(SHELL_CMD_PERMISSION(0)|SHELL_CMD_ENABLE_UNCHECKED,
-^
-../../src/utils/letter-shell/src/shell.h(209): note: expanded from macro 'SHELL_EXPORT_KEY'
-            shellKey##_value SHELL_SECTION("shellCommand") =  \
-            ^
-<scratch space>(21): note: expanded from here
-shellKey0x1B5B4300
-^
-../../src/utils/letter-shell/src/shell.c(1460): note: declare 'static' if the variable is not intended to be used outside of this translation unit
-../../src/utils/letter-shell/src/shell.h(208): note: expanded from macro 'SHELL_EXPORT_KEY'
-            SHELL_USED const ShellCommand \
-                             ^
-../../src/utils/letter-shell/src/shell.c(1469): warning: no previous prototype for function 'shellLeft' [-Wmissing-prototypes]
-void shellLeft(Shell *shell)
-     ^
-../../src/utils/letter-shell/src/shell.c(1469): note: declare 'static' if the function is not intended to be used outside of this translation unit
-void shellLeft(Shell *shell)
-^
-static 
-../../src/utils/letter-shell/src/shell.c(1477): warning: no previous extern declaration for non-static variable 'shellDesc0x1B5B4400' [-Wmissing-variable-declarations]
-SHELL_EXPORT_KEY(SHELL_CMD_PERMISSION(0)|SHELL_CMD_ENABLE_UNCHECKED,
-^
-../../src/utils/letter-shell/src/shell.h(207): note: expanded from macro 'SHELL_EXPORT_KEY'
-            const char shellDesc##_value[] = #_desc; \
-                       ^
-<scratch space>(24): note: expanded from here
-shellDesc0x1B5B4400
-^
-../../src/utils/letter-shell/src/shell.c(1477): note: declare 'static' if the variable is not intended to be used outside of this translation unit
-../../src/utils/letter-shell/src/shell.h(207): note: expanded from macro 'SHELL_EXPORT_KEY'
-            const char shellDesc##_value[] = #_desc; \
-                  ^
-../../src/utils/letter-shell/src/shell.c(1477): warning: no previous extern declaration for non-static variable 'shellKey0x1B5B4400' [-Wmissing-variable-declarations]
-SHELL_EXPORT_KEY(SHELL_CMD_PERMISSION(0)|SHELL_CMD_ENABLE_UNCHECKED,
-^
-../../src/utils/letter-shell/src/shell.h(209): note: expanded from macro 'SHELL_EXPORT_KEY'
-            shellKey##_value SHELL_SECTION("shellCommand") =  \
-            ^
-<scratch space>(25): note: expanded from here
-shellKey0x1B5B4400
-^
-../../src/utils/letter-shell/src/shell.c(1477): note: declare 'static' if the variable is not intended to be used outside of this translation unit
-../../src/utils/letter-shell/src/shell.h(208): note: expanded from macro 'SHELL_EXPORT_KEY'
-            SHELL_USED const ShellCommand \
-                             ^
-../../src/utils/letter-shell/src/shell.c(1506): warning: cast from 'const char *' to 'char *' drops const qualifier [-Wcast-qual]
-                                   (char *)shellGetCommandName(&base[i]))
-                                           ^
-../../src/utils/letter-shell/src/shell.c(1517): warning: cast from 'const char *' to 'char *' drops const qualifier [-Wcast-qual]
-                        shellStringCompare((char *)shellGetCommandName(&base[lastMatchIndex]),
-                                                   ^
-../../src/utils/letter-shell/src/shell.c(1518): warning: cast from 'const char *' to 'char *' drops const qualifier [-Wcast-qual]
-                                           (char *)shellGetCommandName(&base[i]));
-                                                   ^
-../../src/utils/letter-shell/src/shell.c(1521): warning: implicit conversion changes signedness: 'short' to 'unsigned short' [-Wsign-conversion]
-                lastMatchIndex = i;
-                               ~ ^
-../../src/utils/letter-shell/src/shell.c(1537): warning: cast from 'const char *' to 'char *' drops const qualifier [-Wcast-qual]
-                                (char *)shellGetCommandName(&base[lastMatchIndex]));
-                                        ^
-../../src/utils/letter-shell/src/shell.c(1550): warning: implicit declaration of function 'osKernelGetTickCount' is invalid in C99 [-Wimplicit-function-declaration]
-    if (SHELL_GET_TICK())
-        ^
-../../inc\shell_cfg.h(133): note: expanded from macro 'SHELL_GET_TICK'
-#define     SHELL_GET_TICK()            osKernelGetTickCount()
-                                        ^
-../../src/utils/letter-shell/src/shell.c(1486): warning: no previous prototype for function 'shellTab' [-Wmissing-prototypes]
-void shellTab(Shell *shell)
-     ^
-../../src/utils/letter-shell/src/shell.c(1486): note: declare 'static' if the function is not intended to be used outside of this translation unit
-void shellTab(Shell *shell)
-^
-static 
-../../src/utils/letter-shell/src/shell.c(1580): warning: no previous extern declaration for non-static variable 'shellDesc0x09000000' [-Wmissing-variable-declarations]
-SHELL_EXPORT_KEY(SHELL_CMD_PERMISSION(0), 0x09000000, shellTab, tab);
-^
-../../src/utils/letter-shell/src/shell.h(207): note: expanded from macro 'SHELL_EXPORT_KEY'
-            const char shellDesc##_value[] = #_desc; \
-                       ^
-<scratch space>(28): note: expanded from here
-shellDesc0x09000000
-^
-../../src/utils/letter-shell/src/shell.c(1580): note: declare 'static' if the variable is not intended to be used outside of this translation unit
-../../src/utils/letter-shell/src/shell.h(207): note: expanded from macro 'SHELL_EXPORT_KEY'
-            const char shellDesc##_value[] = #_desc; \
-                  ^
-../../src/utils/letter-shell/src/shell.c(1580): warning: no previous extern declaration for non-static variable 'shellKey0x09000000' [-Wmissing-variable-declarations]
-SHELL_EXPORT_KEY(SHELL_CMD_PERMISSION(0), 0x09000000, shellTab, tab);
-^
-../../src/utils/letter-shell/src/shell.h(209): note: expanded from macro 'SHELL_EXPORT_KEY'
-            shellKey##_value SHELL_SECTION("shellCommand") =  \
-            ^
-<scratch space>(29): note: expanded from here
-shellKey0x09000000
-^
-../../src/utils/letter-shell/src/shell.c(1580): note: declare 'static' if the variable is not intended to be used outside of this translation unit
-../../src/utils/letter-shell/src/shell.h(208): note: expanded from macro 'SHELL_EXPORT_KEY'
-            SHELL_USED const ShellCommand \
-                             ^
-../../src/utils/letter-shell/src/shell.c(1588): warning: no previous prototype for function 'shellBackspace' [-Wmissing-prototypes]
-void shellBackspace(Shell *shell)
-     ^
-../../src/utils/letter-shell/src/shell.c(1588): note: declare 'static' if the function is not intended to be used outside of this translation unit
-void shellBackspace(Shell *shell)
-^
-static 
-../../src/utils/letter-shell/src/shell.c(1592): warning: no previous extern declaration for non-static variable 'shellDesc0x08000000' [-Wmissing-variable-declarations]
-SHELL_EXPORT_KEY(SHELL_CMD_PERMISSION(0)|SHELL_CMD_ENABLE_UNCHECKED,
-^
-../../src/utils/letter-shell/src/shell.h(207): note: expanded from macro 'SHELL_EXPORT_KEY'
-            const char shellDesc##_value[] = #_desc; \
-                       ^
-<scratch space>(32): note: expanded from here
-shellDesc0x08000000
-^
-../../src/utils/letter-shell/src/shell.c(1592): note: declare 'static' if the variable is not intended to be used outside of this translation unit
-../../src/utils/letter-shell/src/shell.h(207): note: expanded from macro 'SHELL_EXPORT_KEY'
-            const char shellDesc##_value[] = #_desc; \
-                  ^
-../../src/utils/letter-shell/src/shell.c(1592): warning: no previous extern declaration for non-static variable 'shellKey0x08000000' [-Wmissing-variable-declarations]
-SHELL_EXPORT_KEY(SHELL_CMD_PERMISSION(0)|SHELL_CMD_ENABLE_UNCHECKED,
-^
-../../src/utils/letter-shell/src/shell.h(209): note: expanded from macro 'SHELL_EXPORT_KEY'
-            shellKey##_value SHELL_SECTION("shellCommand") =  \
-            ^
-<scratch space>(33): note: expanded from here
-shellKey0x08000000
-^
-../../src/utils/letter-shell/src/shell.c(1592): note: declare 'static' if the variable is not intended to be used outside of this translation unit
-../../src/utils/letter-shell/src/shell.h(208): note: expanded from macro 'SHELL_EXPORT_KEY'
-            SHELL_USED const ShellCommand \
-                             ^
-../../src/utils/letter-shell/src/shell.c(1594): warning: no previous extern declaration for non-static variable 'shellDesc0x7F000000' [-Wmissing-variable-declarations]
-SHELL_EXPORT_KEY(SHELL_CMD_PERMISSION(0)|SHELL_CMD_ENABLE_UNCHECKED,
-^
-../../src/utils/letter-shell/src/shell.h(207): note: expanded from macro 'SHELL_EXPORT_KEY'
-            const char shellDesc##_value[] = #_desc; \
-                       ^
-<scratch space>(36): note: expanded from here
-shellDesc0x7F000000
-^
-../../src/utils/letter-shell/src/shell.c(1594): note: declare 'static' if the variable is not intended to be used outside of this translation unit
-../../src/utils/letter-shell/src/shell.h(207): note: expanded from macro 'SHELL_EXPORT_KEY'
-            const char shellDesc##_value[] = #_desc; \
-                  ^
-../../src/utils/letter-shell/src/shell.c(1594): warning: no previous extern declaration for non-static variable 'shellKey0x7F000000' [-Wmissing-variable-declarations]
-SHELL_EXPORT_KEY(SHELL_CMD_PERMISSION(0)|SHELL_CMD_ENABLE_UNCHECKED,
-^
-../../src/utils/letter-shell/src/shell.h(209): note: expanded from macro 'SHELL_EXPORT_KEY'
-            shellKey##_value SHELL_SECTION("shellCommand") =  \
-            ^
-<scratch space>(37): note: expanded from here
-shellKey0x7F000000
-^
-../../src/utils/letter-shell/src/shell.c(1594): note: declare 'static' if the variable is not intended to be used outside of this translation unit
-../../src/utils/letter-shell/src/shell.h(208): note: expanded from macro 'SHELL_EXPORT_KEY'
-            SHELL_USED const ShellCommand \
-                             ^
-../../src/utils/letter-shell/src/shell.c(1603): warning: no previous prototype for function 'shellDelete' [-Wmissing-prototypes]
-void shellDelete(Shell *shell)
-     ^
-../../src/utils/letter-shell/src/shell.c(1603): note: declare 'static' if the function is not intended to be used outside of this translation unit
-void shellDelete(Shell *shell)
-^
-static 
-../../src/utils/letter-shell/src/shell.c(1607): warning: no previous extern declaration for non-static variable 'shellDesc0x1B5B337E' [-Wmissing-variable-declarations]
-SHELL_EXPORT_KEY(SHELL_CMD_PERMISSION(0)|SHELL_CMD_ENABLE_UNCHECKED,
-^
-../../src/utils/letter-shell/src/shell.h(207): note: expanded from macro 'SHELL_EXPORT_KEY'
-            const char shellDesc##_value[] = #_desc; \
-                       ^
-<scratch space>(40): note: expanded from here
-shellDesc0x1B5B337E
-^
-../../src/utils/letter-shell/src/shell.c(1607): note: declare 'static' if the variable is not intended to be used outside of this translation unit
-../../src/utils/letter-shell/src/shell.h(207): note: expanded from macro 'SHELL_EXPORT_KEY'
-            const char shellDesc##_value[] = #_desc; \
-                  ^
-../../src/utils/letter-shell/src/shell.c(1607): warning: no previous extern declaration for non-static variable 'shellKey0x1B5B337E' [-Wmissing-variable-declarations]
-SHELL_EXPORT_KEY(SHELL_CMD_PERMISSION(0)|SHELL_CMD_ENABLE_UNCHECKED,
-^
-../../src/utils/letter-shell/src/shell.h(209): note: expanded from macro 'SHELL_EXPORT_KEY'
-            shellKey##_value SHELL_SECTION("shellCommand") =  \
-            ^
-<scratch space>(41): note: expanded from here
-shellKey0x1B5B337E
-^
-../../src/utils/letter-shell/src/shell.c(1607): note: declare 'static' if the variable is not intended to be used outside of this translation unit
-../../src/utils/letter-shell/src/shell.h(208): note: expanded from macro 'SHELL_EXPORT_KEY'
-            SHELL_USED const ShellCommand \
-                             ^
-../../src/utils/letter-shell/src/shell.c(1616): warning: no previous prototype for function 'shellEnter' [-Wmissing-prototypes]
-void shellEnter(Shell *shell)
-     ^
-../../src/utils/letter-shell/src/shell.c(1616): note: declare 'static' if the function is not intended to be used outside of this translation unit
-void shellEnter(Shell *shell)
-^
-static 
-../../src/utils/letter-shell/src/shell.c(1622): warning: no previous extern declaration for non-static variable 'shellDesc0x0A000000' [-Wmissing-variable-declarations]
-SHELL_EXPORT_KEY(SHELL_CMD_PERMISSION(0)|SHELL_CMD_ENABLE_UNCHECKED,
-^
-../../src/utils/letter-shell/src/shell.h(207): note: expanded from macro 'SHELL_EXPORT_KEY'
-            const char shellDesc##_value[] = #_desc; \
-                       ^
-<scratch space>(44): note: expanded from here
-shellDesc0x0A000000
-^
-../../src/utils/letter-shell/src/shell.c(1622): note: declare 'static' if the variable is not intended to be used outside of this translation unit
-../../src/utils/letter-shell/src/shell.h(207): note: expanded from macro 'SHELL_EXPORT_KEY'
-            const char shellDesc##_value[] = #_desc; \
-                  ^
-../../src/utils/letter-shell/src/shell.c(1622): warning: no previous extern declaration for non-static variable 'shellKey0x0A000000' [-Wmissing-variable-declarations]
-SHELL_EXPORT_KEY(SHELL_CMD_PERMISSION(0)|SHELL_CMD_ENABLE_UNCHECKED,
-^
-../../src/utils/letter-shell/src/shell.h(209): note: expanded from macro 'SHELL_EXPORT_KEY'
-            shellKey##_value SHELL_SECTION("shellCommand") =  \
-            ^
-<scratch space>(45): note: expanded from here
-shellKey0x0A000000
-^
-../../src/utils/letter-shell/src/shell.c(1622): note: declare 'static' if the variable is not intended to be used outside of this translation unit
-../../src/utils/letter-shell/src/shell.h(208): note: expanded from macro 'SHELL_EXPORT_KEY'
-            SHELL_USED const ShellCommand \
-                             ^
-../../src/utils/letter-shell/src/shell.c(1626): warning: no previous extern declaration for non-static variable 'shellDesc0x0D000000' [-Wmissing-variable-declarations]
-SHELL_EXPORT_KEY(SHELL_CMD_PERMISSION(0)|SHELL_CMD_ENABLE_UNCHECKED,
-^
-../../src/utils/letter-shell/src/shell.h(207): note: expanded from macro 'SHELL_EXPORT_KEY'
-            const char shellDesc##_value[] = #_desc; \
-                       ^
-<scratch space>(48): note: expanded from here
-shellDesc0x0D000000
-^
-../../src/utils/letter-shell/src/shell.c(1626): note: declare 'static' if the variable is not intended to be used outside of this translation unit
-../../src/utils/letter-shell/src/shell.h(207): note: expanded from macro 'SHELL_EXPORT_KEY'
-            const char shellDesc##_value[] = #_desc; \
-                  ^
-../../src/utils/letter-shell/src/shell.c(1626): warning: no previous extern declaration for non-static variable 'shellKey0x0D000000' [-Wmissing-variable-declarations]
-SHELL_EXPORT_KEY(SHELL_CMD_PERMISSION(0)|SHELL_CMD_ENABLE_UNCHECKED,
-^
-../../src/utils/letter-shell/src/shell.h(209): note: expanded from macro 'SHELL_EXPORT_KEY'
-            shellKey##_value SHELL_SECTION("shellCommand") =  \
-            ^
-<scratch space>(49): note: expanded from here
-shellKey0x0D000000
-^
-../../src/utils/letter-shell/src/shell.c(1626): note: declare 'static' if the variable is not intended to be used outside of this translation unit
-../../src/utils/letter-shell/src/shell.h(208): note: expanded from macro 'SHELL_EXPORT_KEY'
-            SHELL_USED const ShellCommand \
-                             ^
-../../src/utils/letter-shell/src/shell.c(1669): warning: empty expression statement has no effect; remove unnecessary ';' to silence this warning [-Wextra-semi-stmt]
-    SHELL_ASSERT(shell, return);
-                               ^
-../../src/utils/letter-shell/src/shell.c(1666): warning: no previous prototype for function 'shellHelp' [-Wmissing-prototypes]
-void shellHelp(int argc, char *argv[])
-     ^
-../../src/utils/letter-shell/src/shell.c(1666): note: declare 'static' if the function is not intended to be used outside of this translation unit
-void shellHelp(int argc, char *argv[])
-^
-static 
-../../src/utils/letter-shell/src/shell.c(1679): warning: no previous extern declaration for non-static variable 'shellCmdhelp' [-Wmissing-variable-declarations]
-SHELL_EXPORT_CMD(
-^
-../../src/utils/letter-shell/src/shell.h(133): note: expanded from macro 'SHELL_EXPORT_CMD'
-            const char shellCmd##_name[] = #_name; \
-                       ^
-<scratch space>(53): note: expanded from here
-shellCmdhelp
-^
-../../src/utils/letter-shell/src/shell.c(1679): note: declare 'static' if the variable is not intended to be used outside of this translation unit
-../../src/utils/letter-shell/src/shell.h(133): note: expanded from macro 'SHELL_EXPORT_CMD'
-            const char shellCmd##_name[] = #_name; \
-                  ^
-../../src/utils/letter-shell/src/shell.c(1679): warning: no previous extern declaration for non-static variable 'shellDeschelp' [-Wmissing-variable-declarations]
-SHELL_EXPORT_CMD(
-^
-../../src/utils/letter-shell/src/shell.h(134): note: expanded from macro 'SHELL_EXPORT_CMD'
-            const char shellDesc##_name[] = #_desc; \
-                       ^
-<scratch space>(54): note: expanded from here
-shellDeschelp
-^
-../../src/utils/letter-shell/src/shell.c(1679): note: declare 'static' if the variable is not intended to be used outside of this translation unit
-../../src/utils/letter-shell/src/shell.h(134): note: expanded from macro 'SHELL_EXPORT_CMD'
-            const char shellDesc##_name[] = #_desc; \
-                  ^
-../../src/utils/letter-shell/src/shell.c(1679): warning: this function declaration is not a prototype [-Wstrict-prototypes]
-SHELL_EXPORT_CMD(
-^
-../../src/utils/letter-shell/src/shell.h(140): note: expanded from macro 'SHELL_EXPORT_CMD'
-                .data.cmd.function = (int (*)())_func, \
-                                             ^
-../../src/utils/letter-shell/src/shell.c(1679): warning: no previous extern declaration for non-static variable 'shellCommandhelp' [-Wmissing-variable-declarations]
-../../src/utils/letter-shell/src/shell.h(136): note: expanded from macro 'SHELL_EXPORT_CMD'
-            shellCommand##_name SHELL_SECTION("shellCommand") =  \
-            ^
-<scratch space>(55): note: expanded from here
-shellCommandhelp
-^
-../../src/utils/letter-shell/src/shell.c(1679): note: declare 'static' if the variable is not intended to be used outside of this translation unit
-../../src/utils/letter-shell/src/shell.h(135): note: expanded from macro 'SHELL_EXPORT_CMD'
-            SHELL_USED const ShellCommand \
-                             ^
-../../src/utils/letter-shell/src/shell.c(1691): warning: empty expression statement has no effect; remove unnecessary ';' to silence this warning [-Wextra-semi-stmt]
-    SHELL_ASSERT(data, return);
-                              ^
-../../src/utils/letter-shell/src/shell.c(1712): warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
-        keyFilter = 0xFFFFFF00;
-                  ~ ^~~~~~~~~~
-../../src/utils/letter-shell/src/shell.c(1717): warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
-        keyFilter = 0xFFFF0000;
-                  ~ ^~~~~~~~~~
-../../src/utils/letter-shell/src/shell.c(1719): warning: implicit conversion changes signedness: 'int' to 'unsigned int' [-Wsign-conversion]
-    else if ((shell->parser.keyValue & 0xFF000000) != 0x00000000)
-              ~~~~~~~~~~~~~~^~~~~~~~ ~
-../../src/utils/letter-shell/src/shell.c(1722): warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
-        keyFilter = 0xFF000000;
-                  ~ ^~~~~~~~~~
-../../src/utils/letter-shell/src/shell.c(1761): warning: implicit declaration of function 'osKernelGetTickCount' is invalid in C99 [-Wimplicit-function-declaration]
-    if (SHELL_GET_TICK())
-        ^
-../../inc\shell_cfg.h(133): note: expanded from macro 'SHELL_GET_TICK'
-#define     SHELL_GET_TICK()            osKernelGetTickCount()
-                                        ^
-../../src/utils/letter-shell/src/shell.c(1803): warning: function 'shellTask' could be declared with attribute 'noreturn' [-Wmissing-noreturn]
+RTE/Device/STM32H743VITx/STCubeGenerated/Src/stm32h7xx_it.c(26): warning: In file included from...
+../../inc\hal_include.h(4): warning: In file included from...
+../../inc/hal/hal_com.h(15): warning: In file included from...
+../../inc/hal/hal.h(15): warning: In file included from...
+../../inc/hal/../rte_include.h(4): warning: In file included from...
+../../inc/middle_layer/rte.h(139): warning: zero size arrays are an extension [-Wzero-length-array]
+    uint8_t msg_buf[0];
+                    ^
+RTE/Device/STM32H743VITx/STCubeGenerated/Src/stm32h7xx_it.c(73): warning: function 'NMI_Handler' could be declared with attribute 'noreturn' [-Wmissing-noreturn]
 {
 ^
-../../src/utils/letter-shell/src/shell.c(1823): warning: no previous prototype for function 'shellUsers' [-Wmissing-prototypes]
-void shellUsers(void)
-     ^
-../../src/utils/letter-shell/src/shell.c(1823): note: declare 'static' if the function is not intended to be used outside of this translation unit
-void shellUsers(void)
+RTE/Device/STM32H743VITx/STCubeGenerated/Src/stm32h7xx_it.c(88): warning: function 'HardFault_Handler' could be declared with attribute 'noreturn' [-Wmissing-noreturn]
+{
+^
+RTE/Device/STM32H743VITx/STCubeGenerated/Src/stm32h7xx_it.c(103): warning: function 'MemManage_Handler' could be declared with attribute 'noreturn' [-Wmissing-noreturn]
+{
+^
+RTE/Device/STM32H743VITx/STCubeGenerated/Src/stm32h7xx_it.c(118): warning: function 'BusFault_Handler' could be declared with attribute 'noreturn' [-Wmissing-noreturn]
+{
+^
+RTE/Device/STM32H743VITx/STCubeGenerated/Src/stm32h7xx_it.c(133): warning: function 'UsageFault_Handler' could be declared with attribute 'noreturn' [-Wmissing-noreturn]
+{
+^
+RTE/Device/STM32H743VITx/STCubeGenerated/Src/stm32h7xx_it.c(22): warning: In file included from...
+./RTE/Device/STM32H743VITx/STCubeGenerated/Inc\main.h(31): warning: In file included from...
+C:/UserProfession/Keil_v5/Packs/Keil/STM32H7xx_DFP/2.7.0/Drivers/STM32H7xx_HAL_Driver/Inc\stm32h7xx_hal.h(30): warning: In file included from...
+./RTE/Device/STM32H743VITx/STCubeGenerated/Inc\stm32h7xx_hal_conf.h(254): warning: In file included from...
+C:/UserProfession/Keil_v5/Packs/Keil/STM32H7xx_DFP/2.7.0/Drivers/STM32H7xx_HAL_Driver/Inc\stm32h7xx_hal_dma.h(147): warning: padding struct 'struct __DMA_HandleTypeDef' with 2 bytes to align 'Parent' [-Wpadded]
+  void                            *Parent;                                                          /*!< Parent object state                           */
+                                   ^
+RTE/Device/STM32H743VITx/STCubeGenerated/Src/stm32h7xx_it.c(22): warning: In file included from...
+./RTE/Device/STM32H743VITx/STCubeGenerated/Inc\main.h(31): warning: In file included from...
+C:/UserProfession/Keil_v5/Packs/Keil/STM32H7xx_DFP/2.7.0/Drivers/STM32H7xx_HAL_Driver/Inc\stm32h7xx_hal.h(30): warning: In file included from...
+./RTE/Device/STM32H743VITx/STCubeGenerated/Inc\stm32h7xx_hal_conf.h(458): warning: In file included from...
+C:/UserProfession/Keil_v5/Packs/Keil/STM32H7xx_DFP/2.7.0/Drivers/STM32H7xx_HAL_Driver/Inc\stm32h7xx_hal_uart.h(218): warning: padding struct 'struct __UART_HandleTypeDef' with 2 bytes to align 'FifoMode' [-Wpadded]
+  uint32_t                 FifoMode;                 /*!< Specifies if the FIFO mode is being used.
+                           ^
+C:/UserProfession/Keil_v5/Packs/Keil/STM32H7xx_DFP/2.7.0/Drivers/STM32H7xx_HAL_Driver/Inc\stm32h7xx_hal_uart.h(235): warning: padding struct 'struct __UART_HandleTypeDef' with 3 bytes to align 'gState' [-Wpadded]
+  __IO HAL_UART_StateTypeDef    gState;              /*!< UART state information related to global Handle management
+                                ^
+9 warnings generated.
+compiling stm32h7xx_it.c...
+../../src/middleware/rte_log.c(12): warning: In file included from...
+../../src/middleware/../../inc/middle_layer/rte_log.h(14): warning: In file included from...
+../../src/middleware/../../inc/middle_layer/rte.h(139): warning: zero size arrays are an extension [-Wzero-length-array]
+    uint8_t msg_buf[0];
+                    ^
+../../src/middleware/rte_log.c(45): warning: padding struct 'struct __log_handle_impl' with 3 bytes to align 'filter_tbl' [-Wpadded]
+    char *filter_tbl[LOG_MAX_FILTER_CNT];
+          ^
+../../src/middleware/rte_log.c(175): warning: implicit conversion changes signedness: 'long' to 'unsigned long' [-Wsign-conversion]
+                    ulValue = -(long)ulValue;
+                            ~ ^~~~~~~~~~~~~~
+../../src/middleware/rte_log.c(398): warning: cast from 'const char *' to 'unsigned char *' drops const qualifier [-Wcast-qual]
+        log_config_handle.out_func((uint8_t *)pcString, ui32Idx);
+                                              ^
+../../src/middleware/rte_log.c(459): warning: implicit conversion changes signedness: 'int32_t' (aka 'int') to 'uint32_t' (aka 'unsigned int') [-Wsign-conversion]
+                        ui32Value = -(int32_t)ui32Value;
+                                  ~ ^~~~~~~~~~~~~~~~~~~
+../../src/middleware/rte_log.c(570): warning: cast from 'const char *' to 'unsigned char *' drops const qualifier [-Wcast-qual]
+                    log_config_handle.out_func((uint8_t *)pcString - 1, 1);
+                                                          ^
+../../src/middleware/rte_log.c(599): warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+    tm->tm_sec = timetick - (temp * 60);
+               ~ ~~~~~~~~~^~~~~~~~~~~~~
+../../src/middleware/rte_log.c(603): warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+    tm->tm_min = timetick - (temp * 60);
+               ~ ~~~~~~~~~^~~~~~~~~~~~~
+../../src/middleware/rte_log.c(607): warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+    tm->tm_hour = timetick - (temp * 24);
+                ~ ~~~~~~~~~^~~~~~~~~~~~~
+../../src/middleware/rte_log.c(625): warning: implicit conversion changes signedness: 'int' to 'unsigned int' [-Wsign-conversion]
+    timetick -= ((tm->tm_year - 68) * 365) + temp;
+                 ~~~~~~~~~~~~~~~~~~~^~~~~  ~
+../../src/middleware/rte_log.c(631): warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+    tm->tm_mon = temp - 1;
+               ~ ~~~~~^~~
+../../src/middleware/rte_log.c(633): warning: implicit conversion changes signedness: 'unsigned int' to 'int' [-Wsign-conversion]
+    tm->tm_mday = timetick - g_psDaysToMonth[temp - 1] + 1;
+                ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+../../src/middleware/rte_log.c(660): warning: implicit conversion changes signedness: 'int' to 'unsigned int' [-Wsign-conversion]
+            offset += log_snprintf(log_head + offset, LOG_MAX_HEAD_LENGTH - offset, "%02d:%02d:%02d:%03d",
+                   ~~ ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+../../src/middleware/rte_log.c(663): warning: implicit conversion changes signedness: 'int' to 'unsigned int' [-Wsign-conversion]
+        offset += log_snprintf(log_head + offset, LOG_MAX_HEAD_LENGTH - offset, " %s ",
+               ~~ ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+../../src/middleware/rte_log.c(668): warning: implicit conversion changes signedness: 'int' to 'unsigned int' [-Wsign-conversion]
+            offset += log_snprintf(log_head + offset, LOG_MAX_HEAD_LENGTH - offset, "%s", file);
+                   ~~ ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+../../src/middleware/rte_log.c(673): warning: implicit conversion changes signedness: 'int' to 'unsigned int' [-Wsign-conversion]
+            offset += log_snprintf(log_head + offset, LOG_MAX_HEAD_LENGTH - offset, "%16s", function);
+                   ~~ ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+../../src/middleware/rte_log.c(678): warning: implicit conversion changes signedness: 'int' to 'unsigned int' [-Wsign-conversion]
+            offset += log_snprintf(log_head + offset, LOG_MAX_HEAD_LENGTH - offset, "%4d", line);
+                   ~~ ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+../../src/middleware/rte_log.c(682): warning: implicit conversion changes signedness: 'int' to 'unsigned int' [-Wsign-conversion]
+        offset += log_snprintf(log_head + offset, LOG_MAX_HEAD_LENGTH - offset, " %10s: ", module);
+               ~~ ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+../../src/middleware/rte_log.c(686): warning: implicit conversion changes signedness: 'int' to 'unsigned int' [-Wsign-conversion]
+        offset += log_vprintf(msg, arg);
+               ~~ ^~~~~~~~~~~~~~~~~~~~~
+../../src/middleware/rte_log.c(659): warning: implicit conversion loses integer precision: 'unsigned long long' to 'time_t' (aka 'unsigned int') [-Wshorten-64-to-32]
+            log_sec2time(tick/1000, &time);
+            ~~~~~~~~~~~~ ~~~~^~~~~
+../../src/middleware/rte_log.c(23): warning: padding struct 'struct _log_level_tbl_t' with 3 bytes to align 'name' [-Wpadded]
+    char *name;
+          ^
+../../src/middleware/rte_log.c(787): warning: assigning to 'log_output_f' (aka 'unsigned int (*)(unsigned char *, unsigned int)') from 'void *' converts between void pointer and function pointer [-Wpedantic]
+        log_config_handle.out_func = param;
+                                   ^ ~~~~~
+../../src/middleware/rte_log.c(803): warning: passing 'const char *' to parameter of type 'uint8_t *' (aka 'unsigned char *') discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]
+    log_config_handle.out_func(buffer, length);
+                               ^~~~~~
+../../src/middleware/rte_log.c(805): warning: no newline at end of file [-Wnewline-eof]
+}
+ ^
+24 warnings generated.
+compiling rte_log.c...
+../../src/middleware/rte_memory.c(12): warning: In file included from...
+../../src/middleware/../../inc/middle_layer/rte_memory.h(14): warning: In file included from...
+../../src/middleware/../../inc/middle_layer/rte.h(139): warning: zero size arrays are an extension [-Wzero-length-array]
+    uint8_t msg_buf[0];
+                    ^
+../../src/middleware/rte_memory.c(280): warning: cast from 'const void *' to 'unsigned char *' drops const qualifier [-Wcast-qual]
+        mem_cast(unsigned char*, ptr) - block_start_offset);
+        ^
+../../src/middleware/rte_memory.c(161): note: expanded from macro 'mem_cast'
+#define mem_cast(t, exp)    ((t) (exp))
+                                 ^
+../../src/middleware/rte_memory.c(279): warning: cast from 'unsigned char *' to 'block_header_t *' (aka 'struct block_header_t *') increases required alignment from 1 to 4 [-Wcast-align]
+    return mem_cast(block_header_t*,
+           ^~~~~~~~~~~~~~~~~~~~~~~~~
+../../src/middleware/rte_memory.c(161): note: expanded from macro 'mem_cast'
+#define mem_cast(t, exp)    ((t) (exp))
+                             ^~~~~~~~~
+../../src/middleware/rte_memory.c(285): warning: cast from 'const struct block_header_t *' to 'unsigned char *' drops const qualifier [-Wcast-qual]
+        mem_cast(unsigned char*, block) + block_start_offset);
+        ^
+../../src/middleware/rte_memory.c(161): note: expanded from macro 'mem_cast'
+#define mem_cast(t, exp)    ((t) (exp))
+                                 ^
+../../src/middleware/rte_memory.c(302): warning: implicit conversion changes signedness: 'unsigned int' to 'memptr_t' (aka 'int') [-Wsign-conversion]
+        block_size(block) - block_header_overhead);
+        ~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~
+../../src/middleware/rte_memory.c(339): warning: implicit conversion changes signedness: 'unsigned int' to 'memptr_t' (aka 'int') [-Wsign-conversion]
+        (mem_cast(memptr_t, ptr) + (align - 1)) & ~(align - 1);
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~
+../../src/middleware/rte_memory.c(339): warning: implicit conversion changes signedness: 'memptr_t' (aka 'int') to 'unsigned int' [-Wsign-conversion]
+        (mem_cast(memptr_t, ptr) + (align - 1)) & ~(align - 1);
+         ^~~~~~~~~~~~~~~~~~~~~~~ ~
+../../src/middleware/rte_memory.c(161): note: expanded from macro 'mem_cast'
+#define mem_cast(t, exp)    ((t) (exp))
+                             ^~~~~~~~~
+../../src/middleware/rte_memory.c(347): warning: no previous prototype for function 'adjust_request_size' [-Wmissing-prototypes]
+size_t adjust_request_size(size_t size, size_t align)
+       ^
+../../src/middleware/rte_memory.c(347): note: declare 'static' if the function is not intended to be used outside of this translation unit
+size_t adjust_request_size(size_t size, size_t align)
 ^
 static 
-../../src/utils/letter-shell/src/shell.c(1831): warning: no previous extern declaration for non-static variable 'shellCmdusers' [-Wmissing-variable-declarations]
-SHELL_EXPORT_CMD(
-^
-../../src/utils/letter-shell/src/shell.h(133): note: expanded from macro 'SHELL_EXPORT_CMD'
-            const char shellCmd##_name[] = #_name; \
-                       ^
-<scratch space>(60): note: expanded from here
-shellCmdusers
-^
-../../src/utils/letter-shell/src/shell.c(1831): note: declare 'static' if the variable is not intended to be used outside of this translation unit
-../../src/utils/letter-shell/src/shell.h(133): note: expanded from macro 'SHELL_EXPORT_CMD'
-            const char shellCmd##_name[] = #_name; \
-                  ^
-../../src/utils/letter-shell/src/shell.c(1831): warning: no previous extern declaration for non-static variable 'shellDescusers' [-Wmissing-variable-declarations]
-SHELL_EXPORT_CMD(
-^
-../../src/utils/letter-shell/src/shell.h(134): note: expanded from macro 'SHELL_EXPORT_CMD'
-            const char shellDesc##_name[] = #_desc; \
-                       ^
-<scratch space>(61): note: expanded from here
-shellDescusers
-^
-../../src/utils/letter-shell/src/shell.c(1831): note: declare 'static' if the variable is not intended to be used outside of this translation unit
-../../src/utils/letter-shell/src/shell.h(134): note: expanded from macro 'SHELL_EXPORT_CMD'
-            const char shellDesc##_name[] = #_desc; \
-                  ^
-../../src/utils/letter-shell/src/shell.c(1831): warning: this function declaration is not a prototype [-Wstrict-prototypes]
-SHELL_EXPORT_CMD(
-^
-../../src/utils/letter-shell/src/shell.h(140): note: expanded from macro 'SHELL_EXPORT_CMD'
-                .data.cmd.function = (int (*)())_func, \
-                                             ^
-../../src/utils/letter-shell/src/shell.c(1831): warning: no previous extern declaration for non-static variable 'shellCommandusers' [-Wmissing-variable-declarations]
-../../src/utils/letter-shell/src/shell.h(136): note: expanded from macro 'SHELL_EXPORT_CMD'
-            shellCommand##_name SHELL_SECTION("shellCommand") =  \
-            ^
-<scratch space>(62): note: expanded from here
-shellCommandusers
-^
-../../src/utils/letter-shell/src/shell.c(1831): note: declare 'static' if the variable is not intended to be used outside of this translation unit
-../../src/utils/letter-shell/src/shell.h(135): note: expanded from macro 'SHELL_EXPORT_CMD'
-            SHELL_USED const ShellCommand \
+../../src/middleware/rte_memory.c(494): warning: implicit conversion changes signedness: 'unsigned int' to 'memptr_t' (aka 'int') [-Wsign-conversion]
+        offset_to_block(block_to_ptr(block), size - block_header_overhead);
+        ~~~~~~~~~~~~~~~                      ~~~~~^~~~~~~~~~~~~~~~~~~~~~~
+../../src/middleware/rte_memory.c(780): warning: implicit conversion changes signedness: 'memptr_t' (aka 'int') to 'unsigned int' [-Wsign-conversion]
+                    mem_cast(memptr_t, aligned) + offset);
+                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+../../src/middleware/rte_memory.c(161): note: expanded from macro 'mem_cast'
+#define mem_cast(t, exp)    ((t) (exp))
                              ^
-../../src/utils/letter-shell/src/shell.c(1839): warning: no previous prototype for function 'shellCmds' [-Wmissing-prototypes]
-void shellCmds(void)
+../../src/middleware/rte_memory.c(161): note: expanded from macro 'mem_cast'
+#define mem_cast(t, exp)    ((t) (exp))
+                                  ^~~
+10 warnings generated.
+compiling rte_memory.c...
+../../src/hal/hal_gpio_stm32h7.c(11): warning: In file included from...
+../../src/hal/../../inc/hal/hal_gpio.h(15): warning: In file included from...
+../../src/hal/../../inc/hal/hal.h(15): warning: In file included from...
+../../src/hal/../../inc/hal/../rte_include.h(4): warning: In file included from...
+../../inc/middle_layer/rte.h(139): warning: zero size arrays are an extension [-Wzero-length-array]
+    uint8_t msg_buf[0];
+                    ^
+../../src/hal/hal_gpio_stm32h7.c(18): warning: padding struct 'gpio_t' with 3 bytes to align 'port' [-Wpadded]
+    GPIO_TypeDef* port; // Port
+                  ^
+../../src/hal/hal_gpio_stm32h7.c(16): warning: padding size of 'gpio_t' with 2 bytes to alignment boundary [-Wpadded]
+typedef struct {
+        ^
+3 warnings generated.
+compiling hal_gpio_stm32h7.c...
+../../src/hal/hal_key.c(12): warning: In file included from...
+../../src/hal/../../inc/hal/hal_gpio.h(15): warning: In file included from...
+../../src/hal/../../inc/hal/hal.h(15): warning: In file included from...
+../../src/hal/../../inc/hal/../rte_include.h(4): warning: In file included from...
+../../inc/middle_layer/rte.h(139): warning: zero size arrays are an extension [-Wzero-length-array]
+    uint8_t msg_buf[0];
+                    ^
+../../src/hal/hal_key.c(12): warning: In file included from...
+../../src/hal/../../inc/hal/hal_gpio.h(15): warning: In file included from...
+../../src/hal/../../inc/hal/hal.h(15): warning: In file included from...
+../../src/hal/../../inc/hal/../rte_include.h(8): warning: In file included from...
+../../inc/middle_layer/rte_timer.h(21): warning: padding struct 'timer_configuration_t' with 3 bytes to align 'repeat_period_tick' [-Wpadded]
+    uint32_t repeat_period_tick;
+             ^
+2 warnings generated.
+compiling hal_key.c...
+../../src/data_structure/ds_ringbuffer.c(21): warning: In file included from...
+../../src/data_structure/../../inc/data_structure/ds_ringbuffer.h(14): warning: In file included from...
+../../src/data_structure/../../inc/data_structure/../middle_layer/rte.h(139): warning: zero size arrays are an extension [-Wzero-length-array]
+    uint8_t msg_buf[0];
+                    ^
+../../src/data_structure/ds_ringbuffer.c(147): warning: cast from 'uint8_t *' (aka 'unsigned char *') to 'uint32_t *' (aka 'unsigned int *') increases required alignment from 1 to 4 [-Wcast-align]
+            *((uint32_t *)write_ptr) = size;
+              ^~~~~~~~~~~~~~~~~~~~~
+../../src/data_structure/ds_ringbuffer.c(157): warning: cast from 'uint8_t *' (aka 'unsigned char *') to 'uint32_t *' (aka 'unsigned int *') increases required alignment from 1 to 4 [-Wcast-align]
+        *((uint32_t *)write_ptr) = size;
+          ^~~~~~~~~~~~~~~~~~~~~
+../../src/data_structure/ds_ringbuffer.c(210): warning: cast from 'uint8_t *' (aka 'unsigned char *') to 'uint32_t *' (aka 'unsigned int *') increases required alignment from 1 to 4 [-Wcast-align]
+        read_size = *((uint32_t *)read_ptr);
+                      ^~~~~~~~~~~~~~~~~~~~
+4 warnings generated.
+compiling ds_ringbuffer.c...
+../../src/hal/hal_com_stm32h7.c(12): warning: In file included from...
+../../src/hal/../../inc/hal/hal_com.h(15): warning: In file included from...
+../../src/hal/../../inc/hal/hal.h(15): warning: In file included from...
+../../src/hal/../../inc/hal/../rte_include.h(4): warning: In file included from...
+../../inc/middle_layer/rte.h(139): warning: zero size arrays are an extension [-Wzero-length-array]
+    uint8_t msg_buf[0];
+                    ^
+../../src/hal/hal_com_stm32h7.c(18): warning: padding struct 'com_device_t' with 1 byte to align 'capacity' [-Wpadded]
+    uint16_t capacity;
+             ^
+../../src/hal/hal_com_stm32h7.c(21): warning: padding struct 'com_device_t' with 2 bytes to align 'uart_handle' [-Wpadded]
+    UART_HandleTypeDef *uart_handle;
+                        ^
+../../src/hal/hal_com_stm32h7.c(12): warning: In file included from...
+../../src/hal/../../inc/hal/hal_com.h(15): warning: In file included from...
+../../src/hal/../../inc/hal/hal.h(38): warning: padding struct 'struct __hal_device' with 3 bytes to align 'read' [-Wpadded]
+    device_read_sync_f read;
+                       ^
+../../src/hal/hal_com_stm32h7.c(100): warning: incompatible function pointer types assigning to 'device_read_sync_f' (aka 'signed char (*)(struct __hal_device *, unsigned char *, unsigned int *, unsigned int)') from 'rte_error_t (hal_device_t *, uint8_t *, uint16_t *, uint32_t)' (aka 'signed char (struct __hal_device *, unsigned char *, unsigned short *, unsigned int)') [-Wincompatible-function-pointer-types]
+    com_control_handle[com_name].device.read = com_recv;
+                                             ^ ~~~~~~~~
+../../src/hal/hal_com_stm32h7.c(101): warning: incompatible function pointer types assigning to 'device_write_sync_f' (aka 'signed char (*)(struct __hal_device *, unsigned char *, unsigned int, unsigned int)') from 'rte_error_t (hal_device_t *, uint8_t *, uint16_t, uint32_t)' (aka 'signed char (struct __hal_device *, unsigned char *, unsigned short, unsigned int)') [-Wincompatible-function-pointer-types]
+    com_control_handle[com_name].device.write = com_send;
+                                              ^ ~~~~~~~~
+../../src/hal/hal_com_stm32h7.c(12): warning: In file included from...
+../../src/hal/../../inc/hal/hal_com.h(14): warning: In file included from...
+C:/UserProfession/Keil_v5/Packs/Keil/STM32H7xx_DFP/2.7.0/Drivers/CMSIS/Device/ST/STM32H7xx/Include\stm32h7xx.h(223): warning: In file included from...
+C:/UserProfession/Keil_v5/Packs/Keil/STM32H7xx_DFP/2.7.0/Drivers/STM32H7xx_HAL_Driver/Inc\stm32h7xx_hal.h(30): warning: In file included from...
+./RTE/Device/STM32H743VITx/STCubeGenerated/Inc\stm32h7xx_hal_conf.h(458): warning: In file included from...
+C:/UserProfession/Keil_v5/Packs/Keil/STM32H7xx_DFP/2.7.0/Drivers/STM32H7xx_HAL_Driver/Inc\stm32h7xx_hal_uart.h(218): warning: padding struct 'struct __UART_HandleTypeDef' with 2 bytes to align 'FifoMode' [-Wpadded]
+  uint32_t                 FifoMode;                 /*!< Specifies if the FIFO mode is being used.
+                           ^
+C:/UserProfession/Keil_v5/Packs/Keil/STM32H7xx_DFP/2.7.0/Drivers/STM32H7xx_HAL_Driver/Inc\stm32h7xx_hal_uart.h(235): warning: padding struct 'struct __UART_HandleTypeDef' with 3 bytes to align 'gState' [-Wpadded]
+  __IO HAL_UART_StateTypeDef    gState;              /*!< UART state information related to global Handle management
+                                ^
+../../src/hal/hal_com_stm32h7.c(12): warning: In file included from...
+../../src/hal/../../inc/hal/hal_com.h(14): warning: In file included from...
+C:/UserProfession/Keil_v5/Packs/Keil/STM32H7xx_DFP/2.7.0/Drivers/CMSIS/Device/ST/STM32H7xx/Include\stm32h7xx.h(223): warning: In file included from...
+C:/UserProfession/Keil_v5/Packs/Keil/STM32H7xx_DFP/2.7.0/Drivers/STM32H7xx_HAL_Driver/Inc\stm32h7xx_hal.h(30): warning: In file included from...
+./RTE/Device/STM32H743VITx/STCubeGenerated/Inc\stm32h7xx_hal_conf.h(254): warning: In file included from...
+C:/UserProfession/Keil_v5/Packs/Keil/STM32H7xx_DFP/2.7.0/Drivers/STM32H7xx_HAL_Driver/Inc\stm32h7xx_hal_dma.h(147): warning: padding struct 'struct __DMA_HandleTypeDef' with 2 bytes to align 'Parent' [-Wpadded]
+  void                            *Parent;                                                          /*!< Parent object state                           */
+                                   ^
+../../src/hal/hal_com_stm32h7.c(120): warning: implicit conversion changes signedness: 'int' to 'unsigned int' [-Wsign-conversion]
+        uint32_t alignedAddr = (uint32_t)com_control_handle[com_name].buffer & ~0x1F;
+                                                                             ~ ^~~~~
+../../src/hal/hal_com_stm32h7.c(110): warning: no previous prototype for function 'com_recv_callback' [-Wmissing-prototypes]
+void com_recv_callback(com_name_t com_name)
      ^
-../../src/utils/letter-shell/src/shell.c(1839): note: declare 'static' if the function is not intended to be used outside of this translation unit
-void shellCmds(void)
+../../src/hal/hal_com_stm32h7.c(110): note: declare 'static' if the function is not intended to be used outside of this translation unit
+void com_recv_callback(com_name_t com_name)
 ^
 static 
-../../src/utils/letter-shell/src/shell.c(1847): warning: no previous extern declaration for non-static variable 'shellCmdcmds' [-Wmissing-variable-declarations]
-SHELL_EXPORT_CMD(
-^
-../../src/utils/letter-shell/src/shell.h(133): note: expanded from macro 'SHELL_EXPORT_CMD'
-            const char shellCmd##_name[] = #_name; \
-                       ^
-<scratch space>(67): note: expanded from here
-shellCmdcmds
-^
-../../src/utils/letter-shell/src/shell.c(1847): note: declare 'static' if the variable is not intended to be used outside of this translation unit
-../../src/utils/letter-shell/src/shell.h(133): note: expanded from macro 'SHELL_EXPORT_CMD'
-            const char shellCmd##_name[] = #_name; \
-                  ^
-../../src/utils/letter-shell/src/shell.c(1847): warning: no previous extern declaration for non-static variable 'shellDesccmds' [-Wmissing-variable-declarations]
-SHELL_EXPORT_CMD(
-^
-../../src/utils/letter-shell/src/shell.h(134): note: expanded from macro 'SHELL_EXPORT_CMD'
-            const char shellDesc##_name[] = #_desc; \
-                       ^
-<scratch space>(68): note: expanded from here
-shellDesccmds
-^
-../../src/utils/letter-shell/src/shell.c(1847): note: declare 'static' if the variable is not intended to be used outside of this translation unit
-../../src/utils/letter-shell/src/shell.h(134): note: expanded from macro 'SHELL_EXPORT_CMD'
-            const char shellDesc##_name[] = #_desc; \
-                  ^
-../../src/utils/letter-shell/src/shell.c(1847): warning: this function declaration is not a prototype [-Wstrict-prototypes]
-SHELL_EXPORT_CMD(
-^
-../../src/utils/letter-shell/src/shell.h(140): note: expanded from macro 'SHELL_EXPORT_CMD'
-                .data.cmd.function = (int (*)())_func, \
-                                             ^
-../../src/utils/letter-shell/src/shell.c(1847): warning: no previous extern declaration for non-static variable 'shellCommandcmds' [-Wmissing-variable-declarations]
-../../src/utils/letter-shell/src/shell.h(136): note: expanded from macro 'SHELL_EXPORT_CMD'
-            shellCommand##_name SHELL_SECTION("shellCommand") =  \
-            ^
-<scratch space>(69): note: expanded from here
-shellCommandcmds
-^
-../../src/utils/letter-shell/src/shell.c(1847): note: declare 'static' if the variable is not intended to be used outside of this translation unit
-../../src/utils/letter-shell/src/shell.h(135): note: expanded from macro 'SHELL_EXPORT_CMD'
-            SHELL_USED const ShellCommand \
-                             ^
-../../src/utils/letter-shell/src/shell.c(1855): warning: no previous prototype for function 'shellVars' [-Wmissing-prototypes]
-void shellVars(void)
-     ^
-../../src/utils/letter-shell/src/shell.c(1855): note: declare 'static' if the function is not intended to be used outside of this translation unit
-void shellVars(void)
-^
-static 
-../../src/utils/letter-shell/src/shell.c(1863): warning: no previous extern declaration for non-static variable 'shellCmdvars' [-Wmissing-variable-declarations]
-SHELL_EXPORT_CMD(
-^
-../../src/utils/letter-shell/src/shell.h(133): note: expanded from macro 'SHELL_EXPORT_CMD'
-            const char shellCmd##_name[] = #_name; \
-                       ^
-<scratch space>(74): note: expanded from here
-shellCmdvars
-^
-../../src/utils/letter-shell/src/shell.c(1863): note: declare 'static' if the variable is not intended to be used outside of this translation unit
-../../src/utils/letter-shell/src/shell.h(133): note: expanded from macro 'SHELL_EXPORT_CMD'
-            const char shellCmd##_name[] = #_name; \
-                  ^
-../../src/utils/letter-shell/src/shell.c(1863): warning: no previous extern declaration for non-static variable 'shellDescvars' [-Wmissing-variable-declarations]
-SHELL_EXPORT_CMD(
-^
-../../src/utils/letter-shell/src/shell.h(134): note: expanded from macro 'SHELL_EXPORT_CMD'
-            const char shellDesc##_name[] = #_desc; \
-                       ^
-<scratch space>(75): note: expanded from here
-shellDescvars
-^
-../../src/utils/letter-shell/src/shell.c(1863): note: declare 'static' if the variable is not intended to be used outside of this translation unit
-../../src/utils/letter-shell/src/shell.h(134): note: expanded from macro 'SHELL_EXPORT_CMD'
-            const char shellDesc##_name[] = #_desc; \
-                  ^
-../../src/utils/letter-shell/src/shell.c(1863): warning: this function declaration is not a prototype [-Wstrict-prototypes]
-SHELL_EXPORT_CMD(
-^
-../../src/utils/letter-shell/src/shell.h(140): note: expanded from macro 'SHELL_EXPORT_CMD'
-                .data.cmd.function = (int (*)())_func, \
-                                             ^
-../../src/utils/letter-shell/src/shell.c(1863): warning: no previous extern declaration for non-static variable 'shellCommandvars' [-Wmissing-variable-declarations]
-../../src/utils/letter-shell/src/shell.h(136): note: expanded from macro 'SHELL_EXPORT_CMD'
-            shellCommand##_name SHELL_SECTION("shellCommand") =  \
-            ^
-<scratch space>(76): note: expanded from here
-shellCommandvars
-^
-../../src/utils/letter-shell/src/shell.c(1863): note: declare 'static' if the variable is not intended to be used outside of this translation unit
-../../src/utils/letter-shell/src/shell.h(135): note: expanded from macro 'SHELL_EXPORT_CMD'
-            SHELL_USED const ShellCommand \
-                             ^
-../../src/utils/letter-shell/src/shell.c(1871): warning: no previous prototype for function 'shellKeys' [-Wmissing-prototypes]
-void shellKeys(void)
-     ^
-../../src/utils/letter-shell/src/shell.c(1871): note: declare 'static' if the function is not intended to be used outside of this translation unit
-void shellKeys(void)
-^
-static 
-../../src/utils/letter-shell/src/shell.c(1879): warning: no previous extern declaration for non-static variable 'shellCmdkeys' [-Wmissing-variable-declarations]
-SHELL_EXPORT_CMD(
-^
-../../src/utils/letter-shell/src/shell.h(133): note: expanded from macro 'SHELL_EXPORT_CMD'
-            const char shellCmd##_name[] = #_name; \
-                       ^
-<scratch space>(81): note: expanded from here
-shellCmdkeys
-^
-../../src/utils/letter-shell/src/shell.c(1879): note: declare 'static' if the variable is not intended to be used outside of this translation unit
-../../src/utils/letter-shell/src/shell.h(133): note: expanded from macro 'SHELL_EXPORT_CMD'
-            const char shellCmd##_name[] = #_name; \
-                  ^
-../../src/utils/letter-shell/src/shell.c(1879): warning: no previous extern declaration for non-static variable 'shellDesckeys' [-Wmissing-variable-declarations]
-SHELL_EXPORT_CMD(
-^
-../../src/utils/letter-shell/src/shell.h(134): note: expanded from macro 'SHELL_EXPORT_CMD'
-            const char shellDesc##_name[] = #_desc; \
-                       ^
-<scratch space>(82): note: expanded from here
-shellDesckeys
-^
-../../src/utils/letter-shell/src/shell.c(1879): note: declare 'static' if the variable is not intended to be used outside of this translation unit
-../../src/utils/letter-shell/src/shell.h(134): note: expanded from macro 'SHELL_EXPORT_CMD'
-            const char shellDesc##_name[] = #_desc; \
-                  ^
-../../src/utils/letter-shell/src/shell.c(1879): warning: this function declaration is not a prototype [-Wstrict-prototypes]
-SHELL_EXPORT_CMD(
-^
-../../src/utils/letter-shell/src/shell.h(140): note: expanded from macro 'SHELL_EXPORT_CMD'
-                .data.cmd.function = (int (*)())_func, \
-                                             ^
-../../src/utils/letter-shell/src/shell.c(1879): warning: no previous extern declaration for non-static variable 'shellCommandkeys' [-Wmissing-variable-declarations]
-../../src/utils/letter-shell/src/shell.h(136): note: expanded from macro 'SHELL_EXPORT_CMD'
-            shellCommand##_name SHELL_SECTION("shellCommand") =  \
-            ^
-<scratch space>(83): note: expanded from here
-shellCommandkeys
-^
-../../src/utils/letter-shell/src/shell.c(1879): note: declare 'static' if the variable is not intended to be used outside of this translation unit
-../../src/utils/letter-shell/src/shell.h(135): note: expanded from macro 'SHELL_EXPORT_CMD'
-            SHELL_USED const ShellCommand \
-                             ^
-../../src/utils/letter-shell/src/shell.c(1887): warning: no previous prototype for function 'shellClear' [-Wmissing-prototypes]
-void shellClear(void)
-     ^
-../../src/utils/letter-shell/src/shell.c(1887): note: declare 'static' if the function is not intended to be used outside of this translation unit
-void shellClear(void)
-^
-static 
-../../src/utils/letter-shell/src/shell.c(1895): warning: no previous extern declaration for non-static variable 'shellCmdclear' [-Wmissing-variable-declarations]
-SHELL_EXPORT_CMD(
-^
-../../src/utils/letter-shell/src/shell.h(133): note: expanded from macro 'SHELL_EXPORT_CMD'
-            const char shellCmd##_name[] = #_name; \
-                       ^
-<scratch space>(88): note: expanded from here
-shellCmdclear
-^
-../../src/utils/letter-shell/src/shell.c(1895): note: declare 'static' if the variable is not intended to be used outside of this translation unit
-../../src/utils/letter-shell/src/shell.h(133): note: expanded from macro 'SHELL_EXPORT_CMD'
-            const char shellCmd##_name[] = #_name; \
-                  ^
-../../src/utils/letter-shell/src/shell.c(1895): warning: no previous extern declaration for non-static variable 'shellDescclear' [-Wmissing-variable-declarations]
-SHELL_EXPORT_CMD(
-^
-../../src/utils/letter-shell/src/shell.h(134): note: expanded from macro 'SHELL_EXPORT_CMD'
-            const char shellDesc##_name[] = #_desc; \
-                       ^
-<scratch space>(89): note: expanded from here
-shellDescclear
-^
-../../src/utils/letter-shell/src/shell.c(1895): note: declare 'static' if the variable is not intended to be used outside of this translation unit
-../../src/utils/letter-shell/src/shell.h(134): note: expanded from macro 'SHELL_EXPORT_CMD'
-            const char shellDesc##_name[] = #_desc; \
-                  ^
-../../src/utils/letter-shell/src/shell.c(1895): warning: this function declaration is not a prototype [-Wstrict-prototypes]
-SHELL_EXPORT_CMD(
-^
-../../src/utils/letter-shell/src/shell.h(140): note: expanded from macro 'SHELL_EXPORT_CMD'
-                .data.cmd.function = (int (*)())_func, \
-                                             ^
-../../src/utils/letter-shell/src/shell.c(1895): warning: no previous extern declaration for non-static variable 'shellCommandclear' [-Wmissing-variable-declarations]
-../../src/utils/letter-shell/src/shell.h(136): note: expanded from macro 'SHELL_EXPORT_CMD'
-            shellCommand##_name SHELL_SECTION("shellCommand") =  \
-            ^
-<scratch space>(90): note: expanded from here
-shellCommandclear
-^
-../../src/utils/letter-shell/src/shell.c(1895): note: declare 'static' if the variable is not intended to be used outside of this translation unit
-../../src/utils/letter-shell/src/shell.h(135): note: expanded from macro 'SHELL_EXPORT_CMD'
-            SHELL_USED const ShellCommand \
-                             ^
-../../src/utils/letter-shell/src/shell.c(1909): warning: empty expression statement has no effect; remove unnecessary ';' to silence this warning [-Wextra-semi-stmt]
-    SHELL_ASSERT(shell && cmd, return -1);
-                                         ^
-../../src/utils/letter-shell/src/shell.c(1918): warning: cast from 'const char *' to 'char *' drops const qualifier [-Wcast-qual]
-        shell->parser.length = shellStringCopy(shell->parser.buffer, (char *)cmd);
-                                                                             ^
-156 warnings generated.
-compiling shell.c...
+11 warnings generated.
+compiling hal_com_stm32h7.c...
+../../src/data_structure/ds_vector.c(21): warning: In file included from...
+../../src/data_structure/../../inc/data_structure/ds_vector.h(15): warning: In file included from...
+../../src/data_structure/../../inc/data_structure/../middle_layer/rte.h(139): warning: zero size arrays are an extension [-Wzero-length-array]
+    uint8_t msg_buf[0];
+                    ^
+../../src/data_structure/ds_vector.c(21): warning: In file included from...
+../../src/data_structure/../../inc/data_structure/ds_vector.h(23): warning: padding struct 'vector_configuration_t' with 3 bytes to align 'element_size' [-Wpadded]
+    uint32_t element_size;
+             ^
+../../src/data_structure/ds_vector.c(27): warning: padding struct 'struct __ds_vector' with 3 bytes to align 'capacity' [-Wpadded]
+    uint32_t capacity;
+             ^
+3 warnings generated.
+compiling ds_vector.c...
 linking...
 .\Objects\cam_h7.sct(16): warning: L6314W: No section matches pattern *(.RAM_MATH).
 .\Objects\cam_h7.sct(19): warning: L6314W: No section matches pattern *(.RAM_CAM).
 .\Objects\cam_h7.sct(23): warning: L6314W: No section matches pattern *(.RAM_GUI).
-Program Size: Code=32356 RO-data=2712 RW-data=98564 ZI-data=13300  
+Program Size: Code=32724 RO-data=2712 RW-data=98592 ZI-data=13296  
 Finished: 0 information, 3 warning and 0 error messages.
-".\Objects\cam_h7.axf" - 0 Error(s), 201 Warning(s).
+".\Objects\cam_h7.axf" - 0 Error(s), 101 Warning(s).
 
 <h2>Software Packages used:</h2>
 
@@ -1364,7 +579,7 @@ Package Vendor: Keil
       Include file:  Drivers\CMSIS\Device\ST\STM32H7xx\Include\stm32h7xx.h
       Source file:   Drivers\CMSIS\Device\ST\STM32H7xx\Source\Templates\arm\startup_stm32h743xx.s
       Source file:   Drivers\CMSIS\Device\ST\STM32H7xx\Source\Templates\system_stm32h7xx.c
-Build Time Elapsed:  00:00:12
+Build Time Elapsed:  00:00:08
 </pre>
 </body>
 </html>

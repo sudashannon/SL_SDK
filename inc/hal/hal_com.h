@@ -12,7 +12,7 @@
 #define __HAL_COM_H
 #include "RTE_Components.h"
 #include CMSIS_device_header
-#include "../rte_include.h"
+#include "hal.h"
 /**
  * @brief List all provided com instance's name.
  *
@@ -29,43 +29,21 @@ typedef struct {
 } com_configuration_t;
 
 /**
- * @brief Init a selected com via configuration table and the input baudrate.
+ * @brief Create a selected com device.
  *
  * @param com_name
  * @param config
+ * @param device
  * @return rte_error_t
  */
-extern rte_error_t com_init(com_name_t com_name, com_configuration_t *config);
+extern rte_error_t com_create(com_name_t com_name, com_configuration_t *config, hal_device_t **device);
 /**
- * @brief Deinit a selected com.
+ * @brief Destroy a selected com device.
  *
  * @param com_name
+ * @param device
  * @return rte_error_t
  */
-extern rte_error_t com_deinit(com_name_t com_name);
-/**
- * @brief Called in the com's recv interrupt.
- *
- */
-extern void com_recv_callback(com_name_t com_name);
-/**
- * @brief Send data via a selected com.
- *
- * @param com_name
- * @param data
- * @param size
- * @return rte_error_t
- */
-extern rte_error_t com_send_sync(com_name_t com_name, uint8_t *data, uint16_t size);
-/**
- * @brief Read data via a selected com in async mode, the user must defined the size he wants to read from the com.
- *
- * @param com_name
- * @param data
- * @param size
- * @param timeout_ms
- * @return rte_error_t
- */
-extern rte_error_t com_recv_async(com_name_t com_name, uint8_t *buffer, uint16_t *size, uint32_t timeout_ms);
+extern rte_error_t com_destroy(com_name_t com_name, hal_device_t *device);
 
 #endif

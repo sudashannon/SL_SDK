@@ -181,6 +181,7 @@ void DMA1_Stream0_IRQHandler(void)
 void USART1_IRQHandler(void)
 {
   /* USER CODE BEGIN USART1_IRQn 0 */
+  extern void com_recv_callback(com_name_t com_name);
   if(__HAL_UART_GET_FLAG(&huart1, UART_FLAG_IDLE) != RESET)
   {
     com_recv_callback(COM_1);

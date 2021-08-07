@@ -19,7 +19,7 @@ typedef struct {
     uint8_t if_run_immediately:1;
     uint8_t reserved:6;
     uint32_t repeat_period_tick;
-    void (*timer_callback)(void *);
+    rte_callback_f timer_callback;
     void *parameter;
 } timer_configuration_t;
 

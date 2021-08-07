@@ -33,7 +33,7 @@ typedef struct
     timer_group_id_t group_id;	    /*!< Group ID */
     volatile uint32_t ARR;          /*!< Auto reload value */
     volatile uint32_t CNT;          /*!< Counter value, counter counts down */
-    void (*callback)(void *);	    /*!< Callback which will be called when timer reaches zero */
+    rte_callback_f callback;	    /*!< Callback which will be called when timer reaches zero */
     void* parameter;           		/*!< Pointer to user parameters used for callback function */
 } timer_t;
 
