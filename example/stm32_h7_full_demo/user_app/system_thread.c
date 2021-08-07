@@ -5,7 +5,6 @@
 #include "rte_include.h"
 #include "hal_include.h"
 #include "usart.h"
-#include "bsp_lcd.h"
 
 osThreadId_t system_thread_id;
 static hal_device_t *com_debug = NULL;
@@ -66,8 +65,6 @@ __NO_RETURN void system_thread(void *argument)
     log_control(LOG_CMD_SET_LEVEL, &log_level);
     log_control(LOG_CMD_SET_OUTPUT, rte_data_out);
 
-    bsp_lcd_init();
-
     timer_configuration_t config = TIMER_CONFIG_INITIALIZER;
     timer_id_t running_timer_id = 0;
     config.repeat_period_tick = 500;
@@ -78,6 +75,8 @@ __NO_RETURN void system_thread(void *argument)
     shell.read = userShellRead;
     shellInit(&shell, shellBuffer, 512);
     osThreadNew(shellTask, &shell, NULL);
+    extern __NO_RETURN void gui_thread(void *param);
+    osThreadNew(gui_thread, NULL, NULL);
 
     RTE_LOGI("Boot at clk: %d", SystemCoreClock);
     for (;;) {

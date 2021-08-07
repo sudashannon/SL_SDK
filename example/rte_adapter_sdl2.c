@@ -26,15 +26,6 @@ static rte_allocator_t rte_allocator_instance = {
     .free = NULL,
 };
 /**
- * @brief Used for letter-shell.
- *
- */
-static ds_vector_t shell_buffer = NULL;
-void *_shell_command_start = NULL;
-void *_shell_command_end = NULL;
-static Shell shell;
-static char shellBuffer[512];
-/**
  * @brief Used for main timer group internal.
  *
  */
@@ -196,22 +187,6 @@ void rte_init(void)
     log_init(NULL, rte_log_output, rte_get_tick);
     timer_init(4, true);
     timer_create_group(&rte_timer_group, NULL);
-    vector_configuration_t vector_config = VECTOR_CONFIG_INITIALIZER;
-    vector_config.if_deep_copy = true;
-    vector_config.capacity = 1024;
-    vector_config.element_size = sizeof(char);
-    ds_vector_create(&vector_config, &shell_buffer);
-    _shell_command_start = rte_calloc(10 * 1024);
-    _shell_command_end = (uint8_t *)_shell_command_start + 10 * 1024;
-    shell.write = userShellWrite;
-    shell.read = userShellRead;
-    shellInit(&shell, shellBuffer, 512);
-    timer_id_t running_timer_id = 0;
-    timer_configuration_t timer_config = TIMER_CONFIG_INITIALIZER;
-    timer_config.repeat_period_tick = 50;
-    timer_config.timer_callback = shellTask;
-    timer_config.parameter = &shell;
-    timer_create_new(rte_get_main_timergroup(), &timer_config, &running_timer_id);
 }
 
 /**

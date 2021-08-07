@@ -111,14 +111,7 @@ void com_recv_callback(com_name_t com_name)
         HAL_UART_DMAStop(com_control_handle[com_name].uart_handle);
         com_control_handle[com_name].recv_length = com_control_handle[com_name].recv_length -
                                 (uint16_t)__HAL_DMA_GET_COUNTER(com_control_handle[com_name].dma_handle);
-        /*
-                the SCB_InvalidateDCache_by_Addr() requires a 32-Byte aligned address,
-                adjust the address and the D-Cache size to invalidate accordingly.
-            */
-        uint32_t alignedAddr = (uint32_t)com_control_handle[com_name].buffer & ~0x1F;
-        SCB_InvalidateDCache_by_Addr((uint32_t*)alignedAddr,
-                                    (int32_t)(com_control_handle[com_name].recv_length +
-                                    ((uint32_t)com_control_handle[com_name].buffer - alignedAddr)));
+        HAL_RAM_CLEAN_AFTER_REC(com_control_handle[com_name].buffer, com_control_handle[com_name].recv_length);
         osSemaphoreRelease(com_control_handle[com_name].sema);
     } else {
         osSemaphoreRelease(com_control_handle[com_name].sema);

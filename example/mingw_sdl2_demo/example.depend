@@ -830,7 +830,7 @@
 1628247129 e:\01work\03sl_rte\inc\data_structure\ds_ringbuffer.h
 	"../middle_layer/rte.h"
 
-1628264499 e:\01work\03sl_rte\inc\middle_layer\rte.h
+1628329159 e:\01work\03sl_rte\inc\middle_layer\rte.h
 	<stdint.h>
 	<stddef.h>
 	<stdlib.h>
@@ -846,31 +846,31 @@
 1628247470 e:\01work\03sl_rte\inc\data_structure\ds_vector.h
 	"../middle_layer/rte.h"
 
-1628262313 source:e:\01work\03sl_rte\src\middleware\rte_log.c
+1628329159 source:e:\01work\03sl_rte\src\middleware\rte_log.c
 	"../../inc/middle_layer/rte_log.h"
 	<stdio.h>
 	<string.h>
 	<stdarg.h>
 	<stdlib.h>
 
-1628262306 e:\01work\03sl_rte\inc\middle_layer\rte_log.h
+1628329159 e:\01work\03sl_rte\inc\middle_layer\rte_log.h
 	"rte.h"
 
-1628242866 source:e:\01work\03sl_rte\src\middleware\rte_memory.c
+1628308061 source:e:\01work\03sl_rte\src\middleware\rte_memory.c
 	"../../inc/middle_layer/rte_memory.h"
 	"../../inc/middle_layer/rte_log.h"
 	<cmsis_compiler.h>
 
-1628071219 e:\01work\03sl_rte\inc\middle_layer\rte_memory.h
+1628347117 e:\01work\03sl_rte\inc\middle_layer\rte_memory.h
 	"rte.h"
 
-1628267267 source:e:\01work\03sl_rte\example\rte_adapter_sdl2.c
+1628344720 source:e:\01work\03sl_rte\example\rte_adapter_sdl2.c
 	"../inc/rte_include.h"
 	<stdio.h>
 	"SDL.h"
 	"shell.h"
 
-1628247086 e:\01work\03sl_rte\inc\rte_include.h
+1628329159 e:\01work\03sl_rte\inc\rte_include.h
 	"middle_layer/rte.h"
 	"middle_layer/rte_log.h"
 	"middle_layer/rte_memory.h"
@@ -1285,13 +1285,13 @@
 	"SDL.h"
 	"shell.h"
 
-1628248201 source:e:\01work\03sl_rte\src\middleware\rte_timer.c
+1628329159 source:e:\01work\03sl_rte\src\middleware\rte_timer.c
 	"../../inc/middle_layer/rte_timer.h"
 	"../../inc/middle_layer/rte_memory.h"
 	"../../inc/middle_layer/rte_log.h"
 	"../../inc/data_structure/ds_vector.h"
 
-1628248047 e:\01work\03sl_rte\inc\middle_layer\rte_timer.h
+1628329159 e:\01work\03sl_rte\inc\middle_layer\rte_timer.h
 	"rte.h"
 
 1628262436 source:e:\01work\03sl_rte\example\mingw_sdl2_demo\gui_thread.c
@@ -2419,7 +2419,7 @@
 	"lv_math.h"
 	<stdbool.h>
 
-1628257453 source:e:\01work\03sl_rte\src\utils\lvgl\src\misc\lv_mem.c
+1628350143 source:e:\01work\03sl_rte\src\utils\lvgl\src\misc\lv_mem.c
 	"lv_mem.h"
 	"lv_tlsf.h"
 	"lv_gc.h"
@@ -2681,4 +2681,10 @@
 	"shell_cfg.h"
 	"shell.h"
 	"shell_ext.h"
+
+1628344741 e:\01work\03sl_rte\example\mingw_sdl2_demo\shell_cfg.h
+
+1628350528 e:\01work\03sl_rte\example\mingw_sdl2_demo\lv_conf.h
+	<stdint.h>
+	"rte_include.h"
 

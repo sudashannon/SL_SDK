@@ -69,18 +69,15 @@ void bsp_lcd_fill_color_normal(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y
     gpio_set_low(LCD_CS);
     gpio_set_high(LCD_DC);
 	uint16_t *line_buffer = memory_alloc(BANK_DMA, (x1 - x0 + 1) * 2);
-	for(uint32_t i = 0; i < (x1 - x0 + 1); i++)
-	{
+    uint32_t i = 0;
+    uint32_t col = (x1 - x0 + 1);
+    uint32_t row = (y1 - y0 + 1);
+    uint32_t send_count = col << 1;
+	for(i = 0; i < col; i++)
 		line_buffer[i] = color;
-	}
-	/*
-        the SCB_CleanDCache_by_Addr() requires a 32-Byte aligned address
-        adjust the address and the D-Cache size to clean accordingly.
-	 */
-	uint32_t alignedAddr = (uint32_t)line_buffer &  ~0x1F;
-	SCB_CleanDCache_by_Addr((uint32_t *)alignedAddr, 2 * (x1 - x0 + 1) + ((uint32_t)line_buffer - alignedAddr));
-	for(uint32_t i = 0; i < (y1 - y0 +1); i++) {
-        hal_device_write_async(spi_lcd, (uint8_t *)line_buffer, 2 * (x1 - x0 + 1));
+    HAL_RAM_CLEAN_PRE_SEND(line_buffer, send_count);
+    for(i = 0; i < row; i++) {
+        hal_device_write_async(spi_lcd, (uint8_t *)line_buffer, send_count);
 	}
 	// SPI2 CS HIGH
 	gpio_set_high(LCD_CS);
@@ -90,24 +87,19 @@ void bsp_lcd_fill_frame(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint
 {
 	bsp_lcd_set_cursor(x0, x1, y0, y1);
 	bsp_lcd_write_command(0x2C);
-	uint32_t size = (x1 - x0 + 1) * (y1 - y0 + 1);
+	uint32_t size = (x1 - x0 + 1) * (y1 - y0 + 1) * 2;
     gpio_set_low(LCD_CS);
     gpio_set_high(LCD_DC);
-	while(size > 0) {
-		uint32_t send_count = 0;
-		if(size > (UINT16_MAX >> 1))
-			send_count = UINT16_MAX;
-		else
-			send_count = size * 2;
-		/*
-            the SCB_CleanDCache_by_Addr() requires a 32-Byte aligned address
-            adjust the address and the D-Cache size to clean accordingly.
-		 */
-		uint32_t alignedAddr = (uint32_t)color_map &  ~0x1F;
-		SCB_CleanDCache_by_Addr((uint32_t*)alignedAddr, send_count + ((uint32_t)color_map - alignedAddr));
-		hal_device_write_async(spi_lcd, (uint8_t*)color_map, send_count);
-        size -= send_count >> 2;
-        color_map += send_count >> 2;
+	for(uint32_t i = 0; i < size;) {
+        uint16_t send_count = (uint16_t) (size > UINT16_MAX ? UINT16_MAX : size);
+        HAL_RAM_CLEAN_PRE_SEND(color_map, send_count);
+        rte_error_t result = hal_device_write_async(spi_lcd, (uint8_t*)color_map, send_count);
+        if (result == RTE_SUCCESS) {
+            color_map += send_count;
+            i += send_count;
+        } else {
+            continue;
+        }
 	}
 	// SPI2 CS HIGH
 	gpio_set_high(LCD_CS);
@@ -203,4 +195,7 @@ void bsp_lcd_init(void)
     bsp_lcd_fill_color_normal(0, 0, 239, 320, 0x1234);
     uint32_t end_tick = rte_get_tick();
     RTE_LOGI("lcd fill time %d ms", end_tick - start_tick);
+    uint16_t *image = memory_alloc(BANK_DMA, 50 * 50 * sizeof(uint16_t));
+    memset(image, 0x5678, 50 * 50 * sizeof(uint16_t));
+    bsp_lcd_fill_frame(10, 10, 59, 59, image);
 }

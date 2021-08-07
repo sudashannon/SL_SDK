@@ -18,6 +18,7 @@
 					<Add directory="SDL2/include/SDL2" />
 					<Add directory="../../src/utils/lvgl" />
 					<Add directory="../../src/utils/letter-shell/src" />
+					<Add directory="../mingw_sdl2_demo" />
 				</Compiler>
 				<Linker>
 					<Add option="-m64  -lSDL2main -lSDL2" />
@@ -598,6 +599,7 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="keyboard.h" />
+		<Unit filename="lv_conf.h" />
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -613,6 +615,7 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="mousewheel.h" />
+		<Unit filename="shell_cfg.h" />
 		<Extensions>
 			<lib_finder disable_auto="1" />
 		</Extensions>

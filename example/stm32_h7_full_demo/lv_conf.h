@@ -18,10 +18,10 @@
  *====================*/
 
 /*Color depth: 1 (1 byte per pixel), 8 (RGB332), 16 (RGB565), 32 (ARGB8888)*/
-#define LV_COLOR_DEPTH     32
+#define LV_COLOR_DEPTH     16
 
 /*Swap the 2 bytes of RGB565 color. Useful if the display has a 8 bit interface (e.g. SPI)*/
-#define LV_COLOR_16_SWAP   0
+#define LV_COLOR_16_SWAP   1
 
 /*Enable more complex drawing routines to manage screens transparency.
  *Can be used if the UI is above another layer, e.g. an OSD menu or video player.
@@ -36,18 +36,19 @@
  *=========================*/
 
 /*1: use custom malloc/free, 0: use the built-in `lv_mem_alloc()` and `lv_mem_free()`*/
-#define LV_MEM_CUSTOM      1
+#define LV_MEM_CUSTOM      0
 #if LV_MEM_CUSTOM == 0
 /*Size of the memory available for `lv_mem_alloc()` in bytes (>= 2kB)*/
 #  define LV_MEM_SIZE    (32U * 1024U)          /*[bytes]*/
 
 /*Set an address for the memory pool instead of allocating it as a normal array. Can be in external SRAM too.*/
-#  define LV_MEM_ADR          0     /*0: unused*/
+#  define LV_MEM_CUSTOM_INCLUDE   "rte_include.h"   /*Header for the dynamic memory function*/
+#  define LV_MEM_ADR          (memory_alloc(BANK_GUI, LV_MEM_SIZE))     /*0: unused*/
 #else       /*LV_MEM_CUSTOM*/
 #  define LV_MEM_CUSTOM_INCLUDE   "rte_include.h"   /*Header for the dynamic memory function*/
-#  define LV_MEM_CUSTOM_ALLOC     rte_get_general_allocator()->malloc
-#  define LV_MEM_CUSTOM_FREE      rte_get_general_allocator()->free
-#  define LV_MEM_CUSTOM_REALLOC   rte_get_general_allocator()->realloc
+#  define LV_MEM_CUSTOM_ALLOC(size)     memory_alloc(BANK_GUI, size)
+#  define LV_MEM_CUSTOM_FREE(ptr)       memory_free(BANK_GUI, ptr)
+#  define LV_MEM_CUSTOM_REALLOC(ptr, new_size)   memory_realloc(BANK_GUI, ptr, new_size)
 #endif     /*LV_MEM_CUSTOM*/
 
 /*Use the standard `memcpy` and `memset` instead of LVGL's own functions. (Might or might not be faster).*/
@@ -384,11 +385,11 @@ e.g. "stm32f769xx.h" or "stm32f429xx.h"*/
 
 #define LV_USE_BTN          1
 
-#define LV_USE_BTNMATRIX    1
+#define LV_USE_BTNMATRIX    0
 
 #define LV_USE_CANVAS       1
 
-#define LV_USE_CHECKBOX     1
+#define LV_USE_CHECKBOX     0
 
 
 #define LV_USE_DROPDOWN     1   /*Requires: lv_label*/
@@ -403,21 +404,21 @@ e.g. "stm32f769xx.h" or "stm32f429xx.h"*/
 
 #define LV_USE_LINE         1
 
-#define LV_USE_ROLLER       1   /*Requires: lv_label*/
+#define LV_USE_ROLLER       0   /*Requires: lv_label*/
 #if LV_USE_ROLLER
 #  define LV_ROLLER_INF_PAGES       7   /*Number of extra "pages" when the roller is infinite*/
 #endif
 
-#define LV_USE_SLIDER       1   /*Requires: lv_bar*/
+#define LV_USE_SLIDER       0   /*Requires: lv_bar*/
 
-#define LV_USE_SWITCH    1
+#define LV_USE_SWITCH    0
 
-#define LV_USE_TEXTAREA   1     /*Requires: lv_label*/
+#define LV_USE_TEXTAREA   0     /*Requires: lv_label*/
 #if LV_USE_TEXTAREA != 0
 #  define LV_TEXTAREA_DEF_PWD_SHOW_TIME     1500    /*ms*/
 #endif
 
-#define LV_USE_TABLE  1
+#define LV_USE_TABLE  0
 
 /*==================
  * EXTRA COMPONENTS
@@ -426,7 +427,7 @@ e.g. "stm32f769xx.h" or "stm32f429xx.h"*/
 /*-----------
  * Widgets
  *----------*/
-#define LV_USE_CALENDAR     1
+#define LV_USE_CALENDAR     0
 #if LV_USE_CALENDAR
 # define LV_CALENDAR_WEEK_STARTS_MONDAY 0
 # if LV_CALENDAR_WEEK_STARTS_MONDAY
@@ -440,33 +441,33 @@ e.g. "stm32f769xx.h" or "stm32f429xx.h"*/
 # define LV_USE_CALENDAR_HEADER_DROPDOWN    1
 #endif  /*LV_USE_CALENDAR*/
 
-#define LV_USE_CHART        1
+#define LV_USE_CHART        0
 
-#define LV_USE_COLORWHEEL   1
+#define LV_USE_COLORWHEEL   0
 
-#define LV_USE_IMGBTN       1
+#define LV_USE_IMGBTN       0
 
-#define LV_USE_KEYBOARD     1
+#define LV_USE_KEYBOARD     0
 
-#define LV_USE_LED          1
+#define LV_USE_LED          0
 
-#define LV_USE_LIST         1
+#define LV_USE_LIST         0
 
-#define LV_USE_METER        1
+#define LV_USE_METER        0
 
-#define LV_USE_MSGBOX       1
+#define LV_USE_MSGBOX       0
 
-#define LV_USE_SPINBOX      1
+#define LV_USE_SPINBOX      0
 
-#define LV_USE_SPINNER      1
+#define LV_USE_SPINNER      0
 
-#define LV_USE_TABVIEW      1
+#define LV_USE_TABVIEW      0
 
-#define LV_USE_TILEVIEW     1
+#define LV_USE_TILEVIEW     0
 
 #define LV_USE_WIN          1
 
-#define LV_USE_SPAN         1
+#define LV_USE_SPAN         0
 #if LV_USE_SPAN
 /*A line text can contain maximum num of span descriptor */
 #  define LV_SPAN_SNIPPET_STACK_SIZE   64
@@ -510,7 +511,7 @@ e.g. "stm32f769xx.h" or "stm32f429xx.h"*/
 *==================*/
 
 /*Enable the examples to be built with the library*/
-#define LV_BUILD_EXAMPLES   1
+#define LV_BUILD_EXAMPLES   0
 
 /*--END OF LV_CONF_H--*/
 
