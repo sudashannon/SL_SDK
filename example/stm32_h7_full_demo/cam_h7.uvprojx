@@ -339,7 +339,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER, STM32H743xx, RTE_MEMPOOL_SIZE=64*1024, RTE_MEMPOOL_USE_64BIT=0</Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\inc;..\..\src\utils\letter-shell\src</IncludePath>
+              <IncludePath>..\..\inc;..\..\src\utils\letter-shell\src;.\user_app;.\user_bsp</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -397,6 +397,13 @@
         </Group>
         <Group>
           <GroupName>user_bsps</GroupName>
+          <Files>
+            <File>
+              <FileName>bsp_lcd.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\user_bsp\bsp_lcd.c</FilePath>
+            </File>
+          </Files>
         </Group>
         <Group>
           <GroupName>STM32CubeMX:BSP Sources</GroupName>
@@ -415,6 +422,11 @@
               <FileName>dma.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\RTE\Device\STM32H743VITx\STCubeGenerated\Src\dma.c</FilePath>
+            </File>
+            <File>
+              <FileName>spi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\RTE\Device\STM32H743VITx\STCubeGenerated\Src\spi.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -475,6 +487,11 @@
               <FileName>hal_com_stm32h7.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\src\hal\hal_com_stm32h7.c</FilePath>
+            </File>
+            <File>
+              <FileName>hal_spi_stm32h7.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\hal\hal_spi_stm32h7.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -610,6 +627,12 @@
         </targetInfos>
       </component>
       <component Cclass="Device" Cgroup="STM32Cube HAL" Csub="RCC" Cvendor="Keil" Cversion="1.8.0" condition="STM32H7 HAL GPIO">
+        <package name="STM32H7xx_DFP" schemaVersion="1.6.3" url="http://www.keil.com/pack/" vendor="Keil" version="2.7.0"/>
+        <targetInfos>
+          <targetInfo name="Target 1"/>
+        </targetInfos>
+      </component>
+      <component Cclass="Device" Cgroup="STM32Cube HAL" Csub="SPI" Cvendor="Keil" Cversion="1.8.0" condition="STM32H7 HAL DMA">
         <package name="STM32H7xx_DFP" schemaVersion="1.6.3" url="http://www.keil.com/pack/" vendor="Keil" version="2.7.0"/>
         <targetInfos>
           <targetInfo name="Target 1"/>

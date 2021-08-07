@@ -16,6 +16,9 @@
 typedef enum
 {
 	GPIO_RUN = 0,
+	LCD_BLK = 1,
+	LCD_CS = 2,
+	LCD_DC = 3,
 	GPIO_N,
 } gpio_name_t;
 

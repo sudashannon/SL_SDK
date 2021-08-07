@@ -1,9 +1,11 @@
 --cpu Cortex-M7.fp.dp --lto
 ".\objects\rte_adapter_cmsis_rtos2.o"
 ".\objects\system_thread.o"
+".\objects\bsp_lcd.o"
 ".\objects\gpio.o"
 ".\objects\usart.o"
 ".\objects\dma.o"
+".\objects\spi.o"
 ".\objects\main.o"
 ".\objects\stm32h7xx_it.o"
 ".\objects\rte_log.o"
@@ -12,6 +14,7 @@
 ".\objects\hal_gpio_stm32h7.o"
 ".\objects\hal_key.o"
 ".\objects\hal_com_stm32h7.o"
+".\objects\hal_spi_stm32h7.o"
 ".\objects\ds_hashmap.o"
 ".\objects\ds_linklist.o"
 ".\objects\ds_ringbuffer.o"
@@ -37,6 +40,8 @@
 ".\objects\stm32h7xx_hal_msp.o"
 ".\objects\startup_stm32h743xx.o"
 ".\objects\system_stm32h7xx.o"
+".\objects\stm32h7xx_hal_spi.o"
+".\objects\stm32h7xx_hal_spi_ex.o"
 --strict --scatter ".\Objects\cam_h7.sct"
 --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers

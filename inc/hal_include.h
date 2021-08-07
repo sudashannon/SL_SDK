@@ -4,5 +4,6 @@
 #include "hal/hal_com.h"
 #include "hal/hal_gpio.h"
 #include "hal/hal_key.h"
+#include "hal/hal_spi.h"
 
 #endif

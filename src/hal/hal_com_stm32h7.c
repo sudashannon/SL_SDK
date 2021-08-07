@@ -14,7 +14,6 @@
 
 typedef struct {
     // Configuration section.
-    com_name_t name;
     uint16_t capacity;
     uint16_t recv_length;
     // Resource section.
@@ -29,19 +28,18 @@ typedef struct {
 
 static com_device_t com_control_handle[COM_N] = {
     {
-		.name = COM_1,
         .capacity = 128,
 	},
 };
 
-static rte_error_t com_send(hal_device_t *device, uint8_t *data, uint16_t size, uint32_t timeout)
+static rte_error_t com_send(hal_device_t *device, uint8_t *data, uint16_t size, uint32_t timeout_ms)
 {
     HAL_StatusTypeDef result = HAL_ERROR;
     if (size == 0)
         return RTE_SUCCESS;
     result = HAL_UART_Transmit(
                 com_control_handle[device->device_id].uart_handle,
-                data, size, timeout);
+                data, size, timeout_ms);
     if (result == HAL_OK)
         return RTE_SUCCESS;
     else if(result == HAL_TIMEOUT)
