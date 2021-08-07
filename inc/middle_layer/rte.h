@@ -24,7 +24,9 @@
 #ifndef RTE_MEMPOOL_SIZE
 #define RTE_MEMPOOL_SIZE            64 * 1024 * 1024
 #endif
+#ifndef RTE_MEMPOOL_USE_64BIT
 #define RTE_MEMPOOL_USE_64BIT       1
+#endif
 
 #define RTE_TIMER_GROUP_CAPACITY    8
 

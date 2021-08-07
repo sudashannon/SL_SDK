@@ -27,6 +27,11 @@ static rte_allocator_t rte_allocator_instance = {
     .free = NULL,
 };
 /**
+ * @brief Used for main timer group internal.
+ *
+ */
+static timer_group_id_t rte_timer_group = 0;
+/**
  * @brief Mutex used for log, which is adapted for CMSIS-RTOS2.
  *
  */
@@ -171,6 +176,8 @@ void rte_init(void)
     log_mutex_instance.unlock = rte_mutex_unlock;
     log_mutex_instance.trylock = NULL;
     log_init(&log_mutex_instance, NULL, rte_get_tick);
+    timer_init(4, true);
+    timer_create_group(&rte_timer_group, NULL);
 }
 
 /**
@@ -183,6 +190,7 @@ rte_error_t rte_deinit(void)
     for(uint8_t i = 0; i < BANK_CNT; i++)
         osMutexDelete(mem_mutex_instance[i].mutex);
     osMutexDelete(log_mutex_instance.mutex);
+    timer_deinit();
     return RTE_SUCCESS;
 }
 /**
@@ -193,4 +201,13 @@ rte_error_t rte_deinit(void)
 rte_allocator_t *rte_get_general_allocator(void)
 {
     return &rte_allocator_instance;
+}
+/**
+ * @brief Get the main timer group.
+ *
+ * @return timer_group_id_t
+ */
+timer_group_id_t rte_get_main_timergroup(void)
+{
+    return rte_timer_group;
 }

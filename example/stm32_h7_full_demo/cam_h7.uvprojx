@@ -337,7 +337,7 @@
             <v6Rtti>0</v6Rtti>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>USE_HAL_DRIVER, STM32H743xx, RTE_MEMPOOL_SIZE=64*1024</Define>
+              <Define>USE_HAL_DRIVER, STM32H743xx, RTE_MEMPOOL_SIZE=64*1024, RTE_MEMPOOL_USE_64BIT=0</Define>
               <Undefine></Undefine>
               <IncludePath>..\..\inc</IncludePath>
             </VariousControls>
