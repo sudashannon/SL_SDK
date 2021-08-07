@@ -27,131 +27,105 @@ Project File Date:  08/07/2021
 <h2>Output:</h2>
 *** Using Compiler 'V6.16', folder: 'C:\UserProfession\Keil_v5\ARM\ARMCLANG\Bin'
 Build target 'Target 1'
-user_app/system_thread.c(4): warning: In file included from...
-../../src/utils/letter-shell/src\shell.h(380): warning: padding size of 'struct shell_command::(anonymous at ../../src/utils/letter-shell/src\shell.h:380:9)' with 4 bits to alignment boundary [-Wpadded]
-        struct
-        ^
-../../src/utils/letter-shell/src\shell.h(397): warning: this function declaration is not a prototype [-Wstrict-prototypes]
-            int (*function)();                                  /**< 命令执行函数 */
-                           ^
-                            void
-../../src/utils/letter-shell/src\shell.h(427): warning: this function declaration is not a prototype [-Wstrict-prototypes]
-    int (*get)();                                               /**< 变量get方法 */
-              ^
-               void
-../../src/utils/letter-shell/src\shell.h(428): warning: this function declaration is not a prototype [-Wstrict-prototypes]
-    int (*set)();                                               /**< 变量set方法 */
-              ^
-               void
-user_app/system_thread.c(5): warning: In file included from...
+user_bsp/bsp_lcd.c(3): warning: In file included from...
+./user_bsp/bsp_lcd.h(6): warning: In file included from...
 ../../inc\rte_include.h(4): warning: In file included from...
 ../../inc/middle_layer/rte.h(139): warning: zero size arrays are an extension [-Wzero-length-array]
     uint8_t msg_buf[0];
                     ^
-user_app/system_thread.c(30): warning: no previous prototype for function 'userShellWrite' [-Wmissing-prototypes]
-unsigned short userShellWrite(char *data, unsigned short len)
-               ^
-user_app/system_thread.c(30): note: declare 'static' if the function is not intended to be used outside of this translation unit
-unsigned short userShellWrite(char *data, unsigned short len)
-^
-static 
-user_app/system_thread.c(43): warning: passing 'char *' to parameter of type 'uint8_t *' (aka 'unsigned char *') converts between pointers to integer types where one is of the unique plain 'char' type and the other is not [-Wpointer-sign]
-    rte_error_t result = hal_device_read_sync(com_debug, data, &len, 50);
-                                                         ^~~~
-../../inc/hal/hal.h(46): note: passing argument to parameter 'dest_buf' here
-static inline rte_error_t hal_device_read_sync(hal_device_t *device, uint8_t *dest_buf,
-                                                                              ^
-user_app/system_thread.c(43): warning: incompatible pointer types passing 'unsigned short *' to parameter of type 'uint32_t *' (aka 'unsigned int *') [-Wincompatible-pointer-types]
-    rte_error_t result = hal_device_read_sync(com_debug, data, &len, 50);
-                                                               ^~~~
-../../inc/hal/hal.h(47): note: passing argument to parameter 'buf_size' here
-                                        uint32_t *buf_size, uint32_t timeout_ms)
-                                                  ^
-user_app/system_thread.c(41): warning: no previous prototype for function 'userShellRead' [-Wmissing-prototypes]
-unsigned short userShellRead(char *data, unsigned short len)
-               ^
-user_app/system_thread.c(41): note: declare 'static' if the function is not intended to be used outside of this translation unit
-unsigned short userShellRead(char *data, unsigned short len)
-^
-static 
-user_app/system_thread.c(6): warning: In file included from...
+user_bsp/bsp_lcd.c(33): warning: implicit conversion loses integer precision: 'int' to 'uint16_t' (aka 'unsigned short') [-Wimplicit-int-conversion]
+    x1 = (x1) << 8 | (x1) >> 8;
+       ~ ~~~~~~~~~~^~~~~~~~~~~
+user_bsp/bsp_lcd.c(34): warning: implicit conversion loses integer precision: 'int' to 'uint16_t' (aka 'unsigned short') [-Wimplicit-int-conversion]
+    x2 = (x2) << 8 | (x2) >> 8;
+       ~ ~~~~~~~~~~^~~~~~~~~~~
+user_bsp/bsp_lcd.c(35): warning: implicit conversion loses integer precision: 'int' to 'uint16_t' (aka 'unsigned short') [-Wimplicit-int-conversion]
+    y1 = (y1) << 8 | (y1) >> 8;
+       ~ ~~~~~~~~~~^~~~~~~~~~~
+user_bsp/bsp_lcd.c(36): warning: implicit conversion loses integer precision: 'int' to 'uint16_t' (aka 'unsigned short') [-Wimplicit-int-conversion]
+    y2 = (y2) << 8 | (y2) >> 8;
+       ~ ~~~~~~~~~~^~~~~~~~~~~
+user_bsp/bsp_lcd.c(37): warning: incompatible pointer types passing 'uint16_t *' (aka 'unsigned short *') to parameter of type 'uint8_t *' (aka 'unsigned char *') [-Wincompatible-pointer-types]
+    bsp_lcd_write_ndata(&x1, 2);
+                        ^~~
+user_bsp/bsp_lcd.c(15): note: passing argument to parameter 'data' here
+static void bsp_lcd_write_ndata(uint8_t *data, uint16_t size)
+                                         ^
+user_bsp/bsp_lcd.c(38): warning: incompatible pointer types passing 'uint16_t *' (aka 'unsigned short *') to parameter of type 'uint8_t *' (aka 'unsigned char *') [-Wincompatible-pointer-types]
+    bsp_lcd_write_ndata(&x2, 2);
+                        ^~~
+user_bsp/bsp_lcd.c(15): note: passing argument to parameter 'data' here
+static void bsp_lcd_write_ndata(uint8_t *data, uint16_t size)
+                                         ^
+user_bsp/bsp_lcd.c(41): warning: incompatible pointer types passing 'uint16_t *' (aka 'unsigned short *') to parameter of type 'uint8_t *' (aka 'unsigned char *') [-Wincompatible-pointer-types]
+    bsp_lcd_write_ndata(&y1, 2);
+                        ^~~
+user_bsp/bsp_lcd.c(15): note: passing argument to parameter 'data' here
+static void bsp_lcd_write_ndata(uint8_t *data, uint16_t size)
+                                         ^
+user_bsp/bsp_lcd.c(42): warning: incompatible pointer types passing 'uint16_t *' (aka 'unsigned short *') to parameter of type 'uint8_t *' (aka 'unsigned char *') [-Wincompatible-pointer-types]
+    bsp_lcd_write_ndata(&y2, 2);
+                        ^~~
+user_bsp/bsp_lcd.c(15): note: passing argument to parameter 'data' here
+static void bsp_lcd_write_ndata(uint8_t *data, uint16_t size)
+                                         ^
+user_bsp/bsp_lcd.c(48): warning: implicit conversion loses integer precision: 'int' to 'uint16_t' (aka 'unsigned short') [-Wimplicit-int-conversion]
+        color = (color) << 8 | (color) >> 8;
+              ~ ~~~~~~~~~~~~~^~~~~~~~~~~~~~
+user_bsp/bsp_lcd.c(3): warning: In file included from...
+./user_bsp/bsp_lcd.h(7): warning: In file included from...
 ../../inc\hal_include.h(4): warning: In file included from...
 ../../inc/hal/hal_com.h(15): warning: In file included from...
 ../../inc/hal/hal.h(38): warning: padding struct 'struct __hal_device' with 3 bytes to align 'read' [-Wpadded]
     device_read_sync_f read;
                        ^
-user_app/system_thread.c(50): warning: unused parameter 'arg' [-Wunused-parameter]
-static void running_timer(void *arg)
-                                ^
-user_app/system_thread.c(68): warning: passing 'size_t (uint8_t *, size_t)' (aka 'unsigned int (unsigned char *, unsigned int)') to parameter of type 'void *' converts between void pointer and function pointer [-Wpedantic]
-    log_control(LOG_CMD_SET_OUTPUT, rte_data_out);
-                                    ^~~~~~~~~~~~
-../../inc/middle_layer/rte_log.h(122): note: passing argument to parameter 'param' here
-extern rte_error_t log_control(log_command_t command, void *param);
-                                                            ^
-user_app/system_thread.c(5): warning: In file included from...
-../../inc/hal/../rte_include.h(8): warning: In file included from...
-../../inc/middle_layer/rte_timer.h(21): warning: padding struct 'timer_configuration_t' with 3 bytes to align 'repeat_period_tick' [-Wpadded]
-    uint32_t repeat_period_tick;
-             ^
-user_app/system_thread.c(76): warning: incompatible function pointer types assigning to 'short (*)(char *, unsigned short)' from 'unsigned short (char *, unsigned short)' [-Wincompatible-function-pointer-types]
-    shell.write = userShellWrite;
-                ^ ~~~~~~~~~~~~~~
-user_app/system_thread.c(77): warning: incompatible function pointer types assigning to 'short (*)(char *, unsigned short)' from 'unsigned short (char *, unsigned short)' [-Wincompatible-function-pointer-types]
-    shell.read = userShellRead;
-               ^ ~~~~~~~~~~~~~
-user_app/system_thread.c(55): warning: no previous prototype for function 'system_thread' [-Wmissing-prototypes]
-__NO_RETURN void system_thread(void *argument)
-                 ^
-user_app/system_thread.c(55): note: declare 'static' if the function is not intended to be used outside of this translation unit
-__NO_RETURN void system_thread(void *argument)
-            ^
-            static 
-user_app/system_thread.c(2): warning: In file included from...
-C:/UserProfession/Keil_v5/Packs/Keil/STM32H7xx_DFP/2.7.0/Drivers/CMSIS/Device/ST/STM32H7xx/Include\stm32h7xx.h(223): warning: In file included from...
+user_bsp/bsp_lcd.c(58): warning: implicit conversion loses integer precision: 'int' to 'uint16_t' (aka 'unsigned short') [-Wimplicit-int-conversion]
+        color = (color) << 8 | (color) >> 8;
+              ~ ~~~~~~~~~~~~~^~~~~~~~~~~~~~
+user_bsp/bsp_lcd.c(80): warning: implicit conversion changes signedness: 'int' to 'unsigned int' [-Wsign-conversion]
+        uint32_t alignedAddr = (uint32_t)line_buffer &  ~0x1F;
+                                                     ~  ^~~~~
+user_bsp/bsp_lcd.c(81): warning: implicit conversion changes signedness: 'unsigned int' to 'int32_t' (aka 'int') [-Wsign-conversion]
+        SCB_CleanDCache_by_Addr((uint32_t *)alignedAddr, 2 * (x1 - x0 + 1) + ((uint32_t)line_buffer - alignedAddr));
+        ~~~~~~~~~~~~~~~~~~~~~~~                          ~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+user_bsp/bsp_lcd.c(65): warning: no previous prototype for function 'bsp_lcd_fill_color_normal' [-Wmissing-prototypes]
+void bsp_lcd_fill_color_normal(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16_t color)
+     ^
+user_bsp/bsp_lcd.c(65): note: declare 'static' if the function is not intended to be used outside of this translation unit
+void bsp_lcd_fill_color_normal(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16_t color)
+^
+static 
+user_bsp/bsp_lcd.c(106): warning: implicit conversion changes signedness: 'int' to 'unsigned int' [-Wsign-conversion]
+                uint32_t alignedAddr = (uint32_t)color_map &  ~0x1F;
+                                                           ~  ^~~~~
+user_bsp/bsp_lcd.c(107): warning: implicit conversion changes signedness: 'unsigned int' to 'int32_t' (aka 'int') [-Wsign-conversion]
+                SCB_CleanDCache_by_Addr((uint32_t*)alignedAddr, send_count + ((uint32_t)color_map - alignedAddr));
+                ~~~~~~~~~~~~~~~~~~~~~~~                         ~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+user_bsp/bsp_lcd.c(2): warning: In file included from...
+./RTE/Device/STM32H743VITx/STCubeGenerated/Inc\spi.h(28): warning: In file included from...
+./RTE/Device/STM32H743VITx/STCubeGenerated/Inc/main.h(31): warning: In file included from...
 C:/UserProfession/Keil_v5/Packs/Keil/STM32H7xx_DFP/2.7.0/Drivers/STM32H7xx_HAL_Driver/Inc\stm32h7xx_hal.h(30): warning: In file included from...
-./RTE/Device/STM32H743VITx/STCubeGenerated/Inc\stm32h7xx_hal_conf.h(458): warning: In file included from...
-C:/UserProfession/Keil_v5/Packs/Keil/STM32H7xx_DFP/2.7.0/Drivers/STM32H7xx_HAL_Driver/Inc\stm32h7xx_hal_uart.h(218): warning: padding struct 'struct __UART_HandleTypeDef' with 2 bytes to align 'FifoMode' [-Wpadded]
-  uint32_t                 FifoMode;                 /*!< Specifies if the FIFO mode is being used.
-                           ^
-C:/UserProfession/Keil_v5/Packs/Keil/STM32H7xx_DFP/2.7.0/Drivers/STM32H7xx_HAL_Driver/Inc\stm32h7xx_hal_uart.h(235): warning: padding struct 'struct __UART_HandleTypeDef' with 3 bytes to align 'gState' [-Wpadded]
-  __IO HAL_UART_StateTypeDef    gState;              /*!< UART state information related to global Handle management
-                                ^
-user_app/system_thread.c(2): warning: In file included from...
-C:/UserProfession/Keil_v5/Packs/Keil/STM32H7xx_DFP/2.7.0/Drivers/CMSIS/Device/ST/STM32H7xx/Include\stm32h7xx.h(223): warning: In file included from...
+./RTE/Device/STM32H743VITx/STCubeGenerated/Inc\stm32h7xx_hal_conf.h(442): warning: In file included from...
+C:/UserProfession/Keil_v5/Packs/Keil/STM32H7xx_DFP/2.7.0/Drivers/STM32H7xx_HAL_Driver/Inc\stm32h7xx_hal_spi.h(197): warning: padding struct 'struct __SPI_HandleTypeDef' with 2 bytes to align 'ErrorCode' [-Wpadded]
+  __IO uint32_t              ErrorCode;                    /*!< SPI Error code                           */
+                             ^
+user_bsp/bsp_lcd.c(2): warning: In file included from...
+./RTE/Device/STM32H743VITx/STCubeGenerated/Inc\spi.h(28): warning: In file included from...
+./RTE/Device/STM32H743VITx/STCubeGenerated/Inc/main.h(31): warning: In file included from...
 C:/UserProfession/Keil_v5/Packs/Keil/STM32H7xx_DFP/2.7.0/Drivers/STM32H7xx_HAL_Driver/Inc\stm32h7xx_hal.h(30): warning: In file included from...
 ./RTE/Device/STM32H743VITx/STCubeGenerated/Inc\stm32h7xx_hal_conf.h(254): warning: In file included from...
 C:/UserProfession/Keil_v5/Packs/Keil/STM32H7xx_DFP/2.7.0/Drivers/STM32H7xx_HAL_Driver/Inc\stm32h7xx_hal_dma.h(147): warning: padding struct 'struct __DMA_HandleTypeDef' with 2 bytes to align 'Parent' [-Wpadded]
   void                            *Parent;                                                          /*!< Parent object state                           */
                                    ^
-user_app/system_thread.c(4): warning: In file included from...
-../../src/utils/letter-shell/src\shell.h(345): warning: padding size of 'struct shell_def::(anonymous at ../../src/utils/letter-shell/src\shell.h:345:5)' with 2 bytes to alignment boundary [-Wpadded]
-    struct
-    ^
-../../src/utils/letter-shell/src\shell.h(353): warning: padding size of 'struct shell_def::(anonymous at ../../src/utils/letter-shell/src\shell.h:353:5)' with 2 bytes to alignment boundary [-Wpadded]
-    struct
-    ^
-../../src/utils/letter-shell/src\shell.h(358): warning: padding size of 'struct shell_def::(anonymous at ../../src/utils/letter-shell/src\shell.h:358:5)' with 5 bits to alignment boundary [-Wpadded]
-    struct
-    ^
-../../src/utils/letter-shell/src\shell.h(364): warning: padding struct 'struct shell_def' with 3 bytes to align 'read' [-Wpadded]
-    signed short (*read)(char *, unsigned short);               /**< shell读函数 */
-                   ^
-user_app/system_thread.c(10): warning: no previous extern declaration for non-static variable 'system_thread_id' [-Wmissing-variable-declarations]
-osThreadId_t system_thread_id;
-             ^
-user_app/system_thread.c(10): note: declare 'static' if the variable is not intended to be used outside of this translation unit
-osThreadId_t system_thread_id;
-^
-24 warnings generated.
-compiling system_thread.c...
+19 warnings generated.
+compiling bsp_lcd.c...
 linking...
 .\Objects\cam_h7.sct(16): warning: L6314W: No section matches pattern *(.RAM_MATH).
 .\Objects\cam_h7.sct(19): warning: L6314W: No section matches pattern *(.RAM_CAM).
 .\Objects\cam_h7.sct(23): warning: L6314W: No section matches pattern *(.RAM_GUI).
-Program Size: Code=37024 RO-data=2712 RW-data=98588 ZI-data=13484  
+Program Size: Code=37280 RO-data=2776 RW-data=98588 ZI-data=13604  
 Finished: 0 information, 3 warning and 0 error messages.
-".\Objects\cam_h7.axf" - 0 Error(s), 27 Warning(s).
+".\Objects\cam_h7.axf" - 0 Error(s), 22 Warning(s).
 
 <h2>Software Packages used:</h2>
 
@@ -222,9 +196,9 @@ Package Vendor: Keil
       Source file:   CMSIS\RTOS2\RTX\Template\Mutex.c
 
    * Component: Keil::Device:STM32Cube Framework:STM32CubeMX:1.1.0
+      Include file:  STCubeGenerated\Inc\stm32h7xx_hal_conf.h
       Source file:   STCubeGenerated\Src\stm32h7xx_hal_msp.c
       Include file:  MX_Device.h
-      Include file:  STCubeGenerated\Inc\stm32h7xx_hal_conf.h
 
    * Component: Keil::Device:STM32Cube HAL:Common:1.8.0
       Include file:  Drivers\STM32H7xx_HAL_Driver\Inc\stm32h7xx_hal.h
