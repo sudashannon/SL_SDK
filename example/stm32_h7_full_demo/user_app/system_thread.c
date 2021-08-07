@@ -1,15 +1,47 @@
 #include "RTE_Components.h"
 #include CMSIS_device_header
 #include "cmsis_os2.h"
+#include "shell.h"
 #include "rte_include.h"
 #include "hal_include.h"
 
 osThreadId_t system_thread_id;
+/**
+ * @brief Used for letter-shell.
+ *
+ */
+static Shell shell;
+static char shellBuffer[512];
 
 static size_t rte_data_out(uint8_t *data, size_t length)
 {
     com_send_sync(COM_1, data, (uint16_t)length);
     return length;
+}
+
+/**
+ * @brief 用户shell写
+ *
+ * @param data 数据
+ */
+unsigned short userShellWrite(char *data, unsigned short len)
+{
+    com_send_sync(COM_1, (uint8_t *)data, (uint16_t)len);
+    return len;
+}
+/**
+ * @brief 用户shell读
+ *
+ * @param data 数据
+ * @return char 状态
+ */
+unsigned short userShellRead(char *data, unsigned short len)
+{
+    rte_error_t result = com_recv_async(COM_1, data, &len, 50);
+    if(result == RTE_SUCCESS) {
+        return len;
+    }
+    return 0;
 }
 
 static void running_timer(void *arg)
@@ -35,6 +67,10 @@ __NO_RETURN void system_thread(void *argument)
     config.repeat_period_tick = 500;
     config.timer_callback = running_timer;
     timer_create_new(rte_get_main_timergroup(), &config, &running_timer_id);
+    shell.write = userShellWrite;
+    shell.read = userShellRead;
+    shellInit(&shell, shellBuffer, 512);
+    osThreadNew(shellTask, &shell, NULL);
     RTE_LOGI("Boot at clk: %d", SystemCoreClock);
     for (;;) {
         timer_tick_handle();

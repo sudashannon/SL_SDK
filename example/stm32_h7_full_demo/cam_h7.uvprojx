@@ -339,7 +339,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER, STM32H743xx, RTE_MEMPOOL_SIZE=64*1024, RTE_MEMPOOL_USE_64BIT=0</Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\inc</IncludePath>
+              <IncludePath>..\..\inc;..\..\src\utils\letter-shell\src</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -508,6 +508,31 @@
         </Group>
         <Group>
           <GroupName>rte_utils/openmv</GroupName>
+        </Group>
+        <Group>
+          <GroupName>rte_utils/letter-shell</GroupName>
+          <Files>
+            <File>
+              <FileName>shell.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\utils\letter-shell\src\shell.c</FilePath>
+            </File>
+            <File>
+              <FileName>shell_cmd_list.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\utils\letter-shell\src\shell_cmd_list.c</FilePath>
+            </File>
+            <File>
+              <FileName>shell_companion.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\utils\letter-shell\src\shell_companion.c</FilePath>
+            </File>
+            <File>
+              <FileName>shell_ext.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\utils\letter-shell\src\shell_ext.c</FilePath>
+            </File>
+          </Files>
         </Group>
         <Group>
           <GroupName>::CMSIS</GroupName>

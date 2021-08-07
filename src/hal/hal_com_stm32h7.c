@@ -67,22 +67,25 @@ rte_error_t com_send_sync(com_name_t com_name, uint8_t *data, uint16_t size)
 rte_error_t com_recv_async(com_name_t com_name, uint8_t *buffer, uint16_t *size, uint32_t timeout_ms)
 {
     if(com_control_handle[com_name].dma_handle != NULL) {
+        com_control_handle[com_name].recv_length = *size;
         HAL_UART_Receive_DMA(com_control_handle[com_name].uart_handle,
                             com_control_handle[com_name].buffer,
                             *size);
         HAL_UART_DMAResume(com_control_handle[com_name].uart_handle);
-        if(osSemaphoreAcquire(com_control_handle[com_name].sema, timeout_ms) == osErrorTimeout) {
-            HAL_UART_DMAStop(com_control_handle[com_name].uart_handle);
-            return RTE_ERR_TIMEOUT;
+        if(osSemaphoreAcquire(com_control_handle[com_name].sema, timeout_ms) == osOK) {
+            *size = com_control_handle[com_name].recv_length;
+            memcpy(buffer, com_control_handle[com_name].buffer, *size);
+            return RTE_SUCCESS;
         }
-        *size = com_control_handle[com_name].recv_length;
-        memcpy(buffer, com_control_handle[com_name].buffer, *size);
-        return RTE_SUCCESS;
+        *size = 0;
+        HAL_UART_DMAStop(com_control_handle[com_name].uart_handle);
+        return RTE_ERR_TIMEOUT;
     } else {
         HAL_UART_Receive_IT(com_control_handle[com_name].uart_handle, buffer, *size);
-        if(osSemaphoreAcquire(com_control_handle[com_name].sema, timeout_ms) == osErrorTimeout)
-            return RTE_ERR_TIMEOUT;
-        return RTE_SUCCESS;
+        if(osSemaphoreAcquire(com_control_handle[com_name].sema, timeout_ms) == osOK)
+            return RTE_SUCCESS;
+        *size = 0;
+        return RTE_ERR_TIMEOUT;
     }
 }
 
@@ -90,7 +93,7 @@ void com_recv_callback(com_name_t com_name)
 {
     if (com_control_handle[com_name].dma_handle != NULL) {
         HAL_UART_DMAStop(com_control_handle[com_name].uart_handle);
-        com_control_handle[com_name].recv_length = com_control_handle[com_name].capacity -
+        com_control_handle[com_name].recv_length = com_control_handle[com_name].recv_length -
                                 (uint16_t)__HAL_DMA_GET_COUNTER(com_control_handle[com_name].dma_handle);
         /*
                 the SCB_InvalidateDCache_by_Addr() requires a 32-Byte aligned address,
@@ -110,7 +113,8 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
     for(com_name_t com_name = 0; com_name < COM_N; com_name++) {
         if (com_control_handle[com_name].uart_handle == huart) {
-            com_recv_callback(com_name);
+            if(com_control_handle[com_name].dma_handle == NULL)
+                com_recv_callback(com_name);
         }
     }
 }

@@ -25,7 +25,7 @@
  *        使能此宏后，可以使用`SHELL_EXPORT_CMD()`等导出命令
  *        定义shell命令，关闭此宏的情况下，需要使用命令表的方式
  */
-#define     SHELL_USING_CMD_EXPORT      0
+#define     SHELL_USING_CMD_EXPORT      1
 
 /**
  * @brief 是否使用shell伴生对象
@@ -130,7 +130,7 @@
  *        定义此宏为获取系统Tick，如`HAL_GetTick()`
  * @note 此宏不定义时无法使用双击tab补全命令help，无法使用shell超时锁定
  */
-#define     SHELL_GET_TICK()            0
+#define     SHELL_GET_TICK()            osKernelGetTickCount()
 
 /**
  * @brief 使用锁
