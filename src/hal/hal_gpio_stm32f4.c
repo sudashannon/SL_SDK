@@ -1,5 +1,5 @@
 /**
- * @file bsp_gpio.c
+ * @file hal_gpio.c
  * @author Leon Shan (813475603@qq.com)
  * @brief
  * @version 1.0.0

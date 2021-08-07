@@ -2,6 +2,7 @@
 #include CMSIS_device_header
 #include "cmsis_os2.h"
 #include "rte_include.h"
+#include "hal_include.h"
 
 osThreadId_t system_thread_id;
 
@@ -14,7 +15,7 @@ static size_t rte_data_out(uint8_t *data, size_t length)
 
 static void running_timer(void *arg)
 {
-    RTE_LOGI("Running!");
+    gpio_toggle(GPIO_RUN);
 }
 
 __NO_RETURN void system_thread(void *argument)

@@ -1,5 +1,5 @@
 /**
- * @file bsp_gpio.c
+ * @file hal_gpio.c
  * @author Leon Shan (813475603@qq.com)
  * @brief
  * @version 1.0.0
@@ -8,8 +8,7 @@
  * @copyright Copyright (c) 2020
  *
  */
-#include "../../inc/bsp_gpio.h"
-#include "sl_include.h"
+#include "../../inc/hal/hal_gpio.h"
 /**
  * @brief Define a gpio handle.
  *

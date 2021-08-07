@@ -1,14 +1,14 @@
 /**
  * @file bsp_com.c
  * @author Leon Shan (813475603@qq.com)
- * @brief 
+ * @brief
  * @version 1.0.0
  * @date 2020-10-08
- * 
+ *
  * @copyright Copyright (c) 2020
- * 
+ *
  */
-#include "../../inc/bsp_com.h"
+#include "../../inc/hal/hal_com.h"
 
 typedef struct {
 	USART_TypeDef* usart;
@@ -182,7 +182,7 @@ int8_t com_deinit(com_name_t com_name)
     return retval;
 }
 
-int8_t com_send(com_name_t com_name, uint8_t *data, uint16_t size)
+int8_t com_send_sync(com_name_t com_name, uint8_t *data, uint16_t size)
 {
     /* Go through entire data  */
     while (size--) {
@@ -196,7 +196,7 @@ int8_t com_send(com_name_t com_name, uint8_t *data, uint16_t size)
     return 0;
 }
 
-int8_t com_recv(com_name_t com_name, uint8_t *buffer, uint16_t *size)
+int8_t com_recv_async(com_name_t com_name, uint8_t *buffer, uint16_t *size, uint32_t timeout_ms);
 {
     if(com_handle_instance[com_name].if_enable_dma) {
         com_data_t data;

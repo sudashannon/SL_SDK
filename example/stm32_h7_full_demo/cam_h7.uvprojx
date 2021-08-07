@@ -396,6 +396,9 @@
           </Files>
         </Group>
         <Group>
+          <GroupName>user_bsps</GroupName>
+        </Group>
+        <Group>
           <GroupName>STM32CubeMX:BSP Sources</GroupName>
           <Files>
             <File>
@@ -452,6 +455,18 @@
         </Group>
         <Group>
           <GroupName>rte_hal</GroupName>
+          <Files>
+            <File>
+              <FileName>hal_gpio_stm32h7.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\hal\hal_gpio_stm32h7.c</FilePath>
+            </File>
+            <File>
+              <FileName>hal_key.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\hal\hal_key.c</FilePath>
+            </File>
+          </Files>
         </Group>
         <Group>
           <GroupName>rte_datastructure</GroupName>
