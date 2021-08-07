@@ -24,6 +24,8 @@ typedef enum {
 
 typedef struct {
     uint32_t boundrate;
+    void *user_arg1;
+    void *user_arg2;
 } com_configuration_t;
 
 /**
@@ -41,6 +43,11 @@ extern rte_error_t com_init(com_name_t com_name, com_configuration_t *config);
  * @return rte_error_t
  */
 extern rte_error_t com_deinit(com_name_t com_name);
+/**
+ * @brief Called in the com's recv interrupt.
+ *
+ */
+extern void com_recv_callback(com_name_t com_name);
 /**
  * @brief Send data via a selected com.
  *

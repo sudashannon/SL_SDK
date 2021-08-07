@@ -411,6 +411,11 @@
               <FileType>1</FileType>
               <FilePath>.\RTE\Device\STM32H743VITx\STCubeGenerated\Src\usart.c</FilePath>
             </File>
+            <File>
+              <FileName>dma.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\RTE\Device\STM32H743VITx\STCubeGenerated\Src\dma.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -465,6 +470,11 @@
               <FileName>hal_key.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\src\hal\hal_key.c</FilePath>
+            </File>
+            <File>
+              <FileName>hal_com_stm32h7.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\hal\hal_com_stm32h7.c</FilePath>
             </File>
           </Files>
         </Group>

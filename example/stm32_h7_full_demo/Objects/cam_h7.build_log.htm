@@ -27,27 +27,64 @@ Project File Date:  08/07/2021
 <h2>Output:</h2>
 *** Using Compiler 'V6.16', folder: 'C:\UserProfession\Keil_v5\ARM\ARMCLANG\Bin'
 Build target 'Target 1'
-../../src/hal/hal_gpio_stm32h7.c(11): warning: In file included from...
-../../src/hal/../../inc/hal/hal_gpio.h(15): warning: In file included from...
-../../src/hal/../../inc/hal/../rte_include.h(4): warning: In file included from...
+user_app/system_thread.c(4): warning: In file included from...
+../../inc\rte_include.h(4): warning: In file included from...
 ../../inc/middle_layer/rte.h(137): warning: zero size arrays are an extension [-Wzero-length-array]
     uint8_t msg_buf[0];
                     ^
-../../src/hal/hal_gpio_stm32h7.c(18): warning: padding struct 'gpio_t' with 3 bytes to align 'port' [-Wpadded]
-    GPIO_TypeDef* port; // Port
-                  ^
-../../src/hal/hal_gpio_stm32h7.c(16): warning: padding size of 'gpio_t' with 2 bytes to alignment boundary [-Wpadded]
-typedef struct {
-        ^
-3 warnings generated.
-compiling hal_gpio_stm32h7.c...
+user_app/system_thread.c(15): warning: unused parameter 'arg' [-Wunused-parameter]
+static void running_timer(void *arg)
+                                ^
+user_app/system_thread.c(32): warning: passing 'size_t (uint8_t *, size_t)' (aka 'unsigned int (unsigned char *, unsigned int)') to parameter of type 'void *' converts between void pointer and function pointer [-Wpedantic]
+    log_control(LOG_CMD_SET_OUTPUT, rte_data_out);
+                                    ^~~~~~~~~~~~
+../../inc/middle_layer/rte_log.h(122): note: passing argument to parameter 'param' here
+extern rte_error_t log_control(log_command_t command, void *param);
+                                                            ^
+user_app/system_thread.c(4): warning: In file included from...
+../../inc/hal/../rte_include.h(8): warning: In file included from...
+../../inc/middle_layer/rte_timer.h(21): warning: padding struct 'timer_configuration_t' with 3 bytes to align 'repeat_period_tick' [-Wpadded]
+    uint32_t repeat_period_tick;
+             ^
+user_app/system_thread.c(20): warning: no previous prototype for function 'system_thread' [-Wmissing-prototypes]
+__NO_RETURN void system_thread(void *argument)
+                 ^
+user_app/system_thread.c(20): note: declare 'static' if the function is not intended to be used outside of this translation unit
+__NO_RETURN void system_thread(void *argument)
+            ^
+            static 
+user_app/system_thread.c(2): warning: In file included from...
+C:/UserProfession/Keil_v5/Packs/Keil/STM32H7xx_DFP/2.7.0/Drivers/CMSIS/Device/ST/STM32H7xx/Include\stm32h7xx.h(223): warning: In file included from...
+C:/UserProfession/Keil_v5/Packs/Keil/STM32H7xx_DFP/2.7.0/Drivers/STM32H7xx_HAL_Driver/Inc\stm32h7xx_hal.h(30): warning: In file included from...
+./RTE/Device/STM32H743VITx/STCubeGenerated/Inc\stm32h7xx_hal_conf.h(458): warning: In file included from...
+C:/UserProfession/Keil_v5/Packs/Keil/STM32H7xx_DFP/2.7.0/Drivers/STM32H7xx_HAL_Driver/Inc\stm32h7xx_hal_uart.h(218): warning: padding struct 'struct __UART_HandleTypeDef' with 2 bytes to align 'FifoMode' [-Wpadded]
+  uint32_t                 FifoMode;                 /*!< Specifies if the FIFO mode is being used.
+                           ^
+C:/UserProfession/Keil_v5/Packs/Keil/STM32H7xx_DFP/2.7.0/Drivers/STM32H7xx_HAL_Driver/Inc\stm32h7xx_hal_uart.h(235): warning: padding struct 'struct __UART_HandleTypeDef' with 3 bytes to align 'gState' [-Wpadded]
+  __IO HAL_UART_StateTypeDef    gState;              /*!< UART state information related to global Handle management
+                                ^
+user_app/system_thread.c(2): warning: In file included from...
+C:/UserProfession/Keil_v5/Packs/Keil/STM32H7xx_DFP/2.7.0/Drivers/CMSIS/Device/ST/STM32H7xx/Include\stm32h7xx.h(223): warning: In file included from...
+C:/UserProfession/Keil_v5/Packs/Keil/STM32H7xx_DFP/2.7.0/Drivers/STM32H7xx_HAL_Driver/Inc\stm32h7xx_hal.h(30): warning: In file included from...
+./RTE/Device/STM32H743VITx/STCubeGenerated/Inc\stm32h7xx_hal_conf.h(254): warning: In file included from...
+C:/UserProfession/Keil_v5/Packs/Keil/STM32H7xx_DFP/2.7.0/Drivers/STM32H7xx_HAL_Driver/Inc\stm32h7xx_hal_dma.h(147): warning: padding struct 'struct __DMA_HandleTypeDef' with 2 bytes to align 'Parent' [-Wpadded]
+  void                            *Parent;                                                          /*!< Parent object state                           */
+                                   ^
+user_app/system_thread.c(7): warning: no previous extern declaration for non-static variable 'system_thread_id' [-Wmissing-variable-declarations]
+osThreadId_t system_thread_id;
+             ^
+user_app/system_thread.c(7): note: declare 'static' if the variable is not intended to be used outside of this translation unit
+osThreadId_t system_thread_id;
+^
+9 warnings generated.
+compiling system_thread.c...
 linking...
 .\Objects\cam_h7.sct(16): warning: L6314W: No section matches pattern *(.RAM_MATH).
 .\Objects\cam_h7.sct(19): warning: L6314W: No section matches pattern *(.RAM_CAM).
 .\Objects\cam_h7.sct(23): warning: L6314W: No section matches pattern *(.RAM_GUI).
-Program Size: Code=20388 RO-data=1792 RW-data=98524 ZI-data=12532  
+Program Size: Code=24920 RO-data=1800 RW-data=98524 ZI-data=12684  
 Finished: 0 information, 3 warning and 0 error messages.
-".\Objects\cam_h7.axf" - 0 Error(s), 6 Warning(s).
+".\Objects\cam_h7.axf" - 0 Error(s), 12 Warning(s).
 
 <h2>Software Packages used:</h2>
 
@@ -101,24 +138,24 @@ Package Vendor: Keil
    * Component: ARM::CMSIS:CORE:5.5.0
 
    * Component: ARM::CMSIS:RTOS2:Keil RTX5:Library:5.5.3
-      Source file:   CMSIS\RTOS2\RTX\Template\main.c
-      Source file:   CMSIS\RTOS2\RTX\Template\svc_user.c
+      Source file:   CMSIS\RTOS2\RTX\Template\Semaphore.c
+      Include file:  CMSIS\RTOS2\RTX\Include\rtx_os.h
       Source file:   CMSIS\RTOS2\RTX\Source\rtx_lib.c
       Library file:  CMSIS\RTOS2\RTX\Library\ARM\RTX_CM4F.lib
-      Include file:  CMSIS\RTOS2\RTX\Include\rtx_os.h
-      Source file:   CMSIS\RTOS2\RTX\Template\Semaphore.c
-      Include file:  CMSIS\RTOS2\RTX\Config\RTX_Config.h
-      Source file:   CMSIS\RTOS2\RTX\Template\Timer.c
-      Source file:   CMSIS\RTOS2\RTX\Template\Events.c
       Source file:   CMSIS\RTOS2\RTX\Config\RTX_Config.c
+      Source file:   CMSIS\RTOS2\RTX\Template\Timer.c
+      Source file:   CMSIS\RTOS2\RTX\Template\Thread.c
+      Source file:   CMSIS\RTOS2\RTX\Template\main.c
+      Source file:   CMSIS\RTOS2\RTX\Template\svc_user.c
+      Source file:   CMSIS\RTOS2\RTX\Template\Events.c
       Source file:   CMSIS\RTOS2\RTX\Template\MemPool.c
+      Include file:  CMSIS\RTOS2\RTX\Config\RTX_Config.h
       Source file:   CMSIS\RTOS2\RTX\Template\MsgQueue.c
       Source file:   CMSIS\RTOS2\RTX\Template\Mutex.c
-      Source file:   CMSIS\RTOS2\RTX\Template\Thread.c
 
    * Component: Keil::Device:STM32Cube Framework:STM32CubeMX:1.1.0
-      Source file:   STCubeGenerated\Src\stm32h7xx_hal_msp.c
       Include file:  MX_Device.h
+      Source file:   STCubeGenerated\Src\stm32h7xx_hal_msp.c
       Include file:  STCubeGenerated\Inc\stm32h7xx_hal_conf.h
 
    * Component: Keil::Device:STM32Cube HAL:Common:1.8.0
@@ -140,8 +177,8 @@ Package Vendor: Keil
       Source file:   Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_pwr_ex.c
 
    * Component: Keil::Device:STM32Cube HAL:RCC:1.8.0
-      Source file:   Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_rcc_ex.c
       Source file:   Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_rcc.c
+      Source file:   Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_rcc_ex.c
 
    * Component: Keil::Device:STM32Cube HAL:UART:1.8.0
       Source file:   Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_uart.c
@@ -151,7 +188,7 @@ Package Vendor: Keil
       Include file:  Drivers\CMSIS\Device\ST\STM32H7xx\Include\stm32h7xx.h
       Source file:   Drivers\CMSIS\Device\ST\STM32H7xx\Source\Templates\arm\startup_stm32h743xx.s
       Source file:   Drivers\CMSIS\Device\ST\STM32H7xx\Source\Templates\system_stm32h7xx.c
-Build Time Elapsed:  00:00:02
+Build Time Elapsed:  00:00:04
 </pre>
 </body>
 </html>

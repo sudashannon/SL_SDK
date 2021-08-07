@@ -8,8 +8,7 @@ osThreadId_t system_thread_id;
 
 static size_t rte_data_out(uint8_t *data, size_t length)
 {
-    extern UART_HandleTypeDef huart1;
-    HAL_UART_Transmit(&huart1, data, (uint16_t)length, HAL_MAX_DELAY);
+    com_send_sync(COM_1, data, (uint16_t)length);
     return length;
 }
 
@@ -22,6 +21,12 @@ __NO_RETURN void system_thread(void *argument)
 {
     (void)argument;
     rte_init();
+    com_configuration_t com_config = {0};
+    extern UART_HandleTypeDef huart1;
+    extern DMA_HandleTypeDef hdma_usart1_rx;
+    com_config.user_arg1 = &huart1;
+    com_config.user_arg2 = &hdma_usart1_rx;
+    com_init(COM_1, &com_config);
     log_level_t log_level = LOG_LEVEL_INFO;
     log_control(LOG_CMD_SET_LEVEL, &log_level);
     log_control(LOG_CMD_SET_OUTPUT, rte_data_out);
