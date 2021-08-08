@@ -337,7 +337,7 @@
             <v6Rtti>0</v6Rtti>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>USE_HAL_DRIVER, STM32H743xx, RTE_MEMPOOL_SIZE=64*1024, RTE_MEMPOOL_USE_64BIT=0,LV_CONF_INCLUDE_SIMPLE=1</Define>
+              <Define>USE_HAL_DRIVER, STM32H743xx, RTE_MEMPOOL_SIZE=256*1024, RTE_MEMPOOL_USE_64BIT=0,LV_CONF_INCLUDE_SIMPLE=1</Define>
               <Undefine></Undefine>
               <IncludePath>..\..\inc;..\..\src\utils\letter-shell\src;.\user_app;.\user_bsp;..\..\src\utils\lvgl;..\stm32_h7_full_demo</IncludePath>
             </VariousControls>
@@ -408,6 +408,21 @@
               <FileType>1</FileType>
               <FilePath>.\user_bsp\bsp_lcd.c</FilePath>
             </File>
+            <File>
+              <FileName>bsp_sensor.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\user_bsp\bsp_sensor.c</FilePath>
+            </File>
+            <File>
+              <FileName>ov2640.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\user_bsp\ov2640.c</FilePath>
+            </File>
+            <File>
+              <FileName>ov7725.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\user_bsp\ov7725.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -432,6 +447,11 @@
               <FileName>spi.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\RTE\Device\STM32H743VITx\STCubeGenerated\Src\spi.c</FilePath>
+            </File>
+            <File>
+              <FileName>i2c.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\RTE\Device\STM32H743VITx\STCubeGenerated\Src\i2c.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -522,6 +542,16 @@
               <FileName>ds_vector.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\src\data_structure\ds_vector.c</FilePath>
+            </File>
+            <File>
+              <FileName>ds_framebuffer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\data_structure\ds_framebuffer.c</FilePath>
+            </File>
+            <File>
+              <FileName>ds_image.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\data_structure\ds_image.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -1247,6 +1277,12 @@
         </targetInfos>
       </component>
       <component Cclass="Device" Cgroup="STM32Cube HAL" Csub="GPIO" Cvendor="Keil" Cversion="1.8.0" condition="STM32H7 HAL">
+        <package name="STM32H7xx_DFP" schemaVersion="1.6.3" url="http://www.keil.com/pack/" vendor="Keil" version="2.7.0"/>
+        <targetInfos>
+          <targetInfo name="Target 1"/>
+        </targetInfos>
+      </component>
+      <component Cclass="Device" Cgroup="STM32Cube HAL" Csub="I2C" Cvendor="Keil" Cversion="1.8.0" condition="STM32H7 HAL DMA">
         <package name="STM32H7xx_DFP" schemaVersion="1.6.3" url="http://www.keil.com/pack/" vendor="Keil" version="2.7.0"/>
         <targetInfos>
           <targetInfo name="Target 1"/>

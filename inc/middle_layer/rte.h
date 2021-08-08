@@ -34,6 +34,7 @@
  * @brief General include.
  *
  */
+#include <stdarg.h>
 #include <stdint.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -41,6 +42,7 @@
 #include <stdbool.h>
 #include <time.h>
 #include <math.h>
+#include <float.h>
 #include <limits.h>
 
 /**
@@ -89,6 +91,55 @@ typedef int8_t  rte_error_t;
                                     (((v)->unlock))((v)->mutex);                         \
                             }while(0)
 
+#define RTE_MAX(a,b)     ({ __typeof__ (a) _a = (a); __typeof__ (b) _b = (b); _a > _b ? _a : _b; })
+#define RTE_MIN(a,b)     ({ __typeof__ (a) _a = (a); __typeof__ (b) _b = (b); _a < _b ? _a : _b; })
+#define RTE_DIV(a,b)     ({ __typeof__ (a) _a = (a); __typeof__ (b) _b = (b); _b ? (_a / _b) : 0; })
+#define RTE_MOD(a,b)     ({ __typeof__ (a) _a = (a); __typeof__ (b) _b = (b); _b ? (_a % _b) : 0; })
+
+#define RTE_LOG2_2(x)    (((x) &                0x2ULL) ? ( 2                        ) :             1) // NO ({ ... }) !
+#define RTE_LOG2_4(x)    (((x) &                0xCULL) ? ( 2 +  RTE_LOG2_2((x) >>  2)) :  RTE_LOG2_2(x)) // NO ({ ... }) !
+#define RTE_LOG2_8(x)    (((x) &               0xF0ULL) ? ( 4 +  RTE_LOG2_4((x) >>  4)) :  RTE_LOG2_4(x)) // NO ({ ... }) !
+#define RTE_LOG2_16(x)   (((x) &             0xFF00ULL) ? ( 8 +  RTE_LOG2_8((x) >>  8)) :  RTE_LOG2_8(x)) // NO ({ ... }) !
+#define RTE_LOG2_32(x)   (((x) &         0xFFFF0000ULL) ? (16 + RTE_LOG2_16((x) >> 16)) : RTE_LOG2_16(x)) // NO ({ ... }) !
+#define RTE_LOG2(x)      (((x) & 0xFFFFFFFF00000000ULL) ? (32 + RTE_LOG2_32((x) >> 32)) : RTE_LOG2_32(x)) // NO ({ ... }) !
+
+#define RTE_MAX(a,b)     ({ __typeof__ (a) _a = (a); __typeof__ (b) _b = (b); _a > _b ? _a : _b; })
+#define RTE_MIN(a,b)     ({ __typeof__ (a) _a = (a); __typeof__ (b) _b = (b); _a < _b ? _a : _b; })
+#define RTE_DIV(a,b)     ({ __typeof__ (a) _a = (a); __typeof__ (b) _b = (b); _b ? (_a / _b) : 0; })
+#define RTE_MOD(a,b)     ({ __typeof__ (a) _a = (a); __typeof__ (b) _b = (b); _b ? (_a % _b) : 0; })
+
+#define INT8_T_BITS     (sizeof(int8_t) * 8)
+#define INT8_T_MASK     (INT8_T_BITS - 1)
+#define INT8_T_SHIFT    RTE_LOG2(INT8_T_MASK)
+
+#define INT16_T_BITS    (sizeof(int16_t) * 8)
+#define INT16_T_MASK    (INT16_T_BITS - 1)
+#define INT16_T_SHIFT   RTE_LOG2(INT16_T_MASK)
+
+#define INT32_T_BITS    (sizeof(int32_t) * 8)
+#define INT32_T_MASK    (INT32_T_BITS - 1)
+#define INT32_T_SHIFT   RTE_LOG2(INT32_T_MASK)
+
+#define INT64_T_BITS    (sizeof(int64_t) * 8)
+#define INT64_T_MASK    (INT64_T_BITS - 1)
+#define INT64_T_SHIFT   RTE_LOG2(INT64_T_MASK)
+
+#define UINT8_T_BITS    (sizeof(uint8_t) * 8)
+#define UINT8_T_MASK    (UINT8_T_BITS - 1)
+#define UINT8_T_SHIFT   RTE_LOG2(UINT8_T_MASK)
+
+#define UINT16_T_BITS   (sizeof(uint16_t) * 8)
+#define UINT16_T_MASK   (UINT16_T_BITS - 1)
+#define UINT16_T_SHIFT  RTE_LOG2(UINT16_T_MASK)
+
+#define UINT32_T_BITS   (sizeof(uint32_t) * 8)
+#define UINT32_T_MASK   (UINT32_T_BITS - 1)
+#define UINT32_T_SHIFT  RTE_LOG2(UINT32_T_MASK)
+
+#define UINT64_T_BITS   (sizeof(uint64_t) * 8)
+#define UINT64_T_MASK   (UINT64_T_BITS - 1)
+#define UINT64_T_SHIFT  RTE_LOG2(UINT64_T_MASK)
+
 typedef void (*rte_callback_f)(void *arg);
 
 static inline uint32_t rte_roundup_pow_of_two(uint32_t v) {
@@ -108,6 +159,9 @@ extern "C" {
 
 typedef void *ds_vector_t;
 typedef void *ds_ringbuffer_t;
+typedef void *ds_framebuffer_t;
+typedef void *ds_burstbuffer_t;
+typedef void *ds_image_t;
 typedef uint8_t timer_id_t;
 typedef uint8_t timer_group_id_t;
 

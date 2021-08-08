@@ -1,3 +1,13 @@
+/**
+ * @file bsp_lcd.c
+ * @author Leon Shan (813475603@qq.com)
+ * @brief LCD driver for ST7789 controller.
+ * @version 1.0.0
+ * @date 2021-08-08
+ *
+ * @copyright Copyright (c) 2021
+ *
+ */
 #include "cmsis_os2.h"
 #include "spi.h"
 #include "bsp_lcd.h"
@@ -198,4 +208,5 @@ void bsp_lcd_init(void)
     uint16_t *image = memory_alloc(BANK_DMA, 50 * 50 * sizeof(uint16_t));
     memset(image, 0x5678, 50 * 50 * sizeof(uint16_t));
     bsp_lcd_fill_frame(10, 10, 59, 59, image);
+    memory_free(BANK_DMA, image);
 }

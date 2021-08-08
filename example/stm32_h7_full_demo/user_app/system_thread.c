@@ -5,6 +5,8 @@
 #include "rte_include.h"
 #include "hal_include.h"
 #include "usart.h"
+#include "bsp_sensor.h"
+#include "i2c.h"
 
 osThreadId_t system_thread_id;
 static hal_device_t *com_debug = NULL;
@@ -71,14 +73,18 @@ __NO_RETURN void system_thread(void *argument)
     config.timer_callback = running_timer;
     timer_create_new(rte_get_main_timergroup(), &config, &running_timer_id);
 
-    shell.write = userShellWrite;
-    shell.read = userShellRead;
-    shellInit(&shell, shellBuffer, 512);
-    osThreadNew(shellTask, &shell, NULL);
+    // shell.write = userShellWrite;
+    // shell.read = userShellRead;
+    // shellInit(&shell, shellBuffer, 512);
+    // osThreadNew(shellTask, &shell, NULL);
     extern __NO_RETURN void gui_thread(void *param);
     osThreadNew(gui_thread, NULL, NULL);
 
     RTE_LOGI("Boot at clk: %d", SystemCoreClock);
+
+    sensor_init();
+    int result = sensor_probe_init();
+    RTE_LOGI("Probe sensor result: %d", result);
     for (;;) {
         timer_tick_handle();
         osDelay(1);

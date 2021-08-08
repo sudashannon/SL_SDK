@@ -60,6 +60,12 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define LED_RUNNING_Pin GPIO_PIN_1
 #define LED_RUNNING_GPIO_Port GPIOA
+#define CAM_LIGHT_Pin GPIO_PIN_5
+#define CAM_LIGHT_GPIO_Port GPIOA
+#define CAM_POWER_Pin GPIO_PIN_7
+#define CAM_POWER_GPIO_Port GPIOA
+#define CAM_RESET_Pin GPIO_PIN_4
+#define CAM_RESET_GPIO_Port GPIOC
 #define LCD_BLK_Pin GPIO_PIN_0
 #define LCD_BLK_GPIO_Port GPIOB
 #define LCD_SPI_DC_Pin GPIO_PIN_1

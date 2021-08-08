@@ -20,7 +20,7 @@
  */
 MEM_ALIGN_NBYTES (__attribute__((section (".RAM_RTE"))) static uint8_t mempool_buffer[RTE_MEMPOOL_SIZE], MEM_BLOCK_ALIGN) = {0};
 MEM_ALIGN_NBYTES (__attribute__((section (".RAM_DMA"))) static uint8_t dma_buffer[32 * 1024], MEM_BLOCK_ALIGN) = {0};
-MEM_ALIGN_NBYTES (__attribute__((section (".RAM_GUI"))) static uint8_t gui_buffer[256 * 1024], MEM_BLOCK_ALIGN) = {0};
+MEM_ALIGN_NBYTES (__attribute__((section (".RAM_FB"))) static uint8_t fb_buffer[512 * 1024], MEM_BLOCK_ALIGN) = {0};
 static rte_allocator_t rte_allocator_instance = {
     .malloc = NULL,
     .calloc = NULL,
@@ -174,11 +174,7 @@ void rte_init(void)
     mem_mutex_instance[BANK_DMA].unlock = rte_mutex_unlock;
     mem_mutex_instance[BANK_DMA].trylock = NULL;
     memory_pool(BANK_DMA, &mem_mutex_instance[BANK_DMA], dma_buffer, sizeof(dma_buffer));
-    mem_mutex_instance[BANK_DMA].mutex = (void *)osMutexNew(&mem_mutex_attr[BANK_GUI]);
-    mem_mutex_instance[BANK_DMA].lock = rte_mutex_lock;
-    mem_mutex_instance[BANK_DMA].unlock = rte_mutex_unlock;
-    mem_mutex_instance[BANK_DMA].trylock = NULL;
-    memory_pool(BANK_GUI, &mem_mutex_instance[BANK_GUI], gui_buffer, sizeof(gui_buffer));
+    memory_pool(BANK_FB, NULL, fb_buffer, sizeof(fb_buffer));
     rte_allocator_instance.malloc = rte_malloc;
     rte_allocator_instance.calloc = rte_calloc;
     rte_allocator_instance.realloc = rte_realloc;

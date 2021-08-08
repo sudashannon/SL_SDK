@@ -19,6 +19,9 @@ typedef enum
 	LCD_BLK = 1,
 	LCD_CS = 2,
 	LCD_DC = 3,
+	CAM_LIGHT =4,
+	CAM_RST = 5,
+	CAM_PWR = 6,
 	GPIO_N,
 } gpio_name_t;
 

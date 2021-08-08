@@ -12,13 +12,6 @@
 #include "../../inc/middle_layer/rte_memory.h"
 #include "../../inc/middle_layer/rte_log.h"
 
-#ifndef  min
-#define  min(a, b)      ((a)<(b)?(a):(b))
-#endif
-#ifndef  max
-#define  max(a, b)      ((a)>(b)?(a):(b))
-#endif
-
 #define THIS_MODULE LOG_STR(MEMORY)
 #define MEM_LOGF(...) LOG_FATAL(THIS_MODULE, __VA_ARGS__)
 #define MEM_LOGE(...) LOG_ERROR(THIS_MODULE, __VA_ARGS__)
@@ -156,7 +149,7 @@ enum mem_private
     SMALL_BLOCK_SIZE = (1 << FL_INDEX_SHIFT),
 };
 /*
-** Cast and min/max macros.
+** Cast macros.
 */
 #define mem_cast(t, exp)    ((t) (exp))
 /*
@@ -354,7 +347,7 @@ size_t adjust_request_size(size_t size, size_t align)
         /* aligned sized must not exceed block_size_max or we'll go out of bounds on sl_bitmap */
         if (aligned < block_size_max)
         {
-            adjust = max(aligned, block_size_min);
+            adjust = RTE_MAX(aligned, block_size_min);
         }
     }
     return adjust;
@@ -775,7 +768,7 @@ void* memory_alloc_align(mem_bank_t bank, size_t align, size_t size)
             /* If gap size is too small, offset to next aligned boundary. */
             if (gap && gap < gap_minimum) {
                 const size_t gap_remain = gap_minimum - gap;
-                const size_t offset = max(gap_remain, align);
+                const size_t offset = RTE_MAX(gap_remain, align);
                 const void* next_aligned = mem_cast(void*,
                     mem_cast(memptr_t, aligned) + offset);
                 aligned = align_ptr(next_aligned, align);
@@ -860,7 +853,7 @@ void* memory_realloc(mem_bank_t bank, void* ptr, size_t size)
                 p = block_prepare_used(control, block, adjust);
             }
             if (p) {
-                const size_t minsize = min(cursize, size);
+                const size_t minsize = RTE_MIN(cursize, size);
                 memcpy(p, ptr, minsize);
                 memory_free(bank, ptr);
             }

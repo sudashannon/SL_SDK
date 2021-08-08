@@ -39,16 +39,16 @@
 #define LV_MEM_CUSTOM      0
 #if LV_MEM_CUSTOM == 0
 /*Size of the memory available for `lv_mem_alloc()` in bytes (>= 2kB)*/
-#  define LV_MEM_SIZE    (32U * 1024U)          /*[bytes]*/
+#  define LV_MEM_SIZE    (64U * 1024U)          /*[bytes]*/
 
 /*Set an address for the memory pool instead of allocating it as a normal array. Can be in external SRAM too.*/
 #  define LV_MEM_CUSTOM_INCLUDE   "rte_include.h"   /*Header for the dynamic memory function*/
-#  define LV_MEM_ADR          (memory_alloc(BANK_GUI, LV_MEM_SIZE))     /*0: unused*/
+#  define LV_MEM_ADR          (memory_alloc(BANK_DEFAULT, LV_MEM_SIZE))     /*0: unused*/
 #else       /*LV_MEM_CUSTOM*/
 #  define LV_MEM_CUSTOM_INCLUDE   "rte_include.h"   /*Header for the dynamic memory function*/
-#  define LV_MEM_CUSTOM_ALLOC(size)     memory_alloc(BANK_GUI, size)
-#  define LV_MEM_CUSTOM_FREE(ptr)       memory_free(BANK_GUI, ptr)
-#  define LV_MEM_CUSTOM_REALLOC(ptr, new_size)   memory_realloc(BANK_GUI, ptr, new_size)
+#  define LV_MEM_CUSTOM_ALLOC(size)     memory_alloc(BANK_DEFAULT, size)
+#  define LV_MEM_CUSTOM_FREE(ptr)       memory_free(BANK_DEFAULT, ptr)
+#  define LV_MEM_CUSTOM_REALLOC(ptr, new_size)   memory_realloc(BANK_DEFAULT, ptr, new_size)
 #endif     /*LV_MEM_CUSTOM*/
 
 /*Use the standard `memcpy` and `memset` instead of LVGL's own functions. (Might or might not be faster).*/
@@ -152,7 +152,7 @@ e.g. "stm32f769xx.h" or "stm32f429xx.h"*/
  *LV_LOG_LEVEL_ERROR       Only critical issue, when the system may fail
  *LV_LOG_LEVEL_USER        Only logs added by the user
  *LV_LOG_LEVEL_NONE        Do not log anything*/
-#  define LV_LOG_LEVEL    LV_LOG_LEVEL_WARN
+#  define LV_LOG_LEVEL    LV_LOG_LEVEL_INFO
 
 /*1: Print the log with 'printf';
  *0: User need to register a callback with `lv_log_register_print_cb()`*/
