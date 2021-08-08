@@ -886,6 +886,7 @@ void memory_demon(mem_bank_t bank)
 {
     if(bank >= BANK_CNT)
         return;
+    MEM_LOCK(bank);
     block_header_t* block =
         offset_to_block(mem_handle[bank].pool, -(int)block_header_overhead);
     MEM_LOGI("--------------------------------------------------");
@@ -895,6 +896,7 @@ void memory_demon(mem_bank_t bank)
         print_block(block_to_ptr(block), block_size(block), !block_is_free(block));
         block = block_next(block);
     }
+    MEM_UNLOCK(bank);
 }
 /**
  * @brief Get a malloced buffer's size.
@@ -919,6 +921,7 @@ size_t memory_sizeof_p(void *ptr)
  */
 size_t memory_sizeof_free(mem_bank_t bank)
 {
+    MEM_LOCK(bank);
     block_header_t* block =
         offset_to_block(mem_handle[bank].pool, -(int)block_header_overhead);
     size_t freesize = 0;
@@ -927,6 +930,7 @@ size_t memory_sizeof_free(mem_bank_t bank)
             freesize += block_size(block);
         block = block_next(block);
     }
+    MEM_UNLOCK(bank);
     return freesize;
 }
 /**
@@ -937,6 +941,7 @@ size_t memory_sizeof_free(mem_bank_t bank)
  */
 size_t memory_sizeof_max(mem_bank_t bank)
 {
+    MEM_LOCK(bank);
     size_t nowsize = 0;
     size_t maxsize = 0;
     block_header_t* block = offset_to_block(mem_handle[bank].pool, -(int)block_header_overhead);
@@ -946,6 +951,7 @@ size_t memory_sizeof_max(mem_bank_t bank)
             maxsize = nowsize;
         block = block_next(block);
     }
+    MEM_UNLOCK(bank);
     return maxsize;
 }
 /**

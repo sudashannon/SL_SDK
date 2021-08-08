@@ -34,13 +34,10 @@ typedef enum image_bpp
 } image_bpp_t;
 
 typedef struct image {
-    int w;
-    int h;
-    int bpp;
-    union {
-        uint8_t *pixels;
-        uint8_t *data;
-    };
+    int32_t w;
+    int32_t h;
+    image_bpp_t bpp;
+    uint8_t *data;
 } image_t;
 
 #define IMAGE_IS_MUTABLE(image) \
@@ -240,7 +237,8 @@ typedef struct image {
     _row_ptr[_x] = _v; \
 })
 
-void image_init(image_t *ptr, int w, int h, int bpp, void *data);
+void image_init(image_t *ptr, uint8_t *buffer, int32_t w, int32_t h, image_bpp_t bpp);
+void image_destroy(image_t *image);
 void image_copy(image_t *dst, image_t *src);
 size_t image_size(image_t *ptr);
 

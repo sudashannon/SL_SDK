@@ -10,41 +10,9 @@
  */
 #include "bsp_sensor.h"
 #include "i2c.h"
+#include "dcmi.h"
+#include "cmsis_os2.h"
 
-const uint16_t rainbow_table[256] = {
-    0x063F, 0x063F, 0x065F, 0x067F, 0x069F, 0x06BF, 0x06BF, 0x06DF,
-    0x06FF, 0x071F, 0x073F, 0x073F, 0x075F, 0x077F, 0x079F, 0x07BF,
-    0x07BF, 0x07DF, 0x07FF, 0x07FF, 0x07FE, 0x07FE, 0x07FD, 0x07FD,
-    0x07FD, 0x07FC, 0x07FC, 0x07FB, 0x07FB, 0x07FB, 0x07FA, 0x07FA,
-    0x07FA, 0x07F9, 0x07F9, 0x07F8, 0x07F8, 0x07F8, 0x07F7, 0x07F7,
-    0x07F6, 0x07F6, 0x07F6, 0x07F5, 0x07F5, 0x07F4, 0x07F4, 0x07F4,
-    0x07F3, 0x07F3, 0x07F2, 0x07F2, 0x07F2, 0x07F1, 0x07F1, 0x07F1,
-    0x07F0, 0x07F0, 0x07EF, 0x07EF, 0x07EF, 0x07EE, 0x07EE, 0x07ED,
-    0x07ED, 0x07ED, 0x07EC, 0x07EC, 0x07EB, 0x07EB, 0x07EB, 0x07EA,
-    0x07EA, 0x07EA, 0x07E9, 0x07E9, 0x07E8, 0x07E8, 0x07E8, 0x07E7,
-    0x07E7, 0x07E6, 0x07E6, 0x07E6, 0x07E5, 0x07E5, 0x07E4, 0x07E4,
-    0x07E4, 0x07E3, 0x07E3, 0x07E2, 0x07E2, 0x07E2, 0x07E1, 0x07E1,
-    0x07E1, 0x07E0, 0x07E0, 0x0FE0, 0x0FE0, 0x0FE0, 0x17E0, 0x17E0,
-    0x1FE0, 0x1FE0, 0x1FE0, 0x27E0, 0x27E0, 0x2FE0, 0x2FE0, 0x2FE0,
-    0x37E0, 0x37E0, 0x3FE0, 0x3FE0, 0x3FE0, 0x47E0, 0x47E0, 0x47E0,
-    0x4FE0, 0x4FE0, 0x57E0, 0x57E0, 0x57E0, 0x5FE0, 0x5FE0, 0x67E0,
-    0x67E0, 0x67E0, 0x6FE0, 0x6FE0, 0x77E0, 0x77E0, 0x77E0, 0x7FE0,
-    0x7FE0, 0x87E0, 0x87E0, 0x87E0, 0x8FE0, 0x8FE0, 0x8FE0, 0x97E0,
-    0x97E0, 0x9FE0, 0x9FE0, 0x9FE0, 0xA7E0, 0xA7E0, 0xAFE0, 0xAFE0,
-    0xAFE0, 0xB7E0, 0xB7E0, 0xBFE0, 0xBFE0, 0xBFE0, 0xC7E0, 0xC7E0,
-    0xC7E0, 0xCFE0, 0xCFE0, 0xD7E0, 0xD7E0, 0xD7E0, 0xDFE0, 0xDFE0,
-    0xE7E0, 0xE7E0, 0xE7E0, 0xEFE0, 0xEFE0, 0xF7E0, 0xF7E0, 0xF7E0,
-    0xFFE0, 0xFFE0, 0xFFC0, 0xFFA0, 0xFF80, 0xFF80, 0xFF60, 0xFF40,
-    0xFF20, 0xFF00, 0xFF00, 0xFEE0, 0xFEC0, 0xFEA0, 0xFE80, 0xFE80,
-    0xFE60, 0xFE40, 0xFE20, 0xFE00, 0xFE00, 0xFDE0, 0xFDC0, 0xFDA0,
-    0xFD80, 0xFD80, 0xFD60, 0xFD40, 0xFD20, 0xFD00, 0xFD00, 0xFCE0,
-    0xFCC0, 0xFCA0, 0xFCA0, 0xFC80, 0xFC60, 0xFC40, 0xFC20, 0xFC20,
-    0xFC00, 0xFBE0, 0xFBC0, 0xFBA0, 0xFBA0, 0xFB80, 0xFB60, 0xFB40,
-    0xFB20, 0xFB20, 0xFB00, 0xFAE0, 0xFAC0, 0xFAA0, 0xFAA0, 0xFA80,
-    0xFA60, 0xFA40, 0xFA20, 0xFA20, 0xFA00, 0xF9E0, 0xF9C0, 0xF9A0,
-    0xF9A0, 0xF980, 0xF960, 0xF940, 0xF940, 0xF920, 0xF900, 0xF8E0,
-    0xF8C0, 0xF8C0, 0xF8A0, 0xF880, 0xF860, 0xF840, 0xF840, 0xF820
-};
 // Sensor frame size/resolution table.
 const int resolution[][2] = {
     {0,    0   },
@@ -94,6 +62,10 @@ const int resolution[][2] = {
 };
 
 sensor_t sensor = {};
+static bool first_line = false;
+static bool drop_frame = false;
+
+static uint8_t *_line_buf = NULL;
 
 #define I2C_TIMEOUT             (1000)
 #define I2C_SCAN_TIMEOUT        (100)
@@ -137,84 +109,12 @@ static int cambus_scan(I2C_HandleTypeDef *bus)
     return 0;
 }
 
-int sensor_init()
+int sensor_set_xclk_frequency(uint32_t frequency)
 {
-    // Reset the sesnor state
-    memset(&sensor, 0, sizeof(sensor_t));
-    sensor.bus = &hi2c2;
-    sensor.pframebuffer = framebuffer_init(SENSOR_FB_SIZE);
-    return SENSOR_ERROR_CTL_UNSUPPORTED;
-}
-
-int sensor_abort()
-{
-    return SENSOR_ERROR_CTL_UNSUPPORTED;
-}
-
-int sensor_reset()
-{
-    // Disable any ongoing frame capture.
-    sensor_abort();
-
-    // Reset the sensor state
-    sensor.sde                  = 0;
-    sensor.pixformat            = 0;
-    sensor.framesize            = 0;
-    sensor.framerate            = 0;
-    sensor.last_frame_ms        = 0;
-    sensor.last_frame_ms_valid  = false;
-    sensor.gainceiling          = 0;
-    sensor.hmirror              = false;
-    sensor.vflip                = false;
-    sensor.transpose            = false;
-    sensor.auto_rotation        = false;
-    sensor.vsync_callback       = NULL;
-    sensor.frame_callback       = NULL;
-
-    // Reset default color palette.
-    sensor.color_palette        = rainbow_table;
-
-    sensor.disable_full_flush   = false;
-
-    // Restore shutdown state on reset.
-    sensor_shutdown(false);
-
-    // Disable the bus before reset.
-    __HAL_I2C_DISABLE(sensor.bus);
-
-    // Hard-reset the sensor
-    if (sensor.reset_pol == ACTIVE_HIGH) {
-        gpio_set_high(CAM_RST);
-        rte_delay_ms(10);
-        gpio_set_low(CAM_RST);
-    } else {
-        gpio_set_low(CAM_RST);
-        rte_delay_ms(10);
-        gpio_set_high(CAM_RST);
-    }
-
-    rte_delay_ms(20);
-
-    // Re-enable the bus.
-    __HAL_I2C_ENABLE(sensor.bus);
-
-    // Check if the control is supported.
-    if (sensor.reset == NULL) {
-        return SENSOR_ERROR_CTL_UNSUPPORTED;
-    }
-
-    // Call sensor-specific reset function
-    if (sensor.reset(&sensor) != 0) {
-        return SENSOR_ERROR_CTL_FAILED;
-    }
-
-    // Reset framebuffers
-    framebuffer_reset_buffers(sensor.pframebuffer);
-
     return 0;
 }
 
-int sensor_probe_init(void)
+static int sensor_probe_init(void)
 {
     int init_ret = 0;
 
@@ -303,6 +203,67 @@ int sensor_probe_init(void)
     return 0;
 }
 
+
+int sensor_init()
+{
+    // Reset the sesnor state
+    memset(&sensor, 0, sizeof(sensor_t));
+    // If needed, config TIM as the sensor's clock.
+    // Configure the sensor external clock (XCLK).
+    if (sensor_set_xclk_frequency(SENSOR_XCLK_FREQUENCY) != 0) {
+        // Failed to initialize the sensor clock.
+        return SENSOR_ERROR_TIM_INIT_FAILED;
+    }
+    sensor.bus = &hi2c2;
+    sensor.dcmi = &hdcmi;
+    sensor.sema = osSemaphoreNew(1, 0, NULL);
+    // Set default snapshot function.
+    // Some sensors need to call snapshot from init.
+    sensor.snapshot = sensor_snapshot;
+    return sensor_probe_init();;
+}
+
+int sensor_reset()
+{
+    // Reset the sensor state
+    sensor.sde                  = 0;
+    sensor.pixformat            = 0;
+    sensor.framesize            = 0;
+    sensor.framerate            = 0;
+    sensor.gainceiling          = 0;
+
+    // Disable the bus before reset.
+    __HAL_I2C_DISABLE(sensor.bus);
+
+    // Hard-reset the sensor
+    if (sensor.reset_pol == ACTIVE_HIGH) {
+        gpio_set_high(CAM_RST);
+        rte_delay_ms(10);
+        gpio_set_low(CAM_RST);
+    } else {
+        gpio_set_low(CAM_RST);
+        rte_delay_ms(10);
+        gpio_set_high(CAM_RST);
+    }
+
+    rte_delay_ms(20);
+
+    // Re-enable the bus.
+    __HAL_I2C_ENABLE(sensor.bus);
+
+    // Check if the control is supported.
+    if (sensor.reset == NULL) {
+        return SENSOR_ERROR_CTL_UNSUPPORTED;
+    }
+
+    // Call sensor-specific reset function
+    if (sensor.reset(&sensor) != 0) {
+        return SENSOR_ERROR_CTL_FAILED;
+    }
+
+    return 0;
+}
+
 int sensor_get_id()
 {
     return sensor.chip_id_w;
@@ -310,24 +271,13 @@ int sensor_get_id()
 
 uint32_t sensor_get_xclk_frequency()
 {
-    return SENSOR_ERROR_CTL_UNSUPPORTED;
+    return SENSOR_XCLK_FREQUENCY;
 }
 
-int sensor_set_xclk_frequency(uint32_t frequency)
-{
-    return SENSOR_ERROR_CTL_UNSUPPORTED;
-}
 
-bool sensor_is_detected()
-{
-    return sensor.detected;
-}
 
 int sensor_sleep(int enable)
 {
-    // Disable any ongoing frame capture.
-    sensor_abort();
-
     // Check if the control is supported.
     if (sensor.sleep == NULL) {
         return SENSOR_ERROR_CTL_UNSUPPORTED;
@@ -345,21 +295,21 @@ int sensor_shutdown(int enable)
 {
     int ret = 0;
 
-    // Disable any ongoing frame capture.
-    sensor_abort();
-
     if (enable) {
         if (sensor.pwdn_pol == ACTIVE_HIGH) {
             gpio_set_high(CAM_PWR);
         } else {
             gpio_set_low(CAM_PWR);
         }
+        HAL_NVIC_DisableIRQ(DCMI_IRQn);
+        HAL_DCMI_DeInit(sensor.dcmi);
     } else {
         if (sensor.pwdn_pol == ACTIVE_HIGH) {
             gpio_set_low(CAM_PWR);
         } else {
             gpio_set_high(CAM_PWR);
         }
+        MX_DCMI_Init();
     }
 
     rte_delay_ms(10);
@@ -397,84 +347,12 @@ int sensor_write_reg(uint16_t reg_addr, uint16_t reg_data)
     return 0;
 }
 
-int sensor_dcmi_config(uint32_t pixformat)
-{
-    // VSYNC clock polarity
-//    DCMIHandle.Init.VSPolarity  = SENSOR_HW_FLAGS_GET(&sensor, SENSOR_HW_FLAGS_VSYNC) ?
-//                                    DCMI_VSPOLARITY_HIGH : DCMI_VSPOLARITY_LOW;
-//    // HSYNC clock polarity
-//    DCMIHandle.Init.HSPolarity  = SENSOR_HW_FLAGS_GET(&sensor, SENSOR_HW_FLAGS_HSYNC) ?
-//                                    DCMI_HSPOLARITY_HIGH : DCMI_HSPOLARITY_LOW;
-//    // PXCLK clock polarity
-//    DCMIHandle.Init.PCKPolarity = SENSOR_HW_FLAGS_GET(&sensor, SENSOR_HW_FLAGS_PIXCK) ?
-//                                    DCMI_PCKPOLARITY_RISING : DCMI_PCKPOLARITY_FALLING;
-//    // Setup capture parameters.
-//    DCMIHandle.Init.SynchroMode = DCMI_SYNCHRO_HARDWARE;    // Enable Hardware synchronization
-//    DCMIHandle.Init.CaptureRate = DCMI_CR_ALL_FRAME;        // Capture rate all frames
-//    DCMIHandle.Init.ExtendedDataMode = DCMI_EXTEND_DATA_8B; // Capture 8 bits on every pixel clock
-//    // Set JPEG Mode
-//    DCMIHandle.Init.JPEGMode = (pixformat == PIXFORMAT_JPEG) ?
-//                                    DCMI_JPEG_ENABLE : DCMI_JPEG_DISABLE;
-//    #if defined(MCU_SERIES_F7) || defined(MCU_SERIES_H7)
-//    DCMIHandle.Init.ByteSelectMode  = DCMI_BSM_ALL;         // Capture all received bytes
-//    DCMIHandle.Init.ByteSelectStart = DCMI_OEBS_ODD;        // Ignored
-//    DCMIHandle.Init.LineSelectMode  = DCMI_LSM_ALL;         // Capture all received lines
-//    DCMIHandle.Init.LineSelectStart = DCMI_OELS_ODD;        // Ignored
-//    #endif
-
-//    // Associate the DMA handle to the DCMI handle
-//    __HAL_LINKDMA(&DCMIHandle, DMA_Handle, DMAHandle);
-
-//    // Initialize the DCMI
-//    HAL_DCMI_DeInit(&DCMIHandle);
-//    if (HAL_DCMI_Init(&DCMIHandle) != HAL_OK) {
-//        // Initialization Error
-//        return -1;
-//    }
-
-//    // Configure and enable DCMI IRQ Channel
-//    NVIC_SetPriority(DCMI_IRQn, IRQ_PRI_DCMI);
-//    HAL_NVIC_EnableIRQ(DCMI_IRQn);
-    return 0;
-}
-
-bool sensor_get_cropped()
-{
-    if (sensor.framesize != FRAMESIZE_INVALID) {
-        return (((framebuffer_t *)sensor.pframebuffer)->x != 0)                                  // should be zero if not cropped.
-            || (((framebuffer_t *)sensor.pframebuffer)->y != 0)                                  // should be zero if not cropped.
-            || (((framebuffer_t *)sensor.pframebuffer)->u != resolution[sensor.framesize][0])    // should be equal to the resolution if not cropped.
-            || (((framebuffer_t *)sensor.pframebuffer)->v != resolution[sensor.framesize][1]);   // should be equal to the resolution if not cropped.
-    }
-    return false;
-}
-
 int sensor_set_pixformat(pixformat_t pixformat)
 {
     // Check if the value has changed.
     if (sensor.pixformat == pixformat) {
         return 0;
     }
-
-    // Some sensor drivers automatically switch to BAYER to reduce the frame size if it does not fit in RAM.
-    // If the current format is BAYER (1BPP), and the target format is RGB-565 (2BPP) and the frame does not
-    // fit in RAM it will just be switched back again to BAYER, so we keep the current format unchanged.
-    uint32_t size = framebuffer_get_buffer_size(sensor.pframebuffer);
-    if ((sensor.pixformat == PIXFORMAT_BAYER)
-            && (pixformat == PIXFORMAT_RGB565)
-            && (((framebuffer_t *)sensor.pframebuffer)->u * ((framebuffer_t *)sensor.pframebuffer)->v * 2 > size)
-            && (((framebuffer_t *)sensor.pframebuffer)->u * ((framebuffer_t *)sensor.pframebuffer)->v * 1 <= size)) {
-        return 0;
-    }
-
-    // Cropping and transposing (and thus auto rotation) don't work in JPEG mode.
-    if ((pixformat == PIXFORMAT_JPEG)
-            && (sensor_get_cropped() || sensor.transpose || sensor.auto_rotation)) {
-        return SENSOR_ERROR_PIXFORMAT_UNSUPPORTED;
-    }
-
-    // Disable any ongoing frame capture.
-    sensor_abort();
 
     // Check if the control is supported.
     if (sensor.set_pixformat == NULL) {
@@ -491,14 +369,8 @@ int sensor_set_pixformat(pixformat_t pixformat)
     // Set pixel format
     sensor.pixformat = pixformat;
 
-    // Skip the first frame.
-    ((framebuffer_t *)sensor.pframebuffer)->bpp = -1;
-
-    // Pickout a good buffer count for the user.
-    framebuffer_auto_adjust_buffers(sensor.pframebuffer);
-
     // Reconfigure the DCMI if needed.
-    return sensor_dcmi_config(pixformat);
+    return 0;
 }
 
 int sensor_set_framesize(framesize_t framesize)
@@ -507,9 +379,6 @@ int sensor_set_framesize(framesize_t framesize)
         // No change
         return 0;
     }
-
-    // Disable any ongoing frame capture.
-    sensor_abort();
 
     // Call the sensor specific function
     if (sensor.set_framesize == NULL) {
@@ -524,18 +393,6 @@ int sensor_set_framesize(framesize_t framesize)
 
     // Set framebuffer size
     sensor.framesize = framesize;
-
-    // Skip the first frame.
-    ((framebuffer_t *)sensor.pframebuffer)->bpp = -1;
-
-    // Set MAIN FB x offset, y offset, width, height, backup width, and backup height.
-    ((framebuffer_t *)sensor.pframebuffer)->x = 0;
-    ((framebuffer_t *)sensor.pframebuffer)->y = 0;
-    ((framebuffer_t *)sensor.pframebuffer)->w = ((framebuffer_t *)sensor.pframebuffer)->u = resolution[framesize][0];
-    ((framebuffer_t *)sensor.pframebuffer)->h = ((framebuffer_t *)sensor.pframebuffer)->v = resolution[framesize][1];
-
-    // Pickout a good buffer count for the user.
-    framebuffer_auto_adjust_buffers(sensor.pframebuffer);
 
     return 0;
 }
@@ -594,35 +451,6 @@ uint32_t sensor_get_dst_bpp()
         default:
             return 0;
     }
-}
-
-int sensor_set_windowing(int x, int y, int w, int h)
-{
-    // Check if the value has changed.
-    if ((((framebuffer_t *)sensor.pframebuffer)->x == x) && (((framebuffer_t *)sensor.pframebuffer)->y == y) &&
-            (((framebuffer_t *)sensor.pframebuffer)->u == w) && (((framebuffer_t *)sensor.pframebuffer)->v == h)) {
-        return 0;
-    }
-
-    if (sensor.pixformat == PIXFORMAT_JPEG) {
-        return SENSOR_ERROR_PIXFORMAT_UNSUPPORTED;
-    }
-
-    // Disable any ongoing frame capture.
-    sensor_abort();
-
-    // Skip the first frame.
-    ((framebuffer_t *)sensor.pframebuffer)->bpp = -1;
-
-    ((framebuffer_t *)sensor.pframebuffer)->x = x;
-    ((framebuffer_t *)sensor.pframebuffer)->y = y;
-    ((framebuffer_t *)sensor.pframebuffer)->w = ((framebuffer_t *)sensor.pframebuffer)->u = w;
-    ((framebuffer_t *)sensor.pframebuffer)->h = ((framebuffer_t *)sensor.pframebuffer)->v = h;
-
-    // Pickout a good buffer count for the user.
-    framebuffer_auto_adjust_buffers(sensor.pframebuffer);
-
-    return 0;
 }
 
 int sensor_set_contrast(int level)
@@ -813,131 +641,6 @@ int sensor_get_rgb_gain_db(float *r_gain_db, float *g_gain_db, float *b_gain_db)
     return 0;
 }
 
-int sensor_set_hmirror(int enable)
-{
-    // Check if the value has changed.
-    if (sensor.hmirror == ((bool) enable)) {
-        return 0;
-    }
-
-    // Disable any ongoing frame capture.
-    sensor_abort();
-
-    // Check if the control is supported.
-    if (sensor.set_hmirror == NULL) {
-        return SENSOR_ERROR_CTL_UNSUPPORTED;
-    }
-
-    // Call the sensor specific function.
-    if (sensor.set_hmirror(&sensor, enable) != 0) {
-        return SENSOR_ERROR_CTL_FAILED;
-    }
-
-    // Set the new control value.
-    sensor.hmirror = enable;
-
-    // Wait for the camera to settle
-    rte_delay_ms(100);
-
-    return 0;
-}
-
-bool sensor_get_hmirror()
-{
-    return sensor.hmirror;
-}
-
-int sensor_set_vflip(int enable)
-{
-    // Check if the value has changed.
-    if (sensor.vflip == ((bool) enable)) {
-        return 0;
-    }
-
-    // Disable any ongoing frame capture.
-    sensor_abort();
-
-    // Check if the control is supported.
-    if (sensor.set_vflip == NULL) {
-        return SENSOR_ERROR_CTL_UNSUPPORTED;
-    }
-
-    // Call the sensor specific function.
-    if (sensor.set_vflip(&sensor, enable) != 0) {
-        return SENSOR_ERROR_CTL_FAILED;
-    }
-
-    // Set the new control value.
-    sensor.vflip = enable;
-
-    // Wait for the camera to settle
-    rte_delay_ms(100);
-
-    return 0;
-}
-
-bool sensor_get_vflip()
-{
-    return sensor.vflip;
-}
-
-int sensor_set_transpose(bool enable)
-{
-    // Check if the value has changed.
-    if (sensor.transpose == enable) {
-        return 0;
-    }
-
-    // Disable any ongoing frame capture.
-    sensor_abort();
-
-    if (sensor.pixformat == PIXFORMAT_JPEG) {
-        return SENSOR_ERROR_PIXFORMAT_UNSUPPORTED;
-    }
-
-    // Set the new control value.
-    sensor.transpose = enable;
-
-    return 0;
-}
-
-bool sensor_get_transpose()
-{
-    return sensor.transpose;
-}
-
-int sensor_set_auto_rotation(bool enable)
-{
-    // Check if the value has changed.
-    if (sensor.auto_rotation == enable) {
-        return 0;
-    }
-
-    // Disable any ongoing frame capture.
-    sensor_abort();
-
-    // Operation not supported on JPEG images.
-    if (sensor.pixformat == PIXFORMAT_JPEG) {
-        return SENSOR_ERROR_PIXFORMAT_UNSUPPORTED;
-    }
-
-    // Set the new control value.
-    sensor.auto_rotation = enable;
-    return 0;
-}
-
-bool sensor_get_auto_rotation()
-{
-    return sensor.auto_rotation;
-}
-
-int sensor_set_framebuffers(int count)
-{
-    // Disable any ongoing frame capture.
-    sensor_abort();
-
-    return framebuffer_set_buffers(sensor.pframebuffer, count);
-}
 
 int sensor_set_special_effect(sde_t sde)
 {
@@ -979,9 +682,6 @@ int sensor_set_lens_correction(int enable, int radi, int coef)
 
 int sensor_ioctl(int request, ... /* arg */)
 {
-    // Disable any ongoing frame capture.
-    sensor_abort();
-
     // Check if the control is supported.
     if (sensor.ioctl == NULL) {
         return SENSOR_ERROR_CTL_UNSUPPORTED;
@@ -994,125 +694,6 @@ int sensor_ioctl(int request, ... /* arg */)
     va_end(ap);
 
     return ((ret != 0) ? SENSOR_ERROR_CTL_FAILED : 0);
-}
-
-int sensor_set_vsync_callback(vsync_cb_t vsync_cb)
-{
-    sensor.vsync_callback = vsync_cb;
-    return 0;
-}
-
-int sensor_set_frame_callback(frame_cb_t vsync_cb)
-{
-    sensor.frame_callback = vsync_cb;
-    return 0;
-}
-
-int sensor_set_color_palette(const uint16_t *color_palette)
-{
-    sensor.color_palette = color_palette;
-    return 0;
-}
-
-const uint16_t *sensor_get_color_palette()
-{
-    return sensor.color_palette;
-}
-
-int sensor_check_framebuffer_size()
-{
-    uint32_t bpp = sensor_get_dst_bpp();
-    uint32_t size = framebuffer_get_buffer_size(sensor.pframebuffer);
-    return (((((framebuffer_t *)sensor.pframebuffer)->u * ((framebuffer_t *)sensor.pframebuffer)->v * bpp) <= size) ? 0 : -1);
-}
-
-int sensor_auto_crop_framebuffer()
-{
-    uint32_t bpp = sensor_get_dst_bpp();
-    uint32_t size = framebuffer_get_buffer_size(sensor.pframebuffer);
-
-    // If the pixformat is NULL/JPEG there we can't do anything to check if it fits before hand.
-    if (!bpp) {
-        return 0;
-    }
-
-    // ((framebuffer_t *)sensor.pframebuffer) fits, we are done.
-    if ((((framebuffer_t *)sensor.pframebuffer)->u * ((framebuffer_t *)sensor.pframebuffer)->v * bpp) <= size) {
-        return 0;
-    }
-
-    if (sensor.pixformat == PIXFORMAT_RGB565) {
-        // Switch to bayer for the quick 2x savings.
-        sensor_set_pixformat(PIXFORMAT_BAYER);
-        bpp = 1;
-
-        // ((framebuffer_t *)sensor.pframebuffer) fits, we are done (bpp is 1).
-        if ((((framebuffer_t *)sensor.pframebuffer)->u * ((framebuffer_t *)sensor.pframebuffer)->v) <= size) {
-            return 0;
-        }
-    }
-
-    int window_w = ((framebuffer_t *)sensor.pframebuffer)->u;
-    int window_h = ((framebuffer_t *)sensor.pframebuffer)->v;
-
-    // We need to shrink the frame buffer. We can do this by cropping. So, we will subtract columns
-    // and rows from the frame buffer until it fits within the frame buffer.
-    int max = RTE_MAX(window_w, window_h);
-    int min = RTE_MIN(window_w, window_h);
-    float aspect_ratio = max / ((float) min);
-    float r = aspect_ratio, best_r = r;
-    int c = 1, best_c = c;
-    float best_err = FLT_MAX;
-
-    // Find the width/height ratio that's within 1% of the aspect ratio with a loop limit.
-    for (int i = 100; i; i--) {
-        float err = fabsf(r - roundf(r));
-
-        if (err <= best_err) {
-            best_err = err;
-            best_r = r;
-            best_c = c;
-        }
-
-        if (best_err <= 0.01f) {
-            break;
-        }
-
-        r += aspect_ratio;
-        c += 1;
-    }
-
-    // Select the larger geometry to map the aspect ratio to.
-    int u_sub, v_sub;
-
-    if (window_w > window_h) {
-        u_sub = roundf(best_r);
-        v_sub = best_c;
-    } else {
-        u_sub = best_c;
-        v_sub = roundf(best_r);
-    }
-
-    // Crop the frame buffer while keeping the aspect ratio and keeping the width/height even.
-    while (((((framebuffer_t *)sensor.pframebuffer)->u * ((framebuffer_t *)sensor.pframebuffer)->v * bpp) > size) || (((framebuffer_t *)sensor.pframebuffer)->u % 2)  || (((framebuffer_t *)sensor.pframebuffer)->v % 2)) {
-        ((framebuffer_t *)sensor.pframebuffer)->u -= u_sub;
-        ((framebuffer_t *)sensor.pframebuffer)->v -= v_sub;
-    }
-
-    // Center the new window using the previous offset and keep the offset even.
-    ((framebuffer_t *)sensor.pframebuffer)->x += (window_w - ((framebuffer_t *)sensor.pframebuffer)->u) / 2;
-    ((framebuffer_t *)sensor.pframebuffer)->y += (window_h - ((framebuffer_t *)sensor.pframebuffer)->v) / 2;
-
-    if (((framebuffer_t *)sensor.pframebuffer)->x % 2) {
-        ((framebuffer_t *)sensor.pframebuffer)->x -= 1;
-    }
-    if (((framebuffer_t *)sensor.pframebuffer)->y % 2) {
-        ((framebuffer_t *)sensor.pframebuffer)->y -= 1;
-    }
-
-    // Pickout a good buffer count for the user.
-    framebuffer_auto_adjust_buffers(sensor.pframebuffer);
-    return 0;
 }
 
 const char *sensor_strerror(int error)
@@ -1150,7 +731,67 @@ const char *sensor_strerror(int error)
     }
 }
 
-int sensor_snapshot(sensor_t *sensor, image_t *image, uint32_t flags)
+int sensor_snapshot(sensor_t *sensor, image_t *image, uint32_t timeout_ms)
 {
-    return -1;
+    uint32_t length = 0;
+    if (RTE_UNLIKELY(sensor == NULL) ||
+        RTE_UNLIKELY(image == NULL) ||
+        RTE_UNLIKELY(image->data == NULL)) {
+        return SENSOR_ERROR_INVALID_ARGUMENT;
+    }
+    // We use the stored frame size to read the whole frame. Note that cropping is
+    // done in the line function using the diemensions stored in MV_FB_Get()->x,y,w,h.
+    uint32_t w = resolution[sensor->framesize][0];
+    uint32_t h = resolution[sensor->framesize][1];
+    // Setup the size and address of the transfer
+    switch (sensor->pixformat) {
+        case PIXFORMAT_RGB565:
+        case PIXFORMAT_YUV422:
+            // RGB/YUV read 2 bytes per pixel.
+            length = (w * h * sizeof(uint16_t)) / sizeof(uint32_t);
+            break;
+        case PIXFORMAT_BAYER:
+            // BAYER/RAW: 1 byte per pixel
+            length = (w * h * sizeof(uint8_t)) / sizeof(uint32_t);
+            break;
+        case PIXFORMAT_GRAYSCALE:
+            // 1/2BPP Grayscale.
+            length = (w * h * sensor->gs_bpp) / sizeof(uint32_t);
+            break;
+        case PIXFORMAT_JPEG:
+            // Sensor has hardware JPEG set max frame size.
+            length = 0xFFFC;
+            break;
+        default:
+            return SENSOR_ERROR_INVALID_PIXFORMAT;
+    }
+	// Start a regular transfer
+    HAL_StatusTypeDef result = HAL_DCMI_Start_DMA(sensor->dcmi, DCMI_MODE_SNAPSHOT, image->data, length);
+	if (result != HAL_OK)
+        return SENSOR_ERROR_CAPTURE_FAILED;
+    osStatus_t snap_result = osSemaphoreAcquire(sensor->sema, timeout_ms);
+    if (snap_result == osOK) {
+        HAL_RAM_CLEAN_AFTER_REC(image->data, length * sizeof(uint32_t));
+		if(sensor->pixformat == PIXFORMAT_GRAYSCALE) {
+            uint8_t *dst = image->data;
+            uint8_t *src = image->data;
+            uint32_t length = w * h * sensor->gs_bpp;
+            for(uint32_t addr = 0; addr < length; addr++) {
+                    *dst = *src;
+                    dst += sensor->gs_bpp;
+                    src += 2 * sensor->gs_bpp;
+            }
+		}
+        return 0;
+    } else if(snap_result == osErrorTimeout){
+        HAL_DCMI_Stop(sensor->dcmi);
+        return SENSOR_ERROR_CAPTURE_TIMEOUT;
+    }
+    return SENSOR_ERROR_CAPTURE_FAILED;
+}
+
+void HAL_DCMI_FrameEventCallback(DCMI_HandleTypeDef *hdcmi)
+{
+    if (hdcmi == sensor.dcmi)
+        osSemaphoreRelease(sensor.sema);
 }

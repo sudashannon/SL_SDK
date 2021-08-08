@@ -10,13 +10,19 @@
  */
 
 #include "../../inc/data_structure/ds_image.h"
+#include "../../inc/middle_layer/rte_memory.h"
 
-void image_init(image_t *ptr, int w, int h, int bpp, void *data)
+void image_init(image_t *ptr, uint8_t *buffer, int w, int h, image_bpp_t bpp)
 {
     ptr->w = w;
     ptr->h = h;
     ptr->bpp = bpp;
-    ptr->data = data;
+    ptr->data = buffer;
+}
+
+void image_destroy(image_t *image)
+{
+    memory_free(BANK_FB, image->data);
 }
 
 void image_copy(image_t *dst, image_t *src)

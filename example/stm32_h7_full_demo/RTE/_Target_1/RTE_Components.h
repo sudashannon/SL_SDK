@@ -25,6 +25,8 @@
 #define RTE_DEVICE_HAL_COMMON
 /* Keil::Device:STM32Cube HAL:Cortex:1.8.0 */
 #define RTE_DEVICE_HAL_CORTEX
+/* Keil::Device:STM32Cube HAL:DCMI:1.8.0 */
+#define RTE_DEVICE_HAL_DCMI
 /* Keil::Device:STM32Cube HAL:DMA:1.8.0 */
 #define RTE_DEVICE_HAL_DMA
 /* Keil::Device:STM32Cube HAL:GPIO:1.8.0 */

@@ -69,22 +69,22 @@ __NO_RETURN void system_thread(void *argument)
 
     timer_configuration_t config = TIMER_CONFIG_INITIALIZER;
     timer_id_t running_timer_id = 0;
-    config.repeat_period_tick = 500;
+    config.repeat_period_tick = 100;
     config.timer_callback = running_timer;
     timer_create_new(rte_get_main_timergroup(), &config, &running_timer_id);
 
+    RTE_LOGI("Boot at clk: %d", SystemCoreClock);
     // shell.write = userShellWrite;
     // shell.read = userShellRead;
     // shellInit(&shell, shellBuffer, 512);
     // osThreadNew(shellTask, &shell, NULL);
     extern __NO_RETURN void gui_thread(void *param);
-    osThreadNew(gui_thread, NULL, NULL);
-
-    RTE_LOGI("Boot at clk: %d", SystemCoreClock);
-
-    sensor_init();
-    int result = sensor_probe_init();
-    RTE_LOGI("Probe sensor result: %d", result);
+    extern osThreadId_t gui_tid;
+    gui_tid = osThreadNew(gui_thread, NULL, NULL);
+    osThreadSetPriority(gui_tid, osPriorityNormal);
+    extern __NO_RETURN void sensor_thread(void *param);
+    osThreadId_t sensor_tid = osThreadNew(sensor_thread, NULL, NULL);
+    osThreadSetPriority(sensor_tid, osPriorityHigh);
     for (;;) {
         timer_tick_handle();
         osDelay(1);

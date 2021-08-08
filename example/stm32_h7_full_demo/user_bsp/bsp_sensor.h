@@ -160,9 +160,6 @@ typedef enum {
 #define SENSOR_HW_FLAGS_SET(s, x, v)    ((s)->hw_flags |= (v<<x))
 #define SENSOR_HW_FLAGS_CLR(s, x)       ((s)->hw_flags &= ~(1<<x))
 
-typedef void (*vsync_cb_t)(uint32_t vsync);
-typedef void (*frame_cb_t)();
-
 typedef struct _sensor sensor_t;
 typedef struct _sensor {
     union {
@@ -172,11 +169,7 @@ typedef struct _sensor {
     uint8_t  slv_addr;          // Sensor I2C slave address.
     uint16_t gs_bpp;            // Grayscale bytes per pixel.
     uint32_t hw_flags;          // Hardware flags (clock polarities/hw capabilities)
-    const uint16_t *color_palette;    // Color palette used for color lookup.
-    bool disable_full_flush;    // Turn off default frame buffer flush policy when full.
 
-    vsync_cb_t vsync_callback;  // VSYNC callback.
-    frame_cb_t frame_callback;  // Frame callback.
     polarity_t pwdn_pol;        // PWDN polarity (TODO move to hw_flags)
     polarity_t reset_pol;       // Reset polarity (TODO move to hw_flags)
 
@@ -185,18 +178,12 @@ typedef struct _sensor {
     pixformat_t pixformat;      // Pixel format
     framesize_t framesize;      // Frame size
     int framerate;              // Frame rate
-    uint32_t last_frame_ms;     // Last sampled frame timestamp in milliseconds.
-    bool last_frame_ms_valid;   // Last sampled frame timestamp in milliseconds valid.
     gainceiling_t gainceiling;  // AGC gainceiling
-    bool hmirror;               // Horizontal Mirror
-    bool vflip;                 // Vertical Flip
-    bool transpose;             // Transpose Image
-    bool auto_rotation;         // Rotate Image Automatically
-    bool detected;              // Set to true when the sensor is initialized.
 
     // Resources
     I2C_HandleTypeDef *bus;     // SCCB/I2C bus.
-    ds_framebuffer_t pframebuffer;
+    DCMI_HandleTypeDef *dcmi;
+    void *sema;
 
     // Sensor function pointers
     int  (*reset)               (sensor_t *sensor);
@@ -282,12 +269,6 @@ uint32_t sensor_get_src_bpp();
 // Return the number of bytes per pixel to write to memory.
 uint32_t sensor_get_dst_bpp();
 
-// Returns true if a crop is being applied to the frame buffer.
-bool sensor_get_cropped();
-
-// Set window size.
-int sensor_set_windowing(int x, int y, int w, int h);
-
 // Set the sensor contrast level (from -3 to +3).
 int sensor_set_contrast(int level);
 
@@ -325,33 +306,6 @@ int sensor_set_auto_whitebal(int enable, float r_gain_db, float g_gain_db, float
 // Get the rgb gain values.
 int sensor_get_rgb_gain_db(float *r_gain_db, float *g_gain_db, float *b_gain_db);
 
-// Enable/disable the hmirror mode.
-int sensor_set_hmirror(int enable);
-
-// Get hmirror status.
-bool sensor_get_hmirror();
-
-// Enable/disable the vflip mode.
-int sensor_set_vflip(int enable);
-
-// Get vflip status.
-bool sensor_get_vflip();
-
-// Enable/disable the transpose mode.
-int sensor_set_transpose(bool enable);
-
-// Get transpose mode state.
-bool sensor_get_transpose();
-
-// Enable/disable the auto rotation mode.
-int sensor_set_auto_rotation(bool enable);
-
-// Get transpose mode state.
-bool sensor_get_auto_rotation();
-
-// Set the number of virtual frame buffers.
-int sensor_set_framebuffers(int count);
-
 // Set special digital effects (SDE).
 int sensor_set_special_effect(sde_t sde);
 
@@ -361,26 +315,8 @@ int sensor_set_lens_correction(int enable, int radi, int coef);
 // IOCTL function
 int sensor_ioctl(int request, ...);
 
-// Set vsync callback function.
-int sensor_set_vsync_callback(vsync_cb_t vsync_cb);
-
-// Set frame callback function.
-int sensor_set_frame_callback(frame_cb_t vsync_cb);
-
-// Set color palette
-int sensor_set_color_palette(const uint16_t *color_palette);
-
-// Get color palette
-const uint16_t *sensor_get_color_palette();
-
-// Return true if the current frame size/format fits in RAM.
-int sensor_check_framebuffer_size();
-
-// Auto-crop frame buffer until it fits in RAM (may switch pixel format to BAYER).
-int sensor_auto_crop_framebuffer();
-
 // Default snapshot function.
-int sensor_snapshot(sensor_t *sensor, image_t *image, uint32_t flags);
+int sensor_snapshot(sensor_t *sensor, image_t *image, uint32_t timeout_ms);
 
 // Convert sensor error codes to strings.
 const char *sensor_strerror(int error);

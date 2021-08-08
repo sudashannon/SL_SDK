@@ -3,6 +3,19 @@
 #include "lvgl.h"
 #include "rte_include.h"
 
+lv_img_dsc_t sensor_disp_image;
+lv_obj_t *imgobj_sensor = NULL;
+
+void sensor_thread(void *arg)
+{
+    static uint8_t color = 0x88;
+    memset(sensor_disp_image.data, color, sensor_disp_image.header.w * sensor_disp_image.header.h * sizeof(lv_color_t));
+	lv_area_t objarea = {0};
+	lv_obj_get_coords(imgobj_sensor, &objarea);
+    _lv_inv_area(lv_disp_get_default(), &objarea);
+    color++;
+}
+
 int gui_thread(void *param)
 {
     /*Initialize LittlevGL*/
@@ -92,6 +105,21 @@ int gui_thread(void *param)
      * NULL means align on parent (which is the screen now)
      * 0, 0 at the end means an x, y offset after alignment*/
     lv_obj_align(label1, LV_ALIGN_CENTER, 0, 0);
+    imgobj_sensor = lv_img_create(scr);
+    lv_obj_align(imgobj_sensor, LV_ALIGN_TOP_MID, 0, 0);
+	sensor_disp_image.data = memory_alloc(BANK_DEFAULT, 160 * 120 * sizeof(lv_color_t));
+	sensor_disp_image.header.cf = LV_IMG_CF_TRUE_COLOR;
+	sensor_disp_image.header.always_zero = 0;
+	sensor_disp_image.header.w = 160;
+	sensor_disp_image.header.h = 120;
+	sensor_disp_image.data_size = sensor_disp_image.header.w * sensor_disp_image.header.h * sizeof(lv_color_t);
+	lv_img_set_src(imgobj_sensor, &sensor_disp_image);
+    timer_configuration_t timer_config = TIMER_CONFIG_INITIALIZER;
+    timer_config.repeat_period_tick = 10;
+    timer_config.timer_callback = sensor_thread;
+    timer_id_t sensor_timer;
+    timer_create_new(rte_get_main_timergroup(), &timer_config, &sensor_timer);
+    lv_example_img_4();
     for (;;) {
         /* Periodically call the lv_task handler.
          * It could be done in a timer interrupt or an OS task too.*/

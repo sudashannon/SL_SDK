@@ -28,16 +28,6 @@ static rte_allocator_t rte_allocator_instance = {
     .free = NULL,
 };
 /**
- * @brief Used for main timer group internal.
- *
- */
-static timer_group_id_t rte_timer_group = 0;
-/**
- * @brief Mutex used for log, which is adapted for CMSIS-RTOS2.
- *
- */
-static rte_mutex_t log_mutex_instance = {NULL};
-/**
  * @brief Mutex used for general allocator, which is adapted for CMSIS-RTOS2.
  *
  */
@@ -55,12 +45,22 @@ static const osMutexAttr_t mem_mutex_attr[BANK_CNT] = {
         0U
     },
     {
-        LOG_STR(BANK_GUI),
+        LOG_STR(BANK_FB),
         osMutexPrioInherit | osMutexRecursive,
         NULL,
         0U
     }
 };
+/**
+ * @brief Used for main timer group internal.
+ *
+ */
+static timer_group_id_t rte_timer_group = 0;
+/**
+ * @brief Mutex used for log, which is adapted for CMSIS-RTOS2.
+ *
+ */
+static rte_mutex_t log_mutex_instance = {NULL};
 static rte_mutex_t mem_mutex_instance[BANK_CNT] = {NULL};
 /**
  * @brief Wrapper for mutex lock, which is adapted for CMSIS-RTOS2.
@@ -174,6 +174,10 @@ void rte_init(void)
     mem_mutex_instance[BANK_DMA].unlock = rte_mutex_unlock;
     mem_mutex_instance[BANK_DMA].trylock = NULL;
     memory_pool(BANK_DMA, &mem_mutex_instance[BANK_DMA], dma_buffer, sizeof(dma_buffer));
+    mem_mutex_instance[BANK_FB].mutex = (void *)osMutexNew(&mem_mutex_attr[BANK_FB]);
+    mem_mutex_instance[BANK_FB].lock = rte_mutex_lock;
+    mem_mutex_instance[BANK_FB].unlock = rte_mutex_unlock;
+    mem_mutex_instance[BANK_FB].trylock = NULL;
     memory_pool(BANK_FB, NULL, fb_buffer, sizeof(fb_buffer));
     rte_allocator_instance.malloc = rte_malloc;
     rte_allocator_instance.calloc = rte_calloc;

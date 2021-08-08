@@ -3,9 +3,28 @@
 #include "cmsis_os2.h"
 #include "bsp_lcd.h"
 
+static lv_obj_t *imgobj_sensor = NULL;
+static lv_img_dsc_t sensor_disp_image;
+osThreadId_t gui_tid;
+
 static void lvgl_log_output(const char *data)
 {
     log_output(data, strlen(data));
+}
+
+uint8_t *get_disp_data(uint8_t *buffer)
+{
+    return sensor_disp_image.data;
+}
+
+void refresh_disp_image(void)
+{
+    for (uint32_t i = 0; i < sensor_disp_image.data_size / 2; i++) {
+        uint16_t pixel = ((uint16_t *)sensor_disp_image.data)[i];
+        pixel = (pixel) << 8 | (pixel) >> 8;
+        ((uint16_t *)sensor_disp_image.data)[i] = pixel;
+    }
+    lv_obj_invalidate(imgobj_sensor);
 }
 
 
@@ -63,9 +82,9 @@ __NO_RETURN void gui_thread(void *param)
 
     /* Example for 2) */
     static lv_disp_draw_buf_t draw_buf_dsc_2;
-    lv_color_t *buf_2_1 = (lv_color_t *)memory_calloc(BANK_DEFAULT, 240 * 32);
-    lv_color_t *buf_2_2 = (lv_color_t *)memory_calloc(BANK_DEFAULT, 240 * 32);
-    lv_disp_draw_buf_init(&draw_buf_dsc_2, buf_2_1, buf_2_2, 240 * 32);   /*Initialize the display buffer*/
+    lv_color_t *buf_2_1 = (lv_color_t *)memory_calloc(BANK_DEFAULT, 320 * 10 * sizeof(lv_color_t));
+    lv_color_t *buf_2_2 = (lv_color_t *)memory_calloc(BANK_DEFAULT, 320 * 10 * sizeof(lv_color_t));
+    lv_disp_draw_buf_init(&draw_buf_dsc_2, buf_2_1, buf_2_2, 320 * 10);   /*Initialize the display buffer*/
 
     /* Example for 3) also set disp_drv.full_refresh = 1 below*/
     // static lv_disp_draw_buf_t draw_buf_dsc_3;
@@ -83,8 +102,8 @@ __NO_RETURN void gui_thread(void *param)
     /*Set up the functions to access to your display*/
 
     /*Set the resolution of the display*/
-    disp_drv.hor_res = 240;
-    disp_drv.ver_res = 320;
+    disp_drv.hor_res = 320;
+    disp_drv.ver_res = 240;
 
     /*Used to copy the buffer's content to the display*/
     disp_drv.flush_cb = disp_flush;
@@ -103,6 +122,7 @@ __NO_RETURN void gui_thread(void *param)
     /*Finally register the driver*/
     lv_disp_t *disp = lv_disp_drv_register(&disp_drv);
     lv_obj_t * scr = lv_disp_get_scr_act(NULL);     /*Get the current screen*/
+    lv_disp_set_default(disp);
     /*Create a Label on the currently active screen*/
     lv_obj_t * label1 =  lv_label_create(scr);
     /*Modify the Label's text*/
@@ -111,12 +131,20 @@ __NO_RETURN void gui_thread(void *param)
      * NULL means align on parent (which is the screen now)
      * 0, 0 at the end means an x, y offset after alignment*/
     lv_obj_align(label1, LV_ALIGN_CENTER, 0, 0);
-    memory_demon(BANK_DEFAULT);
+    imgobj_sensor = lv_img_create(scr);
+	sensor_disp_image.data = memory_alloc(BANK_FB, 320 * 240 * 2);
+	sensor_disp_image.header.cf = LV_IMG_CF_TRUE_COLOR;
+	sensor_disp_image.header.always_zero = 0;
+	sensor_disp_image.header.w = 320;
+	sensor_disp_image.header.h = 240;
+	sensor_disp_image.data_size = sensor_disp_image.header.w * sensor_disp_image.header.h * sizeof(lv_color_t);
+	lv_img_set_src(imgobj_sensor, &sensor_disp_image);
+    lv_obj_center(imgobj_sensor);
     for (;;) {
         /* Periodically call the lv_task handler.
          * It could be done in a timer interrupt or an OS task too.*/
         lv_task_handler();
         lv_refr_now(disp);
-        osDelay(5);
+        osDelay(10);
     }
 }

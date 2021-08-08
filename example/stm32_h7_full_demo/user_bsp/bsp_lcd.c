@@ -126,7 +126,7 @@ void bsp_lcd_init(void)
     rte_delay_ms(50);
 
     bsp_lcd_write_command(0x36);
-    bsp_lcd_write_data(0x00);
+    bsp_lcd_write_data((1<<7)|(0<<6)|(1<<5));
 
     bsp_lcd_write_command(0x3A);
     bsp_lcd_write_data(0x05);

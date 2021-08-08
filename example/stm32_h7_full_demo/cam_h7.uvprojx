@@ -337,7 +337,7 @@
             <v6Rtti>0</v6Rtti>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>USE_HAL_DRIVER, STM32H743xx, RTE_MEMPOOL_SIZE=256*1024, RTE_MEMPOOL_USE_64BIT=0,LV_CONF_INCLUDE_SIMPLE=1</Define>
+              <Define>USE_HAL_DRIVER, STM32H743xx, RTE_MEMPOOL_SIZE=256*1024, RTE_MEMPOOL_USE_64BIT=0,LV_CONF_INCLUDE_SIMPLE=1, LV_LVGL_H_INCLUDE_SIMPLE=1</Define>
               <Undefine></Undefine>
               <IncludePath>..\..\inc;..\..\src\utils\letter-shell\src;.\user_app;.\user_bsp;..\..\src\utils\lvgl;..\stm32_h7_full_demo</IncludePath>
             </VariousControls>
@@ -398,6 +398,11 @@
               <FileType>1</FileType>
               <FilePath>.\user_app\gui_thread.c</FilePath>
             </File>
+            <File>
+              <FileName>sensor_thread.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\user_app\sensor_thread.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -452,6 +457,11 @@
               <FileName>i2c.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\RTE\Device\STM32H743VITx\STCubeGenerated\Src\i2c.c</FilePath>
+            </File>
+            <File>
+              <FileName>dcmi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\RTE\Device\STM32H743VITx\STCubeGenerated\Src\dcmi.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -542,11 +552,6 @@
               <FileName>ds_vector.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\src\data_structure\ds_vector.c</FilePath>
-            </File>
-            <File>
-              <FileName>ds_framebuffer.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\src\data_structure\ds_framebuffer.c</FilePath>
             </File>
             <File>
               <FileName>ds_image.c</FileName>
@@ -697,11 +702,6 @@
               <FileName>lv_grid.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\src\utils\lvgl\src\extra\layouts\grid\lv_grid.c</FilePath>
-            </File>
-            <File>
-              <FileName>lv_snapshot.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\src\utils\lvgl\src\extra\others\snapshot\lv_snapshot.c</FilePath>
             </File>
             <File>
               <FileName>lv_theme_basic.c</FileName>
@@ -1004,11 +1004,6 @@
               <FilePath>..\..\src\utils\lvgl\src\misc\lv_anim.c</FilePath>
             </File>
             <File>
-              <FileName>lv_anim_timeline.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\src\utils\lvgl\src\misc\lv_anim_timeline.c</FilePath>
-            </File>
-            <File>
               <FileName>lv_area.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\src\utils\lvgl\src\misc\lv_area.c</FilePath>
@@ -1183,6 +1178,16 @@
               <FileType>1</FileType>
               <FilePath>..\..\src\utils\lvgl\src\widgets\lv_textarea.c</FilePath>
             </File>
+            <File>
+              <FileName>lv_anim_timeline.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\utils\lvgl\src\misc\lv_anim_timeline.c</FilePath>
+            </File>
+            <File>
+              <FileName>lv_snapshot.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\utils\lvgl\src\extra\others\snapshot\lv_snapshot.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -1265,6 +1270,12 @@
         </targetInfos>
       </component>
       <component Cclass="Device" Cgroup="STM32Cube HAL" Csub="Cortex" Cvendor="Keil" Cversion="1.8.0" condition="STM32H7 HAL">
+        <package name="STM32H7xx_DFP" schemaVersion="1.6.3" url="http://www.keil.com/pack/" vendor="Keil" version="2.7.0"/>
+        <targetInfos>
+          <targetInfo name="Target 1"/>
+        </targetInfos>
+      </component>
+      <component Cclass="Device" Cgroup="STM32Cube HAL" Csub="DCMI" Cvendor="Keil" Cversion="1.8.0" condition="STM32H7 HAL DMA">
         <package name="STM32H7xx_DFP" schemaVersion="1.6.3" url="http://www.keil.com/pack/" vendor="Keil" version="2.7.0"/>
         <targetInfos>
           <targetInfo name="Target 1"/>
