@@ -766,6 +766,7 @@ int sensor_snapshot(sensor_t *sensor, image_t *image, uint32_t timeout_ms)
             return SENSOR_ERROR_INVALID_PIXFORMAT;
     }
 	// Start a regular transfer
+    uint32_t start_tick = rte_get_tick();
     HAL_StatusTypeDef result = HAL_DCMI_Start_DMA(sensor->dcmi, DCMI_MODE_SNAPSHOT, image->data, length);
 	if (result != HAL_OK)
         return SENSOR_ERROR_CAPTURE_FAILED;
@@ -782,6 +783,8 @@ int sensor_snapshot(sensor_t *sensor, image_t *image, uint32_t timeout_ms)
                     src += 2 * sensor->gs_bpp;
             }
 		}
+        uint32_t end_tick = rte_get_tick();
+        RTE_LOGI("snap consume %d ms", end_tick - start_tick);
         return 0;
     } else if(snap_result == osErrorTimeout){
         HAL_DCMI_Stop(sensor->dcmi);

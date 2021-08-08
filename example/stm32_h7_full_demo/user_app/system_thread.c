@@ -7,6 +7,7 @@
 #include "usart.h"
 #include "bsp_sensor.h"
 #include "i2c.h"
+#include "lvgl.h"
 
 osThreadId_t system_thread_id;
 static hal_device_t *com_debug = NULL;

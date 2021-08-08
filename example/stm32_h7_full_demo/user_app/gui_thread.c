@@ -2,6 +2,7 @@
 #include "rte_include.h"
 #include "cmsis_os2.h"
 #include "bsp_lcd.h"
+#include "bsp_sensor.h"
 
 static lv_obj_t *imgobj_sensor = NULL;
 static lv_img_dsc_t sensor_disp_image;
@@ -132,11 +133,11 @@ __NO_RETURN void gui_thread(void *param)
      * 0, 0 at the end means an x, y offset after alignment*/
     lv_obj_align(label1, LV_ALIGN_CENTER, 0, 0);
     imgobj_sensor = lv_img_create(scr);
-	sensor_disp_image.data = memory_alloc(BANK_FB, 320 * 240 * 2);
+	sensor_disp_image.data = memory_alloc(BANK_FB, resolution[FRAME_SIZE][0] * resolution[FRAME_SIZE][1] * 2);
 	sensor_disp_image.header.cf = LV_IMG_CF_TRUE_COLOR;
 	sensor_disp_image.header.always_zero = 0;
-	sensor_disp_image.header.w = 320;
-	sensor_disp_image.header.h = 240;
+	sensor_disp_image.header.w = resolution[FRAME_SIZE][0];
+	sensor_disp_image.header.h = resolution[FRAME_SIZE][1];
 	sensor_disp_image.data_size = sensor_disp_image.header.w * sensor_disp_image.header.h * sizeof(lv_color_t);
 	lv_img_set_src(imgobj_sensor, &sensor_disp_image);
     lv_obj_center(imgobj_sensor);

@@ -337,7 +337,7 @@
             <v6Rtti>0</v6Rtti>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>USE_HAL_DRIVER, STM32H743xx, RTE_MEMPOOL_SIZE=256*1024, RTE_MEMPOOL_USE_64BIT=0,LV_CONF_INCLUDE_SIMPLE=1, LV_LVGL_H_INCLUDE_SIMPLE=1</Define>
+              <Define>USE_HAL_DRIVER, STM32H743xx, RTE_MEMPOOL_SIZE=192*1024, RTE_MEMPOOL_USE_64BIT=0,LV_CONF_INCLUDE_SIMPLE=1, LV_LVGL_H_INCLUDE_SIMPLE=1</Define>
               <Undefine></Undefine>
               <IncludePath>..\..\inc;..\..\src\utils\letter-shell\src;.\user_app;.\user_bsp;..\..\src\utils\lvgl;..\stm32_h7_full_demo</IncludePath>
             </VariousControls>

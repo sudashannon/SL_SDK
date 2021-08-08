@@ -6,6 +6,8 @@
 #include "rte_include.h"
 #include "hal_include.h"
 
+#define FRAME_SIZE          FRAMESIZE_QVGA
+
 // Sensor external clock timer frequency.
 #define SENSOR_XCLK_FREQUENCY      (24000000)
 // Sensor PLL register value.
