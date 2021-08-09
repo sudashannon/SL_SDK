@@ -36,7 +36,7 @@
  *=========================*/
 
 /*1: use custom malloc/free, 0: use the built-in `lv_mem_alloc()` and `lv_mem_free()`*/
-#define LV_MEM_CUSTOM      0
+#define LV_MEM_CUSTOM      1
 #if LV_MEM_CUSTOM == 0
 /*Size of the memory available for `lv_mem_alloc()` in bytes (>= 2kB)*/
 #  define LV_MEM_SIZE    (64U * 1024U)          /*[bytes]*/
@@ -46,7 +46,7 @@
 #else       /*LV_MEM_CUSTOM*/
 #  define LV_MEM_CUSTOM_INCLUDE   "rte_include.h"   /*Header for the dynamic memory function*/
 #  define LV_MEM_CUSTOM_ALLOC(size)     memory_alloc(BANK_DEFAULT, size)
-#  define LV_MEM_CUSTOM_FREE(ptr)      memory_alloc(BANK_DEFAULT, ptr)
+#  define LV_MEM_CUSTOM_FREE(ptr)      memory_free(BANK_DEFAULT, ptr)
 #  define LV_MEM_CUSTOM_REALLOC(ptr, size)   memory_realloc(BANK_DEFAULT, ptr, size)
 #endif     /*LV_MEM_CUSTOM*/
 

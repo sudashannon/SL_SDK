@@ -133,7 +133,7 @@ __NO_RETURN void gui_thread(void *param)
      * 0, 0 at the end means an x, y offset after alignment*/
     lv_obj_align(label1, LV_ALIGN_CENTER, 0, 0);
     imgobj_sensor = lv_img_create(scr);
-	sensor_disp_image.data = memory_alloc(BANK_FB, resolution[FRAME_SIZE][0] * resolution[FRAME_SIZE][1] * 2);
+	sensor_disp_image.data = memory_alloc(BANK_DEFAULT, resolution[FRAME_SIZE][0] * resolution[FRAME_SIZE][1] * 2);
 	sensor_disp_image.header.cf = LV_IMG_CF_TRUE_COLOR;
 	sensor_disp_image.header.always_zero = 0;
 	sensor_disp_image.header.w = resolution[FRAME_SIZE][0];

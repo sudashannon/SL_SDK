@@ -13,6 +13,7 @@
 #define __HAL_H
 
 #include "../rte_include.h"
+#if __DCACHE_PRESENT
 /*
     the SCB_CleanDCache_by_Addr() requires a 32-Byte aligned address
     adjust the address and the D-Cache size to clean accordingly.
@@ -29,6 +30,11 @@
                                                 uint32_t alignedAddr = (uint32_t)p & (uint32_t)(~0x1F);                                     \
                                                 SCB_InvalidateDCache_by_Addr((uint32_t*)alignedAddr, (int32_t)(size + ((uint32_t)p - alignedAddr)));   \
                                             }while(0)
+#else
+#define HAL_RAM_CLEAN_PRE_SEND(p, size)
+#define HAL_RAM_CLEAN_AFTER_REC(p, size)
+#endif
+
 
 typedef uint8_t hal_device_id_t;
 typedef uint8_t hal_operation_id_t;

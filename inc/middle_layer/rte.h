@@ -24,8 +24,15 @@
 #ifndef RTE_MEMPOOL_SIZE
 #define RTE_MEMPOOL_SIZE            64 * 1024 * 1024
 #endif
+/*
+** Detect whether or not we are building for a 32- or 64-bit (LP/LLP)
+** architecture. There is no reliable portable method at compile-time.
+*/
+#if defined (__alpha__) || defined (__ia64__) || defined (__x86_64__) \
+	|| defined (_WIN64) || defined (__LP64__) || defined (__LLP64__)
 #ifndef RTE_MEMPOOL_USE_64BIT
 #define RTE_MEMPOOL_USE_64BIT       1
+#endif
 #endif
 
 #define RTE_TIMER_GROUP_CAPACITY    8

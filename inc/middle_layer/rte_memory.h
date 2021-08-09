@@ -87,7 +87,6 @@ void* memory_realloc(mem_bank_t bank, void* ptr, size_t size);
  */
 size_t memory_sizeof_p(void *ptr);
 
-#if RTE_USE_SIMPLY_MEMPOOL == 0
 /**
  * @brief Get a free size of a memory bank.
  *
@@ -117,7 +116,6 @@ void *memory_alloc_max(mem_bank_t bank,size_t *size);
  * @return size_t
  */
 void memory_demon(mem_bank_t bank);
-#endif
 
 /* For include header in CPP code */
 #ifdef __cplusplus

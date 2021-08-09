@@ -784,7 +784,7 @@ int sensor_snapshot(sensor_t *sensor, image_t *image, uint32_t timeout_ms)
             }
 		}
         uint32_t end_tick = rte_get_tick();
-        RTE_LOGI("snap consume %d ms", end_tick - start_tick);
+        RTE_LOGD("snap consume %d ms", end_tick - start_tick);
         return 0;
     } else if(snap_result == osErrorTimeout){
         HAL_DCMI_Stop(sensor->dcmi);

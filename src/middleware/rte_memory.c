@@ -2,7 +2,7 @@
  * @file rte_memory.c
  * @author Leon Shan (813475603@qq.com)
  * @brief NOTE: The mutex provided to memory pool may not
- *             be recursive.
+ *             be recursive when you don't use realloc function..
  * @version 1.0.0
  * @date 2021-07-27
  *
@@ -24,6 +24,23 @@
 #define MEM_UNLOCK(bank) RTE_UNLOCK(mem_handle[bank].mutex)
 
 #if RTE_USE_SIMPLY_MEMPOOL == 0
+/*
+** Architecture-specific bit manipulation routines.
+**
+** TLSF achieves O(1) cost for malloc and free operations by limiting
+** the search for a free block to a free list of guaranteed size
+** adequate to fulfill the request, combined with efficient free list
+** queries using bitmasks and architecture-specific bit-manipulation
+** routines.
+**
+** Most modern processors provide instructions to count leading zeroes
+** in a word, find the lowest and highest set bit, etc. These
+** specific implementations will be used when available, falling back
+** to a reasonably efficient generic implementation.
+**
+** NOTE: TLSF spec relies on ffs/fls returning value 0..31.
+** ffs/fls return 1-32 by default, returning 0 for error.
+*/
 
 /**
  * @brief This struct defines the memory handle.
@@ -82,7 +99,36 @@ static inline int mem_fls(unsigned int word)
     const int bit = word ? 32 - __builtin_clz(word) : 0;
     return bit - 1;
 }
+#else
+/* Fall back to generic implementation. */
+
+static inline int  mem_fls_generic(unsigned int word)
+{
+	int bit = 32;
+
+	if (!word) bit -= 1;
+	if (!(word & 0xffff0000)) { word <<= 16; bit -= 16; }
+	if (!(word & 0xff000000)) { word <<= 8; bit -= 8; }
+	if (!(word & 0xf0000000)) { word <<= 4; bit -= 4; }
+	if (!(word & 0xc0000000)) { word <<= 2; bit -= 2; }
+	if (!(word & 0x80000000)) { word <<= 1; bit -= 1; }
+
+	return bit;
+}
+
+/* Implement ffs in terms of fls. */
+static inline int  mem_ffs(unsigned int word)
+{
+	return  mem_fls_generic(word & (~word + 1)) - 1;
+}
+
+static inline int  mem_fls(unsigned int word)
+{
+	return  mem_fls_generic(word) - 1;
+}
 #endif
+
+/* Possibly 64-bit version of tlsf_fls. */
 #if RTE_MEMPOOL_USE_64BIT
 static inline int mem_fls_sizet(size_t size)
 {
@@ -822,43 +868,38 @@ void memory_free(mem_bank_t bank,void* ptr)
 */
 void* memory_realloc(mem_bank_t bank, void* ptr, size_t size)
 {
-    MEM_LOCK(bank);
     /* Protect the critical section... */
     void* p = NULL;
     /* Zero-size requests are treated as free. */
     if (ptr && size == 0) {
         memory_free(bank, ptr);
     } else if (!ptr) { /* Requests with NULL pointers are treated as malloc. */
-        if(size) {
-            control_t* control = mem_cast(control_t*, mem_handle[bank].mem);
-            const size_t adjust = adjust_request_size(size, ALIGN_SIZE);
-            block_header_t* block = block_locate_free(control, adjust);
-            p = block_prepare_used(control, block, adjust);
-        }
+        p = memory_alloc(bank, size);
     } else {
+        MEM_LOCK(bank);
+
+        control_t* control = mem_cast(control_t*, mem_handle[bank].mem);
+
         block_header_t* block = block_from_ptr(ptr);
         block_header_t* next = block_next(block);
+
         const size_t cursize = block_size(block);
         const size_t combined = cursize + block_size(next) + block_header_overhead;
         const size_t adjust = adjust_request_size(size, ALIGN_SIZE);
+
         MEM_ASSERT(!block_is_free(block));
         /*
         ** If the next block is used, or when combined with the current
         ** block, does not offer enough space, we must reallocate and copy.
         */
         if (adjust > cursize && (!block_is_free(next) || adjust > combined)) {
-            if(size) {
-                control_t* control = mem_cast(control_t*, mem_handle[bank].mem);
-                block = block_locate_free(control, adjust);
-                p = block_prepare_used(control, block, adjust);
-            }
+            p = memory_alloc(bank, size);
             if (p) {
                 const size_t minsize = RTE_MIN(cursize, size);
                 memcpy(p, ptr, minsize);
                 memory_free(bank, ptr);
             }
         } else {
-            control_t* control = mem_cast(control_t*, mem_handle[bank].mem);
             /* Do we need to expand to the next block? */
             if (adjust > cursize) {
                 block_merge_next(control, block);
@@ -868,8 +909,8 @@ void* memory_realloc(mem_bank_t bank, void* ptr, size_t size)
             block_trim_used(control, block, adjust);
             p = ptr;
         }
+        MEM_UNLOCK(bank);
     }
-    MEM_UNLOCK(bank);
     return p;
 }
 static void print_block(void* ptr, size_t size, int used)
@@ -944,7 +985,8 @@ size_t memory_sizeof_max(mem_bank_t bank)
     MEM_LOCK(bank);
     size_t nowsize = 0;
     size_t maxsize = 0;
-    block_header_t* block = offset_to_block(mem_handle[bank].pool, -(int)block_header_overhead);
+    block_header_t* block =
+        offset_to_block(mem_handle[bank].pool, -(int)block_header_overhead);
     while (block && !block_is_last(block)) {
         nowsize = block_size(block);
         if((nowsize > maxsize)&&block_is_free(block))
