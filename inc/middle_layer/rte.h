@@ -17,10 +17,6 @@
 // first-fit method when enabled. If disabled,
 // the mempool will use tlsf method */
 #define RTE_USE_SIMPLY_MEMPOOL      0
-#define RTE_USE_LVGL                0
-#define RTE_USE_SFUD                0
-#define RTE_USE_EASYFLASH           0
-#define RTE_USE_LETTER_SHELL        0
 #ifndef RTE_MEMPOOL_SIZE
 #define RTE_MEMPOOL_SIZE            64 * 1024 * 1024
 #endif

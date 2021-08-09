@@ -31,7 +31,7 @@ static size_t rte_data_out(uint8_t *data, size_t length)
  */
 unsigned short userShellWrite(char *data, unsigned short len)
 {
-    log_output(data, len);
+    hal_device_write_sync(com_debug, data, (uint16_t)len, HAL_MAX_DELAY);
     return len;
 }
 /**
@@ -48,6 +48,23 @@ unsigned short userShellRead(char *data, unsigned short len)
     }
     return 0;
 }
+
+static int memory(int argc, char *argv[])
+{
+    if (argc < 2) {
+        return -1;
+    }
+    if (!strcmp(argv[1], "list")) {
+        RTE_LOGI("System has handled %d banks", BANK_CNT);
+    } else if (!strcmp(argv[1], "demon")) {
+        mem_bank_t bank = atoi(argv[2]);
+        memory_demon(bank);
+    } else {
+        return -1;
+    }
+    return 0;
+}
+SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), mem, memory, memory tool to demon all handled bank);
 
 static void running_timer(void *arg)
 {
@@ -75,16 +92,17 @@ __NO_RETURN void system_thread(void *argument)
     timer_create_new(rte_get_main_timergroup(), &config, &running_timer_id);
 
     RTE_LOGI("Boot at clk: %d", SystemCoreClock);
-    // shell.write = userShellWrite;
-    // shell.read = userShellRead;
-    // shellInit(&shell, shellBuffer, 512);
-    // osThreadNew(shellTask, &shell, NULL);
+    shell.write = userShellWrite;
+    shell.read = userShellRead;
+    shellInit(&shell, shellBuffer, 512);
+    osThreadNew(shellTask, &shell, NULL);
     extern __NO_RETURN void gui_thread(void *param);
     extern osThreadId_t gui_tid;
     gui_tid = osThreadNew(gui_thread, NULL, NULL);
     osThreadSetPriority(gui_tid, osPriorityNormal);
     extern __NO_RETURN void sensor_thread(void *param);
-    osThreadId_t sensor_tid = osThreadNew(sensor_thread, NULL, NULL);
+    extern osThreadId_t sensor_tid;
+    sensor_tid = osThreadNew(sensor_thread, NULL, NULL);
     osThreadSetPriority(sensor_tid, osPriorityHigh);
     for (;;) {
         timer_tick_handle();

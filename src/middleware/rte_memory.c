@@ -1192,32 +1192,7 @@ void* memory_realloc(mem_bank_t bank, void* ptr, size_t size)
     if (ptr && size == 0) {
         memory_free(bank, ptr);
     } else if (!ptr) {  /* Requests with NULL pointers are treated as malloc. */
-        if(size) {
-#if RTE_MEMPOOL_USE_64BIT
-            /*Round the size up to 8*/
-            if(size & 0x7) {
-                size = size & (~0x7);
-                size += 8;
-            }
-#else
-            /*Round the size up to 4*/
-            if(size & 0x3) {
-                size = size & (~0x3);
-                size += 4;
-            }
-#endif
-            mem_entry_t * e = NULL;
-            //Search for a appropriate entry
-            do {
-                //Get the next entry
-                e = ent_get_next(bank,e);
-                /*If there is next entry then try to allocate there*/
-                if(e != NULL) {
-                    p = ent_alloc(e, size);
-                }
-                //End if there is not next entry OR the alloc. is successful
-            } while(e != NULL && p == NULL);
-        }
+        p = memory_alloc(bank, size);
     } else {
 #if RTE_MEMPOOL_USE_64BIT
         /*Round the size up to 8*/
@@ -1274,6 +1249,122 @@ size_t memory_sizeof_p(void *ptr)
 	if(ptr == NULL) return 0;
 	mem_entry_t *e = (mem_entry_t *)((uint8_t *)ptr - sizeof(mem_header_t));
 	return e->header.d_size;
+}
+/**
+ * @brief Get a free size of a memory bank.
+ *
+ * @param bank
+ * @return size_t
+ */
+size_t memory_sizeof_free(mem_bank_t bank)
+{
+    MEM_LOCK(bank);
+    size_t freesize = 0;
+    mem_entry_t * e = NULL;
+    //Search for a appropriate entry
+    do {
+        //Get the next entry
+        e = ent_get_next(bank,e);
+        /*If there is next entry then try to allocate there*/
+        if(e != NULL && e->header.used == 0) {
+            freesize += e->header.d_size;
+        }
+        //End if there is not next entry OR the alloc. is successful
+    } while(e != NULL);
+    MEM_UNLOCK(bank);
+    return freesize;
+}
+/**
+ * @brief Get a max size of a memory bank.
+ *
+ * @param bank
+ * @return size_t
+ */
+size_t memory_sizeof_max(mem_bank_t bank)
+{
+    MEM_LOCK(bank);
+    size_t nowsize = 0;
+    size_t maxsize = 0;
+    mem_entry_t * e = NULL;
+    //Search for a appropriate entry
+    do {
+        //Get the next entry
+        e = ent_get_next(bank,e);
+        /*If there is next entry then try to allocate there*/
+        if(e != NULL && e->header.used == 0) {
+            nowsize = e->header.d_size;
+            if (nowsize > maxsize)
+                maxsize = nowsize;
+        }
+        //End if there is not next entry OR the alloc. is successful
+    } while(e != NULL);
+    MEM_UNLOCK(bank);
+    return maxsize;
+}
+/**
+ * @brief Malloc a max free size of a memory bank.
+ *
+ * @param bank
+ * @param size
+ * @return void*
+ */
+void *memory_alloc_max(mem_bank_t bank,size_t *size)
+{
+    MEM_LOCK(bank);
+    size_t nowsize = 0;
+    size_t maxsize = 0;
+    void *retval = NULL;
+    void *max_p = NULL;
+    mem_entry_t *max_e = NULL;
+    mem_entry_t *e = NULL;
+    //Search for a appropriate entry
+    do {
+        //Get the next entry
+        e = ent_get_next(bank,e);
+        /*If there is next entry then try to allocate there*/
+        if(e != NULL && e->header.used == 0) {
+            nowsize = e->header.d_size;
+            if (nowsize > maxsize) {
+                maxsize = nowsize;
+                max_p = &e->first_data;
+                max_e = e;
+            }
+        }
+        //End if there is not next entry OR the alloc. is successful
+    } while(e != NULL);
+    if (max_p != NULL && maxsize > 0) {
+        *size = maxsize;
+        max_e->header.used = 1;
+        retval = max_p;
+    }
+    MEM_UNLOCK(bank);
+    return retval;
+}
+/**
+ * @brief Demon a bank of memory stack.
+ *
+ * @param ptr
+ * @return size_t
+ */
+void memory_demon(mem_bank_t bank)
+{
+    MEM_LOCK(bank);
+    mem_entry_t *e = NULL;
+    mem_entry_t *full = (mem_entry_t *)mem_handle[bank].work_mem;
+    MEM_LOGI("--------------------------------------------------");
+    MEM_LOGI("BANK%d start at %p",bank, &full->first_data);
+    MEM_LOGI("--------------------------------------------------");
+    //Search for a appropriate entry
+    do {
+        //Get the next entry
+        e = ent_get_next(bank,e);
+        /*If there is next entry then try to allocate there*/
+        if(e != NULL) {
+            MEM_LOGI("%p %s size: %d (%p)", &e->first_data, e->header.used ? "used" : "free", (unsigned int)e->header.d_size, e);
+        }
+        //End if there is not next entry OR the alloc. is successful
+    } while(e != NULL);
+    MEM_UNLOCK(bank);
 }
 /**
  * Give the next entry after 'act_e'

@@ -2,6 +2,8 @@
 #include "bsp_sensor.h"
 #include "lvgl.h"
 
+osThreadId_t sensor_tid;
+
 static image_t sensor_cap_image;
 extern uint8_t *get_disp_data(void);
 extern void refresh_disp_image(void);
