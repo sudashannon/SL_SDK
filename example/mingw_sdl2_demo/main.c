@@ -22,21 +22,16 @@ void end_main_loop(void)
 
 static int main_thread(void *param)
 {
-//   test_log();
-//    test_vector();
-//    test_ringbuffer();
+    // test_log();
+    // test_vector();
+    // test_ringbuffer();
     rte_init();
-    memory_demon(BANK_DEFAULT);
-    test_mempool(10, 1024 * 1024, 100, 10, true);
-    memory_demon(BANK_DEFAULT);
+    // memory_demon(BANK_DEFAULT);
+    // test_mempool(10, 1024 * 1024, 100, 10, true);
+    // memory_demon(BANK_DEFAULT);
     RTE_LOGI("Hello world!");
     SDL_Thread *gui_thread_handle = SDL_CreateThread(gui_thread, "gui_thread", NULL);
     while(running_flag) {
-        if(kbhit()) {
-            char ch = getch();
-            printf("%x\n", ch);
-            //rte_push_character_into_shell(ch);
-        }
         timer_tick_handle();
         SDL_Delay(1);
     }

@@ -238,7 +238,6 @@ typedef struct image {
 })
 
 void image_init(image_t *ptr, uint8_t *buffer, int32_t w, int32_t h, image_bpp_t bpp);
-void image_destroy(image_t *image);
 void image_copy(image_t *dst, image_t *src);
 size_t image_size(image_t *ptr);
 

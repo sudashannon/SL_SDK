@@ -13,9 +13,9 @@
 
 /* Atomic operation */
 /* 内存访问栅 */
-#define barrier()             	    (__sync_synchronize())
+#define barrier()             	      (__sync_synchronize())
 /* 原子获取 */
-#define ATOMIC_GET(ptr)       		({ __typeof__(*(ptr)) volatile *_val = (ptr); barrier(); (*_val); })
+#define ATOMIC_READ(ptr)              ({ __typeof__(*(ptr)) volatile *_val = (ptr); barrier(); (*_val); })
 /* 原子设置，如果原值和新值不一样则设置*/
 #define ATOMIC_SET(ptr, value)        ((void)__sync_lock_test_and_set((ptr), (value)))
 /* 原子交换，如果被设置，则返回旧值，否则返回设置值 */
@@ -39,8 +39,8 @@
 #define ATOMIC_F_AND(ptr, value)      ((__typeof__(*(ptr)))__sync_fetch_and_and((ptr), (value)))
 #define ATOMIC_F_XOR(ptr, value)      ((__typeof__(*(ptr)))__sync_fetch_and_xor((ptr), (value)))
 /* 忽略返回值，算术和位操作 */
-#define ATOMIC_INC(ptr)                 ((void)ATOMIC_ADD_F((ptr), 1))
-#define ATOMIC_DEC(ptr)                 ((void)ATOMIC_SUB_F((ptr), 1))
+#define ATOMIC_INCREMENT(ptr)           ((void)ATOMIC_ADD_F((ptr), 1))
+#define ATOMIC_DECREMENT(ptr)           ((void)ATOMIC_SUB_F((ptr), 1))
 #define ATOMIC_ADD(ptr, val)            ((void)ATOMIC_ADD_F((ptr), (val)))
 #define ATOMIC_SUB(ptr, val)            ((void)ATOMIC_SUB_F((ptr), (val)))
 #define ATOMIC_OR(ptr, val)			    ((void)ATOMIC_OR_F((ptr), (val)))

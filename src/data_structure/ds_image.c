@@ -20,11 +20,6 @@ void image_init(image_t *ptr, uint8_t *buffer, int w, int h, image_bpp_t bpp)
     ptr->data = buffer;
 }
 
-void image_destroy(image_t *image)
-{
-    memory_free(BANK_FB, image->data);
-}
-
 void image_copy(image_t *dst, image_t *src)
 {
     memcpy(dst, src, sizeof(image_t));

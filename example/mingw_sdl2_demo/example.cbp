@@ -15,6 +15,7 @@
 					<Add option="-g" />
 					<Add option="-DLV_CONF_INCLUDE_SIMPLE=1" />
 					<Add option="-DLV_LVGL_H_INCLUDE_SIMPLE=1" />
+					<Add option="-DSHELL_USING_CMD_EXPORT=0" />
 					<Add directory="../../inc" />
 					<Add directory="SDL2/include/SDL2" />
 					<Add directory="../../src/utils/lvgl" />
@@ -67,21 +68,6 @@
 		<Unit filename="../../src/middleware/rte_timer.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="../../src/utils/letter-shell/src/shell.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="../../src/utils/letter-shell/src/shell.h" />
-		<Unit filename="../../src/utils/letter-shell/src/shell_cfg.h" />
-		<Unit filename="../../src/utils/letter-shell/src/shell_cmd_list.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="../../src/utils/letter-shell/src/shell_companion.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="../../src/utils/letter-shell/src/shell_ext.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="../../src/utils/letter-shell/src/shell_ext.h" />
 		<Unit filename="../../src/utils/lvgl/examples/anim/lv_example_anim.h" />
 		<Unit filename="../../src/utils/lvgl/examples/anim/lv_example_anim_1.c">
 			<Option compilerVar="CC" />

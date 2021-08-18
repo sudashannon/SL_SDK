@@ -14,7 +14,7 @@
 
 #include "../middle_layer/rte.h"
 
-typedef void (*vector_element_free_cb)(void *element, uint32_t index);
+typedef void (*vector_element_free_cb_f)(void *element, uint32_t index);
 
 typedef struct {
     uint8_t if_deep_copy:1;
@@ -23,7 +23,7 @@ typedef struct {
     uint32_t element_size;
     uint32_t capacity;
     rte_mutex_t *mutex;
-    vector_element_free_cb free_cb;
+    vector_element_free_cb_f free_cb;
 } vector_configuration_t;
 
 #define VECTOR_CONFIG_INITIALIZER {                         \
@@ -35,7 +35,7 @@ typedef struct {
     .mutex = NULL,                                          \
 }
 
-#define VECTOR_FOR_EACH(index, element, vector)             \
+#define VECTOR_FOR_EACH_SAFELY(index, element, vector)      \
     for (index = 0; (index < ds_vector_length(vector)) && ((element = ds_vector_at(vector, index)) != false); index++)
 
 /**
@@ -54,6 +54,14 @@ extern rte_error_t ds_vector_create(vector_configuration_t *config, ds_vector_t 
  * @return rte_error_t
  */
 extern rte_error_t ds_vector_destroy(ds_vector_t handle);
+/**
+ * @brief Expand the vector to a new size.
+ *
+ * @param handle
+ * @param new_size
+ * @return rte_error_t
+ */
+extern rte_error_t ds_vector_expand(ds_vector_t handle, uint32_t new_size);
 /**
  * @brief Push a data into the selected queue. If the space of queue is
  *        not enough, this api will double the queue's formal capacity.

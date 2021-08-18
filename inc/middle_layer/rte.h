@@ -60,6 +60,7 @@ typedef int8_t  rte_error_t;
 #define RTE_ERR_NO_MEM                          -3
 #define RTE_ERR_PARAM                           -4
 #define RTE_ERR_NO_RSRC                         -5
+#define RTE_ERR_MISMATCH                        -6
 
 /* Typedef for unused */
 #ifndef RTE_UNUSED
@@ -165,8 +166,12 @@ typedef void *ds_ringbuffer_t;
 typedef void *ds_framebuffer_t;
 typedef void *ds_burstbuffer_t;
 typedef void *ds_image_t;
+typedef void *ds_hashtable_t;
+typedef void *ds_linklist_t;
 typedef uint8_t timer_id_t;
 typedef uint8_t timer_group_id_t;
+
+#define RTE_CAST(t, exp)    ((t)(exp))
 
 typedef struct {
     void *mutex;

@@ -29,7 +29,7 @@ typedef struct __ds_vector {
     uint32_t head;  // pointer to first valid data's position
     uint32_t length;
     void *data;
-    vector_element_free_cb free_cb;
+    vector_element_free_cb_f free_cb;
     rte_mutex_t *mutex;              // mutex for the whole vector.
     rte_allocator_t *allocator;
 } ds_vector_impl_t;
@@ -119,6 +119,76 @@ rte_error_t ds_vector_destroy(ds_vector_t handle)
     return RTE_SUCCESS;
 }
 /**
+ * @brief Expand the vector to a new size.
+ *
+ * @param handle
+ * @param new_size
+ * @return rte_error_t
+ */
+rte_error_t ds_vector_expand(ds_vector_t handle, uint32_t new_size)
+{
+    ds_vector_impl_t *vector = (ds_vector_impl_t *)handle;
+    if (RTE_UNLIKELY(vector == NULL) ||
+        RTE_UNLIKELY(vector->allocator == NULL)) {
+        return RTE_ERR_PARAM;
+    }
+    VECTOR_LOCK(vector);
+    if (RTE_UNLIKELY(vector->capacity >= new_size)) {
+        VECTOR_UNLOCK(vector);
+        return RTE_ERR_PARAM;
+    }
+    uint32_t oldcapacity = 0;
+    oldcapacity = vector->capacity;
+    void *tmp = NULL;
+    tmp = vector->allocator->realloc(
+                    vector->data,
+                    vector->element_size * new_size);
+    if (tmp == NULL) {
+        VECTOR_UNLOCK(vector);
+        return RTE_ERR_NO_MEM;
+    }
+    vector->data = tmp;
+    vector->capacity = new_size;
+
+    // Judge if the data has been wrapped.
+    if ((vector->head + vector->length) > oldcapacity) {
+            // Choose the smaller length of the buffer to wrap around
+        uint32_t first_section_size = (vector->head + vector->length) & (oldcapacity - 1);
+        uint32_t second_section_size = (oldcapacity - vector->head);
+        if (vector->head < (oldcapacity >> 1)) {
+            //       |h|
+            // |x|x|x|x|x|x|x|x|
+            //       |h|
+            // |-|-|-|x|x|x|x|x|x|x|x|-|-|-|-|-|
+            if(vector->if_deep_copy)
+                memcpy((uint8_t *)vector->data + oldcapacity * vector->element_size,
+                        (uint8_t *)vector->data,
+                        vector->element_size * first_section_size);
+            else
+                memcpy(&((void **)vector->data)[oldcapacity],
+                        ((void **)vector->data),
+                        vector->element_size * first_section_size);
+        } else {
+            //           |h|
+            // |x|x|x|x|x|x|x|x|
+            //                           |h|
+            // |x|x|x|x|x|-|-|-|-|-|-|-|-|x|x|x|
+            if(vector->if_deep_copy)
+                memcpy((uint8_t *)vector->data + (oldcapacity + vector->head) * vector->element_size,
+                        (uint8_t *)vector->data + vector->head * vector->element_size,
+                        vector->element_size * second_section_size);
+            else
+                memcpy(&((void **)vector->data)[oldcapacity + vector->head],
+                        &((void **)vector->data)[vector->head],
+                        vector->element_size * first_section_size);
+            // In this case, the head needs to be update.
+            vector->head = oldcapacity + vector->head;
+        }
+    }
+    VECTOR_UNLOCK(vector);
+    return RTE_SUCCESS;
+}
+/**
  * @brief Push a data into the selected vector. If the space of vector is
  *        not enough, this api will double the vector's formal capacity.
  *
@@ -139,53 +209,10 @@ rte_error_t ds_vector_push(ds_vector_t handle, void *value)
 
     if (vector->capacity < vector->length + 1) {
         if(vector->if_expand) {
-            uint32_t oldcapacity = 0;
-            oldcapacity = vector->capacity;
-            void *tmp = NULL;
-            tmp = vector->allocator->realloc(
-                            vector->data,
-                            vector->element_size * (oldcapacity << 1));
-            if (tmp == NULL) {
+            rte_error_t result = ds_vector_expand(handle, vector->capacity << 1);
+            if (result != RTE_SUCCESS) {
                 VECTOR_UNLOCK(vector);
-                return RTE_ERR_NO_MEM;
-            }
-            vector->data = tmp;
-            vector->capacity = (oldcapacity << 1);
-
-           // Judge if the data has been wrapped.
-            if ((vector->head + vector->length) > oldcapacity) {
-                 // Choose the smaller length of the buffer to wrap around
-                uint32_t first_section_size = (vector->head + vector->length) & (oldcapacity - 1);
-                uint32_t second_section_size = (oldcapacity - vector->head);
-                if (vector->head < (oldcapacity >> 1)) {
-                    //       |h|
-                    // |x|x|x|x|x|x|x|x|
-                    //       |h|
-                    // |-|-|-|x|x|x|x|x|x|x|x|-|-|-|-|-|
-                    if(vector->if_deep_copy)
-                        memcpy((uint8_t *)vector->data + oldcapacity * vector->element_size,
-                                (uint8_t *)vector->data,
-                                vector->element_size * first_section_size);
-                    else
-                        memcpy(&((void **)vector->data)[oldcapacity],
-                                ((void **)vector->data),
-                                vector->element_size * first_section_size);
-                } else {
-                    //           |h|
-                    // |x|x|x|x|x|x|x|x|
-                    //                           |h|
-                    // |x|x|x|x|x|-|-|-|-|-|-|-|-|x|x|x|
-                    if(vector->if_deep_copy)
-                        memcpy((uint8_t *)vector->data + (oldcapacity + vector->head) * vector->element_size,
-                                (uint8_t *)vector->data + vector->head * vector->element_size,
-                                vector->element_size * second_section_size);
-                    else
-                        memcpy(&((void **)vector->data)[oldcapacity + vector->head],
-                                &((void **)vector->data)[vector->head],
-                                vector->element_size * first_section_size);
-                    // In this case, the head needs to be update.
-                    vector->head = oldcapacity + vector->head;
-                }
+                return result;
             }
         } else {
             VECTOR_UNLOCK(vector);

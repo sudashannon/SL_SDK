@@ -119,4 +119,6 @@ extern uint32_t rte_tick_consume(uint32_t prev_tick);
  */
 extern void rte_delay_ms(uint32_t delay);
 
+#define rte_yield()
+
 #endif

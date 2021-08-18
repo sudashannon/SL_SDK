@@ -207,7 +207,7 @@ void timer_group_poll(timer_group_id_t group_id)
     timer_t *timer = NULL;
     ds_vector_lock(timer_handle_instance.timer_group[group_id].timer_table);
     // Loop through each task in the task table.
-    VECTOR_FOR_EACH(i, timer, timer_handle_instance.timer_group[group_id].timer_table) {
+    VECTOR_FOR_EACH_SAFELY(i, timer, timer_handle_instance.timer_group[group_id].timer_table) {
         timer_check(timer);
     }
     ds_vector_unlock(timer_handle_instance.timer_group[group_id].timer_table);
@@ -275,7 +275,7 @@ void timer_tick_handle(void)
         timer_t *timer = NULL;
         ds_vector_lock(timer_handle_instance.timer_group[i].timer_table);
         // Loop through each task in the task table.
-        VECTOR_FOR_EACH(j, timer, timer_handle_instance.timer_group[i].timer_table) {
+        VECTOR_FOR_EACH_SAFELY(j, timer, timer_handle_instance.timer_group[i].timer_table) {
               /*!< Timer is enabled */
             if (timer->config.CNTEN) {
                 /* Decrease counter if needed */
