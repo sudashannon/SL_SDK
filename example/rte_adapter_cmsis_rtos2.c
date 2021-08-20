@@ -119,6 +119,14 @@ void rte_delay_ms(uint32_t ms)
     osDelay(ms);
 }
 /**
+ * @brief Wrapper for system yield.
+ *
+ */
+void rte_yield(void)
+{
+    osThreadYield();
+}
+/**
  * @brief Wrapper for memory malloc, which is adapted for internal memory pool.
  *
  * @param size

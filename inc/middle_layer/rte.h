@@ -86,14 +86,22 @@ typedef int8_t  rte_error_t;
 #define RTE_LOCK(v)         do{                                                          \
                                 if((v) && ((v)->lock) && ((v)->mutex))                   \
                                     (((v)->lock))((v)->mutex);                           \
-                            }while(0)
+                            } while(0)
 
 #define RTE_TRYLOCK(v, t)   (((v)->trylock))((v)->mutex, t)
 
 #define RTE_UNLOCK(v)       do{                                                          \
                                 if((v) && ((v)->unlock) && ((v)->mutex))                 \
                                     (((v)->unlock))((v)->mutex);                         \
-                            }while(0)
+                            } while(0)
+
+#define RTE_STRDUP(ptr, str)                                                             \
+do{                                                                                      \
+    if (str) {                                                                           \
+        ptr = rte_get_general_allocator()->calloc(strlen(str) + 1);                      \
+        memcpy(ptr, str, strlen(str));                                                   \
+    }                                                                                    \
+} while(0)
 
 #define RTE_MAX(a,b)     ({ __typeof__ (a) _a = (a); __typeof__ (b) _b = (b); _a > _b ? _a : _b; })
 #define RTE_MIN(a,b)     ({ __typeof__ (a) _a = (a); __typeof__ (b) _b = (b); _a < _b ? _a : _b; })

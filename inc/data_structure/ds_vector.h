@@ -47,6 +47,13 @@ typedef struct {
  */
 extern rte_error_t ds_vector_create(vector_configuration_t *config, ds_vector_t *handle);
 /**
+ * @brief Clear a created vector.
+ *
+ * @param handle
+ * @return rte_error_t
+ */
+extern rte_error_t ds_vector_clear(ds_vector_t handle);
+/**
  * @brief Destroy a created queue. If the user has registed the free data cb,
  *        each data will call such function.
  *

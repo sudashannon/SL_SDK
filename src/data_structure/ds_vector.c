@@ -84,7 +84,34 @@ rte_error_t ds_vector_create(vector_configuration_t *config, ds_vector_t *handle
     *handle = (void *)vector;
     return RTE_SUCCESS;
 }
+/**
+ * @brief Clear a created vector.
+ *
+ * @param handle
+ * @return rte_error_t
+ */
+rte_error_t ds_vector_clear(ds_vector_t handle)
+{
+    ds_vector_impl_t *vector = (ds_vector_impl_t *)handle;
+    if (RTE_UNLIKELY(vector == NULL) ||
+        RTE_UNLIKELY(vector->allocator == NULL)) {
+        return RTE_ERR_PARAM;
+    }
+    VECTOR_LOCK(vector);
+    for (uint32_t i = 0; i < vector->length; i++) {
+        uint32_t index = (vector->head + i) & (vector->capacity - 1);
+        if(vector->if_deep_copy)
+            memset((uint8_t *)vector->data + index * vector->element_size, 0, vector->element_size);
+        else
+            ((void **)vector->data)[index] = NULL;
+    }
 
+    vector->length = 0;
+    vector->head = 0;
+
+    VECTOR_UNLOCK(vector);
+    return RTE_SUCCESS;
+}
 /**
  * @brief Destroy a created vector. If the user has registed the free data cb,
  *        each data will call such function.

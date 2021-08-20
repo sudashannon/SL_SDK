@@ -74,6 +74,14 @@ unsigned int userGetTick()
     return rte_get_tick();
 }
 /**
+ * @brief Wrapper for system yield.
+ *
+ */
+void rte_yield(void)
+{
+    SDL_Delay(0);
+}
+/**
  * @brief Wrapper for memory malloc, which is adapted for internal memory pool.
  *
  * @param size

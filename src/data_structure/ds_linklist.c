@@ -733,7 +733,7 @@ list_create_tagged_value_nocopy(char *tag, void *val)
     }
 
     if(tag)
-        newval->tag = strdup(tag);
+        RTE_STRDUP(newval->tag, tag);
     if (val)
         newval->value = val;
 
@@ -757,7 +757,7 @@ list_create_tagged_value(char *tag, void *val, size_t vlen)
     }
 
     if(tag)
-        newval->tag = strdup(tag);
+        RTE_STRDUP(newval->tag, tag);
     if(val)
     {
         if(vlen)
@@ -778,7 +778,7 @@ list_create_tagged_value(char *tag, void *val, size_t vlen)
         }
         else
         {
-            newval->value = (void *)strdup((char *)val);
+            RTE_STRDUP(newval->value, (char *)val);
             newval->vlen = strlen((char *)val);
             newval->type = TV_TYPE_STRING;
         }
@@ -802,7 +802,7 @@ list_create_tagged_sublist(char *tag, linked_list_t *sublist)
     }
 
     if(tag)
-        newval->tag = strdup(tag);
+        RTE_STRDUP(newval->tag, tag);
     newval->type = TV_TYPE_LIST;
     newval->value = sublist;
     return newval;

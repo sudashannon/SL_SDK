@@ -170,7 +170,42 @@ rte_error_t ht_create(hashtable_configuration_t *configuration, ds_hashtable_t *
     *hashtable = table;
     return RTE_SUCCESS;
 }
+/**
+ * @brief Clear the table by removing all the stored items
+ * @param ptable : A valid pointer to an hashtable_t structure
+ *
+ * If a free_item_callback has been set, that will be called for each item removed from the table
+ */
+rte_error_t ht_clear(ds_hashtable_t ptable)
+{
+    hashtable_impl_t *table = RTE_CAST(hashtable_impl_t *, ptable);
+    if (RTE_UNLIKELY(table == NULL))
+        return RTE_ERR_PARAM;
+    // Poll for each bucket
+    HT_LOCK(table);
+    ATOMIC_SET(&table->element_count, 0);
+    memset(table->buckets_array, 0, sizeof(hashtable_bucket_t *) * table->buckets_count);
+    HT_UNLOCK(table);
 
+    ds_vector_lock(table->chains_array);
+    uint32_t index = 0;
+    hashtable_bucket_t *hashchain = NULL;
+    // Poll for each chain
+    VECTOR_FOR_EACH_SAFELY(index, hashchain, table->chains_array) {
+        CHAIN_WLOCK(hashchain);
+        hashtable_element_t *item = NULL;
+        hashtable_element_t *next = NULL;
+        // Poll for each element on one chain
+        for (item = hashchain->first_element; item != NULL; )  {
+            next = item->next;
+            HT_FREE_ITEM(table, item);
+            item = next;
+        }
+        rte_get_general_allocator()->free(hashchain);
+    }
+    ds_vector_unlock(table->chains_array);
+    ds_vector_clear(table->chains_array);
+}
 /**
  * @brief Destroy the table and removing all the stored items
  * @param ptable : A valid pointer to an hashtable_t structure
@@ -182,28 +217,7 @@ rte_error_t ht_destroy(ds_hashtable_t ptable)
     hashtable_impl_t *table = RTE_CAST(hashtable_impl_t *, ptable);
     if (RTE_UNLIKELY(table == NULL))
         return RTE_ERR_PARAM;
-
-    ds_vector_lock(table->chains_array);
-    uint32_t index = 0;
-    hashtable_bucket_t *hashchain = NULL;
-    // Poll for each chain
-    VECTOR_FOR_EACH_SAFELY(index, hashchain, table->chains_array) {
-        CHAIN_WLOCK(hashchain);
-        hashtable_element_t *item = NULL;
-        hashtable_element_t *prev = NULL;
-        hashtable_element_t *next = NULL;
-        // Poll for each element on one chain
-        for (item = hashchain->first_element; item != NULL; )  {
-            next = item->next;
-            LINK_LIST_RMV_NODE(hashchain->first_element, hashchain->last_element, prev, item, next);
-            HT_FREE_ITEM(table, item);
-            ATOMIC_DECREMENT(&table->element_count);
-            prev = item;
-            item = next;
-        }
-        CHAIN_UNLOCK(hashchain);
-    }
-    ds_vector_unlock(table->chains_array);
+    ht_clear(ptable);
 
     HT_LOCK(table);
     rte_mutex_t *tmp_mutex = table->mutex;
@@ -771,7 +785,7 @@ rte_error_t ht_delete(
         .match_size = 0
     };
 
-    rte_error_t result =  ht_call_internal(table, key, klen, ht_delete_helper, (void *)&arg) >= 0;
+    rte_error_t result =  ht_call_internal(table, key, klen, ht_delete_helper, (void *)&arg);
     return result >= 0 ? RTE_SUCCESS : result;
 }
 /**
@@ -942,17 +956,16 @@ void *ht_get_deep_copy(
 }
 /**
  * @brief Pair iterator
- * @param table : A valid pointer to an hashtable_t structure
+ * @param ptable : A valid pointer to an hashtable_t structure
  * @param cb    : an ht_pair_iterator_callback_t function
  * @param user  : A pointer which will be passed to the iterator callback at each call
  */
 void ht_foreach_pair(
     ds_hashtable_t ptable, hashtable_pair_iterator_cb_f cb, void *user)
 {
-   hashtable_impl_t *table = RTE_CAST(hashtable_impl_t *, ptable);
+    hashtable_impl_t *table = RTE_CAST(hashtable_impl_t *, ptable);
     if (RTE_UNLIKELY(table == NULL))
         return;
-    int rc = 0;
 
     HT_LOCK(table);
     if (RTE_UNLIKELY(table->buckets_array == NULL) ||
@@ -970,30 +983,28 @@ void ht_foreach_pair(
     VECTOR_FOR_EACH_SAFELY(index, hashchain, table->chains_array) {
         CHAIN_WLOCK(hashchain);
         hashtable_element_t *item = NULL;
-        hashtable_element_t *tmp = NULL;
+        hashtable_element_t *prev = NULL;
+        hashtable_element_t *next = NULL;
         // Poll for each element on one chain
-        for (item = hashchain->first_element; item != NULL; item = item->next)  {
+        for (item = hashchain->first_element; item != NULL; )  {
+            next = item->next;
             result = cb(table, item->key, item->klen, item->data, item->dlen, user);
             if (result != HT_ITERATOR_CONTINUE)
                 break;
-            tmp = item;
+            prev = item;
+            item = next;
         }
         // Check the result and decide what to do for next poll
         if (item) {
-            if (rc == HT_ITERATOR_STOP) {
+            if (result == HT_ITERATOR_STOP) {
                 CHAIN_UNLOCK(hashchain);
                 break;
             } else {
-                // rc is either HT_ITERATOR_REMOVE or HT_ITERATOR_REMOVE_AND_STOP
-                HT_ASSERT(tmp->next == item);
-                tmp->next = item->next;
-                if (table->free_item_cb)
-                    table->free_item_cb(item->data);
-                if (item->key != item->kbuf)
-                    rte_get_general_allocator()->free(item->key);
-                rte_get_general_allocator()->free(item);
+                // result is either HT_ITERATOR_REMOVE or HT_ITERATOR_REMOVE_AND_STOP
+                LINK_LIST_RMV_NODE(hashchain->first_element, hashchain->last_element, prev, item, next);
+                HT_FREE_ITEM(table, item);
                 ATOMIC_DECREMENT(&table->element_count);
-                if (rc == HT_ITERATOR_REMOVE_AND_STOP) {
+                if (result == HT_ITERATOR_REMOVE_AND_STOP) {
                     CHAIN_UNLOCK(hashchain);
                     break;
                 }
@@ -1019,7 +1030,7 @@ ht_foreach_key_helper(
 }
 /**
  * @brief Key iterator
- * @param table : A valid pointer to an hashtable_t structure
+ * @param ptable : A valid pointer to an hashtable_t structure
  * @param cb    : an ht_key_iterator_callback_t function
  * @param user  : A pointer which will be passed to the iterator callback at each call
  */
@@ -1040,7 +1051,7 @@ ht_foreach_value_helper(
 }
 /**
  * @brief Value iterator
- * @param table : A valid pointer to an hashtable_t structure
+ * @param ptable : A valid pointer to an hashtable_t structure
  * @param cb    : an ht_value_iterator_callback_t function
  * @param user  : A pointer which will be passed to the iterator callback at each call
  */
@@ -1049,4 +1060,16 @@ ht_foreach_value(ds_hashtable_t ptable, hashtable_value_iterator_cb_f cb, void *
 {
     ht_iterator_arg_t arg = { cb, user };
     ht_foreach_pair(ptable, ht_foreach_value_helper, &arg);
+}
+/**
+ * @brief Return the count of items actually stored in the table
+ * @param ptable : A valid pointer to an hashtable_t structure
+ * @return The actual item count
+ */
+uint32_t ht_count(ds_hashtable_t ptable)
+{
+    hashtable_impl_t *table = RTE_CAST(hashtable_impl_t *, ptable);
+    if (RTE_UNLIKELY(table == NULL))
+        return 0;
+    return ATOMIC_READ(&table->element_count);
 }

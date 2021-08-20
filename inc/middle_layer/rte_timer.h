@@ -118,7 +118,11 @@ extern uint32_t rte_tick_consume(uint32_t prev_tick);
  * @param delay
  */
 extern void rte_delay_ms(uint32_t delay);
-
-#define rte_yield()
+/**
+ * @brief Yield the CPU for the running thread.
+ *
+ * @param delay
+ */
+extern void rte_yield(void);
 
 #endif

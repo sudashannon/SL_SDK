@@ -8,6 +8,8 @@
 #include "middle_layer/rte_timer.h"
 #include "data_structure/ds_vector.h"
 #include "data_structure/ds_ringbuffer.h"
+#include "data_structure/ds_hashmap.h"
+#include "data_structure/ds_linklist.h"
 #include "data_structure/ds_image.h"
 
 #define COMMON_MODULE LOG_STR(RTE)
