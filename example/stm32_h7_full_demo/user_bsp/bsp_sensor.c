@@ -368,7 +368,6 @@ int sensor_set_pixformat(pixformat_t pixformat)
 
     // Set pixel format
     sensor.pixformat = pixformat;
-
     // Reconfigure the DCMI if needed.
     return 0;
 }
@@ -393,7 +392,6 @@ int sensor_set_framesize(framesize_t framesize)
 
     // Set framebuffer size
     sensor.framesize = framesize;
-
     return 0;
 }
 
@@ -735,56 +733,67 @@ int sensor_snapshot(sensor_t *sensor, image_t *image, uint32_t timeout_ms)
 {
     uint32_t length = 0;
     if (RTE_UNLIKELY(sensor == NULL) ||
-        RTE_UNLIKELY(image == NULL) ||
-        RTE_UNLIKELY(image->data == NULL)) {
+        RTE_UNLIKELY(image == NULL)) {
         return SENSOR_ERROR_INVALID_ARGUMENT;
     }
     // We use the stored frame size to read the whole frame. Note that cropping is
     // done in the line function using the diemensions stored in MV_FB_Get()->x,y,w,h.
     uint32_t w = resolution[sensor->framesize][0];
     uint32_t h = resolution[sensor->framesize][1];
+    uint32_t pixel_count = w * h;
+    uint8_t *framebuffer = NULL;
     // Setup the size and address of the transfer
     switch (sensor->pixformat) {
         case PIXFORMAT_RGB565:
         case PIXFORMAT_YUV422:
             // RGB/YUV read 2 bytes per pixel.
-            length = (w * h * sizeof(uint16_t)) / sizeof(uint32_t);
+            length = (pixel_count * sizeof(uint16_t)) / sizeof(uint32_t);
+            framebuffer = memory_alloc(BANK_FB, pixel_count * sizeof(uint16_t));
             break;
         case PIXFORMAT_BAYER:
             // BAYER/RAW: 1 byte per pixel
-            length = (w * h * sizeof(uint8_t)) / sizeof(uint32_t);
+            length = (pixel_count * sizeof(uint8_t)) / sizeof(uint32_t);
+            framebuffer = memory_alloc(BANK_FB, pixel_count * sizeof(uint8_t));
             break;
         case PIXFORMAT_GRAYSCALE:
             // 1/2BPP Grayscale.
-            length = (w * h * sensor->gs_bpp) / sizeof(uint32_t);
+            length = (pixel_count * sensor->gs_bpp) / sizeof(uint32_t);
+            framebuffer = memory_alloc(BANK_FB, pixel_count * sensor->gs_bpp);
             break;
         case PIXFORMAT_JPEG:
             // Sensor has hardware JPEG set max frame size.
             length = 0xFFFC;
+            framebuffer = memory_alloc(BANK_FB, length * sizeof(uint32_t));
             break;
         default:
             return SENSOR_ERROR_INVALID_PIXFORMAT;
     }
+    if (framebuffer == NULL)
+        return SENSOR_ERROR_FRAMEBUFFER_OVERFLOW;
 	// Start a regular transfer
     uint32_t start_tick = rte_get_tick();
-    HAL_StatusTypeDef result = HAL_DCMI_Start_DMA(sensor->dcmi, DCMI_MODE_SNAPSHOT, image->data, length);
+    HAL_StatusTypeDef result = HAL_DCMI_Start_DMA(sensor->dcmi, DCMI_MODE_SNAPSHOT, framebuffer, length);
 	if (result != HAL_OK)
         return SENSOR_ERROR_CAPTURE_FAILED;
     osStatus_t snap_result = osSemaphoreAcquire(sensor->sema, timeout_ms);
     if (snap_result == osOK) {
-        HAL_RAM_CLEAN_AFTER_REC(image->data, length * sizeof(uint32_t));
-		if(sensor->pixformat == PIXFORMAT_GRAYSCALE) {
-            uint8_t *dst = image->data;
-            uint8_t *src = image->data;
-            uint32_t length = w * h * sensor->gs_bpp;
-            for(uint32_t addr = 0; addr < length; addr++) {
-                    *dst = *src;
-                    dst += sensor->gs_bpp;
-                    src += 2 * sensor->gs_bpp;
+        HAL_RAM_CLEAN_AFTER_REC(framebuffer, length * sizeof(uint32_t));
+        // If the pixformat is grayscale, do a convert to extract Y channel from YUV..
+		if (sensor->pixformat == PIXFORMAT_GRAYSCALE) {
+            uint8_t *dst = framebuffer;
+            uint8_t *src = framebuffer;
+            for(uint32_t i = 0; i < pixel_count; i++) {
+                *dst = *src;
+                dst ++;
+                src += sensor->gs_bpp;
             }
 		}
         uint32_t end_tick = rte_get_tick();
         RTE_LOGD("snap consume %d ms", end_tick - start_tick);
+        // Make sure the image's data is invalid before given the framebuffer to it.
+        if (image->data)
+            image_reuse(image);
+        image->data = framebuffer;
         return 0;
     } else if(snap_result == osErrorTimeout){
         HAL_DCMI_Stop(sensor->dcmi);

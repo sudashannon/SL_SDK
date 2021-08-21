@@ -14,16 +14,6 @@
 
 #include "../middle_layer/rte.h"
 
-typedef enum {
-    PIXFORMAT_INVALID = 0,
-    PIXFORMAT_BINARY,    // 1BPP/BINARY
-    PIXFORMAT_GRAYSCALE, // 1BPP/GRAYSCALE
-    PIXFORMAT_RGB565,    // 2BPP/RGB565
-    PIXFORMAT_YUV422,    // 2BPP/YUV422
-    PIXFORMAT_BAYER,     // 1BPP/RAW
-    PIXFORMAT_JPEG,      // JPEG/COMPRESSED
-} pixformat_t;
-
 typedef enum image_bpp
 {
     IMAGE_BPP_BINARY,       // BPP = 0
@@ -237,8 +227,209 @@ typedef struct image {
     _row_ptr[_x] = _v; \
 })
 
-void image_init(image_t *ptr, uint8_t *buffer, int32_t w, int32_t h, image_bpp_t bpp);
+/////////////////
+// Color Stuff //
+/////////////////
+
+typedef struct color_thresholds_list_lnk_data
+{
+    uint8_t LMin, LMax; // or grayscale
+    int8_t AMin, AMax;
+    int8_t BMin, BMax;
+}
+color_thresholds_list_lnk_data_t;
+
+#define COLOR_THRESHOLD_BINARY(pixel, threshold, invert) \
+({ \
+    __typeof__ (pixel) _pixel = (pixel); \
+    __typeof__ (threshold) _threshold = (threshold); \
+    __typeof__ (invert) _invert = (invert); \
+    ((_threshold->LMin <= _pixel) && (_pixel <= _threshold->LMax)) ^ _invert; \
+})
+
+#define COLOR_THRESHOLD_GRAYSCALE(pixel, threshold, invert) \
+({ \
+    __typeof__ (pixel) _pixel = (pixel); \
+    __typeof__ (threshold) _threshold = (threshold); \
+    __typeof__ (invert) _invert = (invert); \
+    ((_threshold->LMin <= _pixel) && (_pixel <= _threshold->LMax)) ^ _invert; \
+})
+
+#define COLOR_THRESHOLD_RGB565(pixel, threshold, invert) \
+({ \
+    __typeof__ (pixel) _pixel = (pixel); \
+    __typeof__ (threshold) _threshold = (threshold); \
+    __typeof__ (invert) _invert = (invert); \
+    uint8_t _l = COLOR_RGB565_TO_L(_pixel); \
+    int8_t _a = COLOR_RGB565_TO_A(_pixel); \
+    int8_t _b = COLOR_RGB565_TO_B(_pixel); \
+    ((_threshold->LMin <= _l) && (_l <= _threshold->LMax) && \
+    (_threshold->AMin <= _a) && (_a <= _threshold->AMax) && \
+    (_threshold->BMin <= _b) && (_b <= _threshold->BMax)) ^ _invert; \
+})
+
+#define COLOR_BOUND_BINARY(pixel0, pixel1, threshold) \
+({ \
+    __typeof__ (pixel0) _pixel0 = (pixel0); \
+    __typeof__ (pixel1) _pixel1 = (pixel1); \
+    __typeof__ (threshold) _threshold = (threshold); \
+    (abs(_pixel0 - _pixel1) <= _threshold); \
+})
+
+#define COLOR_BOUND_GRAYSCALE(pixel0, pixel1, threshold) \
+({ \
+    __typeof__ (pixel0) _pixel0 = (pixel0); \
+    __typeof__ (pixel1) _pixel1 = (pixel1); \
+    __typeof__ (threshold) _threshold = (threshold); \
+    (abs(_pixel0 - _pixel1) <= _threshold); \
+})
+
+#define COLOR_BOUND_RGB565(pixel0, pixel1, threshold) \
+({ \
+    __typeof__ (pixel0) _pixel0 = (pixel0); \
+    __typeof__ (pixel1) _pixel1 = (pixel1); \
+    __typeof__ (threshold) _threshold = (threshold); \
+    (abs(COLOR_RGB565_TO_R5(_pixel0) - COLOR_RGB565_TO_R5(_pixel1)) <= COLOR_RGB565_TO_R5(_threshold)) && \
+    (abs(COLOR_RGB565_TO_G6(_pixel0) - COLOR_RGB565_TO_G6(_pixel1)) <= COLOR_RGB565_TO_G6(_threshold)) && \
+    (abs(COLOR_RGB565_TO_B5(_pixel0) - COLOR_RGB565_TO_B5(_pixel1)) <= COLOR_RGB565_TO_B5(_threshold)); \
+})
+
+#define COLOR_BINARY_MIN 0
+#define COLOR_BINARY_MAX 1
+#define COLOR_GRAYSCALE_BINARY_MIN 0x00
+#define COLOR_GRAYSCALE_BINARY_MAX 0xFF
+#define COLOR_RGB565_BINARY_MIN 0x0000
+#define COLOR_RGB565_BINARY_MAX 0xFFFF
+
+#define COLOR_GRAYSCALE_MIN 0
+#define COLOR_GRAYSCALE_MAX 255
+
+#define COLOR_R5_MIN 0
+#define COLOR_R5_MAX 31
+#define COLOR_G6_MIN 0
+#define COLOR_G6_MAX 63
+#define COLOR_B5_MIN 0
+#define COLOR_B5_MAX 31
+
+#define COLOR_R8_MIN 0
+#define COLOR_R8_MAX 255
+#define COLOR_G8_MIN 0
+#define COLOR_G8_MAX 255
+#define COLOR_B8_MIN 0
+#define COLOR_B8_MAX 255
+
+#define COLOR_L_MIN 0
+#define COLOR_L_MAX 100
+#define COLOR_A_MIN -128
+#define COLOR_A_MAX 127
+#define COLOR_B_MIN -128
+#define COLOR_B_MAX 127
+
+#define COLOR_Y_MIN 0
+#define COLOR_Y_MAX 255
+#define COLOR_U_MIN -128
+#define COLOR_U_MAX 127
+#define COLOR_V_MIN -128
+#define COLOR_V_MAX 127
+
+// RGB565 Stuff //
+
+#define COLOR_RGB565_TO_R5(pixel) (((pixel) >> 11) & 0x1F)
+#define COLOR_RGB565_TO_R8(pixel) \
+({ \
+    __typeof__ (pixel) __pixel = (pixel); \
+    __pixel = (__pixel >> 8) & 0xF8; \
+    __pixel | (__pixel >> 5); \
+})
+
+#define COLOR_RGB565_TO_G6(pixel) (((pixel) >> 5) & 0x3F)
+#define COLOR_RGB565_TO_G8(pixel) \
+({ \
+    __typeof__ (pixel) __pixel = (pixel); \
+    __pixel = (__pixel >> 3) & 0xFC; \
+    __pixel | (__pixel >> 6); \
+})
+
+#define COLOR_RGB565_TO_B5(pixel) ((pixel) & 0x1F)
+#define COLOR_RGB565_TO_B8(pixel) \
+({ \
+    __typeof__ (pixel) __pixel = (pixel); \
+    __pixel = (__pixel << 3) & 0xF8; \
+    __pixel | (__pixel >> 5); \
+})
+
+#define COLOR_R5_G6_B5_TO_RGB565(r5, g6, b5) (((r5) << 11) | ((g6) << 5) | (b5))
+#define COLOR_R8_G8_B8_TO_RGB565(r8, g8, b8) ((((r8) & 0xF8) << 8) | (((g8) & 0xFC) << 3) | ((b8) >> 3))
+
+#define COLOR_RGB888_TO_Y(r8, g8, b8) ((((r8) * 38) + ((g8) * 75) + ((b8) * 15)) >> 7) // 0.299R + 0.587G + 0.114B
+#define COLOR_RGB565_TO_Y(rgb565) \
+({ \
+    __typeof__ (rgb565) __rgb565 = (rgb565); \
+    int r = COLOR_RGB565_TO_R8(__rgb565); \
+    int g = COLOR_RGB565_TO_G8(__rgb565); \
+    int b = COLOR_RGB565_TO_B8(__rgb565); \
+    COLOR_RGB888_TO_Y(r, g, b); \
+})
+
+#define COLOR_Y_TO_RGB888(pixel) ((pixel) * 0x010101)
+#define COLOR_Y_TO_RGB565(pixel) \
+({ \
+    __typeof__ (pixel) __pixel = (pixel); \
+    int __rb_pixel = (__pixel >> 3) & 0x1F; \
+    (__rb_pixel * 0x0801) + ((__pixel << 3) & 0x7E0); \
+})
+
+#define COLOR_RGB888_TO_U(r8, g8, b8) ((((r8) * -21) - ((g8) * 43) + ((b8) * 64)) >> 7) // -0.168736R - 0.331264G + 0.5B
+#define COLOR_RGB565_TO_U(rgb565) \
+({ \
+    __typeof__ (rgb565) __rgb565 = (rgb565); \
+    int r = COLOR_RGB565_TO_R8(__rgb565); \
+    int g = COLOR_RGB565_TO_G8(__rgb565); \
+    int b = COLOR_RGB565_TO_B8(__rgb565); \
+    COLOR_RGB888_TO_U(r, g, b); \
+})
+
+#define COLOR_RGB888_TO_V(r8, g8, b8) ((((r8) * 64) - ((g8) * 54) - ((b8) * 10)) >> 7) // 0.5R - 0.418688G - 0.081312B
+#define COLOR_RGB565_TO_V(rgb565) \
+({ \
+    __typeof__ (rgb565) __rgb565 = (rgb565); \
+    int r = COLOR_RGB565_TO_R8(__rgb565); \
+    int g = COLOR_RGB565_TO_G8(__rgb565); \
+    int b = COLOR_RGB565_TO_B8(__rgb565); \
+    COLOR_RGB888_TO_V(r, g, b); \
+})
+
+#define COLOR_RGB565_TO_L(pixel) color_rgb565_to_l(pixel)
+#define COLOR_RGB565_TO_A(pixel) color_rgb565_to_a(pixel)
+#define COLOR_RGB565_TO_B(pixel) color_rgb565_to_b(pixel)
+
+#define COLOR_LAB_TO_RGB565(l, a, b) color_lab_to_rgb(l, a, b)
+#define COLOR_YUV_TO_RGB565(y, u, v) color_yuv_to_rgb((y) + 128, u, v)
+
+#define COLOR_BINARY_TO_GRAYSCALE(pixel) ((pixel) * COLOR_GRAYSCALE_MAX)
+#define COLOR_BINARY_TO_RGB565(pixel) COLOR_YUV_TO_RGB565(((pixel) ? 127 : -128), 0, 0)
+#define COLOR_RGB565_TO_BINARY(pixel) (COLOR_RGB565_TO_Y(pixel) > (((COLOR_Y_MAX - COLOR_Y_MIN) / 2) + COLOR_Y_MIN))
+#define COLOR_RGB565_TO_GRAYSCALE(pixel) COLOR_RGB565_TO_Y(pixel)
+#define COLOR_GRAYSCALE_TO_BINARY(pixel) ((pixel) > (((COLOR_GRAYSCALE_MAX - COLOR_GRAYSCALE_MIN) / 2) + COLOR_GRAYSCALE_MIN))
+#define COLOR_GRAYSCALE_TO_RGB565(pixel) COLOR_YUV_TO_RGB565(((pixel) - 128), 0, 0)
+
+typedef enum {
+    COLOR_PALETTE_RAINBOW,
+    COLOR_PALETTE_IRONBOW
+} color_palette_t;
+
+// Color palette LUTs
+extern const uint16_t rainbow_table[256];
+extern const uint16_t ironbow_table[256];
+
+void image_init(image_t *ptr, int32_t w, int32_t h, image_bpp_t bpp);
+void image_reuse(image_t *ptr);
 void image_copy(image_t *dst, image_t *src);
 size_t image_size(image_t *ptr);
+int8_t color_rgb565_to_l(uint16_t pixel);
+int8_t color_rgb565_to_a(uint16_t pixel);
+int8_t color_rgb565_to_b(uint16_t pixel);
+uint16_t color_lab_to_rgb(uint8_t l, int8_t a, int8_t b);
+uint16_t color_yuv_to_rgb(uint8_t y, int8_t u, int8_t v);
 
 #endif

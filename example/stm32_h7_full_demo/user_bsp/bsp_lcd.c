@@ -40,10 +40,10 @@ static void bsp_lcd_write_command(uint8_t command)
 static void bsp_lcd_set_cursor(uint16_t x1, uint16_t x2, uint16_t y1, uint16_t y2)
 {
 	bsp_lcd_write_command(0x2A);
-    x1 = (x1) << 8 | (x1) >> 8;
-    x2 = (x2) << 8 | (x2) >> 8;
-    y1 = (y1) << 8 | (y1) >> 8;
-    y2 = (y2) << 8 | (y2) >> 8;
+    x1 = __REV16(x1);
+    x2 = __REV16(x2);
+    y1 = __REV16(y1);
+    y2 = __REV16(y2);
     bsp_lcd_write_ndata(&x1, 2);
     bsp_lcd_write_ndata(&x2, 2);
 
@@ -55,7 +55,7 @@ void bsp_lcd_put_pixel(uint16_t x, uint16_t y, uint16_t color)
 {
 	bsp_lcd_set_cursor(x, y, x, y);
 	bsp_lcd_write_command(0x2C);
-	color = (color) << 8 | (color) >> 8;
+	color = __REV16(color);
     gpio_set_low(LCD_CS);
     gpio_set_high(LCD_DC);
     hal_device_write_sync(spi_lcd, (uint8_t *)&color, 2, HAL_MAX_DELAY);
@@ -65,7 +65,7 @@ void bsp_lcd_fill_color_slow(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1,
 {
 	bsp_lcd_set_cursor(x0, x1, y0, y1);
 	bsp_lcd_write_command(0x2C);
-	color = (color) << 8 | (color) >> 8;
+	color = __REV16(color);
     gpio_set_low(LCD_CS);
     gpio_set_high(LCD_DC);
     for (uint32_t i = 0; i < (x1 - x0 + 1) *(y1 - y0 + 1); i++)
@@ -84,7 +84,7 @@ void bsp_lcd_fill_color_normal(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y
     uint32_t row = (y1 - y0 + 1);
     uint32_t send_count = col << 1;
 	for(i = 0; i < col; i++)
-		line_buffer[i] = color;
+		line_buffer[i] = __REV16(color);
     HAL_RAM_CLEAN_PRE_SEND(line_buffer, send_count);
     for(i = 0; i < row; i++) {
         hal_device_write_async(spi_lcd, (uint8_t *)line_buffer, send_count);

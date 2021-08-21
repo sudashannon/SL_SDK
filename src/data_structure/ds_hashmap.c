@@ -63,10 +63,7 @@ typedef struct hashtable_impl {
 #define HT_LOCK(hashtable)      RTE_LOCK(hashtable->mutex)
 #define HT_UNLOCK(hashtable)    RTE_UNLOCK(hashtable->mutex)
 // Single chain's lock is the minimal lock of hashtable, we used cas lock here.
-#define CHAIN_WLOCK(chain)      while(!ATOMIC_CASB(&(chain->status), CHAIN_STATUS_IDLE, CHAIN_STATUS_WRITE)) rte_yield();
-#define CHAIN_RLOCK(chain)      while(!ATOMIC_CASB(&(chain->status), CHAIN_STATUS_IDLE, CHAIN_STATUS_READ)) rte_yield();
-#define CHAIN_TRYWLOCK(chain)   ATOMIC_CASB(&(chain->status), CHAIN_STATUS_IDLE, CHAIN_STATUS_WRITE))
-#define CHAIN_TRYRLOCK(chain)   ATOMIC_CASB(&(chain->status), CHAIN_STATUS_IDLE, CHAIN_STATUS_READ))
+#define CHAIN_LOCK(chain)       while(!ATOMIC_CASB(&(chain->status), CHAIN_STATUS_IDLE, CHAIN_STATUS_WRITE)) rte_yield();
 #define CHAIN_UNLOCK(chain)     ATOMIC_SET(&(chain->status), CHAIN_STATUS_IDLE)
 
 
@@ -192,7 +189,7 @@ rte_error_t ht_clear(ds_hashtable_t ptable)
     hashtable_bucket_t *hashchain = NULL;
     // Poll for each chain
     VECTOR_FOR_EACH_SAFELY(index, hashchain, table->chains_array) {
-        CHAIN_WLOCK(hashchain);
+        CHAIN_LOCK(hashchain);
         hashtable_element_t *item = NULL;
         hashtable_element_t *next = NULL;
         // Poll for each element on one chain
@@ -316,7 +313,7 @@ static rte_error_t ht_set_internal(
     HT_UNLOCK(table);
 
     // Lock the chain to write some data into it.
-    CHAIN_WLOCK(bucket);
+    CHAIN_LOCK(bucket);
     // Poll the chain and check if the chain already has the element.
     void *pdata = NULL;
     uint32_t plen = 0;
@@ -560,7 +557,7 @@ static rte_error_t ht_call_internal(
     }
     HT_UNLOCK(table);
 
-    CHAIN_WLOCK(bucket);
+    CHAIN_LOCK(bucket);
     rte_error_t ret = RTE_SUCCESS;
     hashtable_element_t *item = NULL;
     hashtable_element_t *prev = NULL;
@@ -981,7 +978,7 @@ void ht_foreach_pair(
     ds_vector_lock(table->chains_array);
     // Poll for each chain and poll for their elements
     VECTOR_FOR_EACH_SAFELY(index, hashchain, table->chains_array) {
-        CHAIN_WLOCK(hashchain);
+        CHAIN_LOCK(hashchain);
         hashtable_element_t *item = NULL;
         hashtable_element_t *prev = NULL;
         hashtable_element_t *next = NULL;

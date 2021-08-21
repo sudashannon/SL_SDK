@@ -13,17 +13,15 @@ static void lvgl_log_output(const char *data)
     log_output(data, strlen(data));
 }
 
-uint8_t *get_disp_data(uint8_t *buffer)
+void refresh_disp_image(image_t *cap_image)
 {
-    return sensor_disp_image.data;
-}
-
-void refresh_disp_image(void)
-{
-    for (uint32_t i = 0; i < sensor_disp_image.data_size / 2; i++) {
-        uint16_t pixel = ((uint16_t *)sensor_disp_image.data)[i];
-        pixel = (pixel) << 8 | (pixel) >> 8;
-        ((uint16_t *)sensor_disp_image.data)[i] = pixel;
+    uint32_t pixel_count = sensor_disp_image.header.w * sensor_disp_image.header.h;
+    for (uint32_t i = 0; i < pixel_count; i++) {
+        if (cap_image->bpp == IMAGE_BPP_RGB565) {
+            ((uint16_t *)sensor_disp_image.data)[i] = __REV16(((uint16_t *)cap_image->data)[i]);
+        } else if(cap_image->bpp == IMAGE_BPP_GRAYSCALE) {
+            ((uint16_t *)sensor_disp_image.data)[i] = __REV16(COLOR_GRAYSCALE_TO_RGB565(((uint8_t *)cap_image->data)[i]));
+        }
     }
     lv_obj_invalidate(imgobj_sensor);
 }

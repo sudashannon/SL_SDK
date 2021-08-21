@@ -27,33 +27,13 @@ Project File Date:  08/09/2021
 <h2>Output:</h2>
 *** Using Compiler 'V6.16', folder: 'C:\UserProfession\Keil_v5\ARM\ARMCLANG\Bin'
 Build target 'Target 1'
-compiling rte_adapter_cmsis_rtos2.c...
-compiling bsp_sensor.c...
-compiling bsp_lcd.c...
-compiling sensor_thread.c...
-compiling gui_thread.c...
-compiling ov7725.c...
-compiling system_thread.c...
-compiling ov2640.c...
-compiling rte_timer.c...
-compiling rte_log.c...
-compiling stm32h7xx_it.c...
-compiling hal_gpio_stm32h7.c...
-compiling rte_memory.c...
-compiling hal_spi_stm32h7.c...
-compiling hal_com_stm32h7.c...
-compiling hal_key.c...
-compiling ds_ringbuffer.c...
 compiling ds_image.c...
-compiling ds_vector.c...
-compiling lv_hal_tick.c...
-compiling ds_hashmap.c...
-compiling ds_linklist.c...
-compiling lv_mem.c...
+compiling bsp_sensor.c...
+compiling gui_thread.c...
 linking...
 .\Objects\cam_h7.sct(16): warning: L6314W: No section matches pattern *(.RAM_MATH).
 .\Objects\cam_h7.sct(31): warning: L6314W: No section matches pattern *(.RAM_BACKUP).
-Program Size: Code=171588 RO-data=23500 RW-data=819524 ZI-data=53308  
+Program Size: Code=171716 RO-data=23500 RW-data=819524 ZI-data=53308  
 Finished: 0 information, 2 warning and 0 error messages.
 ".\Objects\cam_h7.axf" - 0 Error(s), 2 Warning(s).
 
@@ -113,19 +93,19 @@ Package Vendor: Keil
 
    * Component: ARM::CMSIS:RTOS2:Keil RTX5:Library:5.5.3
       Source file:   CMSIS\RTOS2\RTX\Template\main.c
-      Include file:  CMSIS\RTOS2\RTX\Include\rtx_os.h
+      Source file:   CMSIS\RTOS2\RTX\Template\Events.c
+      Source file:   CMSIS\RTOS2\RTX\Template\svc_user.c
+      Library file:  CMSIS\RTOS2\RTX\Library\ARM\RTX_CM4F.lib
+      Source file:   CMSIS\RTOS2\RTX\Template\Semaphore.c
       Source file:   CMSIS\RTOS2\RTX\Template\MemPool.c
+      Include file:  CMSIS\RTOS2\RTX\Config\RTX_Config.h
+      Include file:  CMSIS\RTOS2\RTX\Include\rtx_os.h
+      Source file:   CMSIS\RTOS2\RTX\Config\RTX_Config.c
       Source file:   CMSIS\RTOS2\RTX\Template\MsgQueue.c
       Source file:   CMSIS\RTOS2\RTX\Template\Mutex.c
-      Source file:   CMSIS\RTOS2\RTX\Template\Semaphore.c
-      Source file:   CMSIS\RTOS2\RTX\Config\RTX_Config.c
-      Source file:   CMSIS\RTOS2\RTX\Template\svc_user.c
-      Source file:   CMSIS\RTOS2\RTX\Source\rtx_lib.c
-      Source file:   CMSIS\RTOS2\RTX\Template\Events.c
-      Include file:  CMSIS\RTOS2\RTX\Config\RTX_Config.h
-      Source file:   CMSIS\RTOS2\RTX\Template\Thread.c
       Source file:   CMSIS\RTOS2\RTX\Template\Timer.c
-      Library file:  CMSIS\RTOS2\RTX\Library\ARM\RTX_CM4F.lib
+      Source file:   CMSIS\RTOS2\RTX\Source\rtx_lib.c
+      Source file:   CMSIS\RTOS2\RTX\Template\Thread.c
 
    * Component: Keil::Device:STM32Cube Framework:STM32CubeMX:1.1.0
       Include file:  MX_Device.h
@@ -143,23 +123,23 @@ Package Vendor: Keil
       Source file:   Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_dcmi.c
 
    * Component: Keil::Device:STM32Cube HAL:DMA:1.8.0
-      Source file:   Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_dma.c
       Source file:   Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_dma_ex.c
+      Source file:   Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_dma.c
 
    * Component: Keil::Device:STM32Cube HAL:GPIO:1.8.0
       Source file:   Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_gpio.c
 
    * Component: Keil::Device:STM32Cube HAL:I2C:1.8.0
-      Source file:   Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_i2c.c
       Source file:   Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_i2c_ex.c
+      Source file:   Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_i2c.c
 
    * Component: Keil::Device:STM32Cube HAL:PWR:1.8.0
       Source file:   Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_pwr_ex.c
       Source file:   Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_pwr.c
 
    * Component: Keil::Device:STM32Cube HAL:RCC:1.8.0
-      Source file:   Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_rcc_ex.c
       Source file:   Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_rcc.c
+      Source file:   Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_rcc_ex.c
 
    * Component: Keil::Device:STM32Cube HAL:SPI:1.8.0
       Source file:   Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_spi.c
@@ -170,10 +150,10 @@ Package Vendor: Keil
       Source file:   Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_uart_ex.c
 
    * Component: Keil::Device:Startup:1.8.0
-      Include file:  Drivers\CMSIS\Device\ST\STM32H7xx\Include\stm32h7xx.h
       Source file:   Drivers\CMSIS\Device\ST\STM32H7xx\Source\Templates\arm\startup_stm32h743xx.s
+      Include file:  Drivers\CMSIS\Device\ST\STM32H7xx\Include\stm32h7xx.h
       Source file:   Drivers\CMSIS\Device\ST\STM32H7xx\Source\Templates\system_stm32h7xx.c
-Build Time Elapsed:  00:00:19
+Build Time Elapsed:  00:00:16
 </pre>
 </body>
 </html>
