@@ -553,10 +553,40 @@
               <FileType>1</FileType>
               <FilePath>..\..\src\data_structure\ds_vector.c</FilePath>
             </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>rte_imageprocess</GroupName>
+          <Files>
             <File>
-              <FileName>ds_image.c</FileName>
+              <FileName>denoise.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\src\data_structure\ds_image.c</FilePath>
+              <FilePath>..\..\src\image_process\denoise.c</FilePath>
+            </File>
+            <File>
+              <FileName>font.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\image_process\font.c</FilePath>
+            </File>
+            <File>
+              <FileName>hough.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\image_process\hough.c</FilePath>
+            </File>
+            <File>
+              <FileName>image_base.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\image_process\image_base.c</FilePath>
+            </File>
+            <File>
+              <FileName>sincos_tab.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\image_process\sincos_tab.c</FilePath>
+            </File>
+            <File>
+              <FileName>edge.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\image_process\edge.c</FilePath>
             </File>
           </Files>
         </Group>

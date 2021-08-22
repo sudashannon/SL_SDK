@@ -152,6 +152,12 @@ do{                                                                             
 #define UINT64_T_MASK   (UINT64_T_BITS - 1)
 #define UINT64_T_SHIFT  RTE_LOG2(UINT64_T_MASK)
 
+#ifndef M_PI
+#define M_PI 3.1415926f
+#endif
+#define RTE_DEG2RAD(x)   (((x)*M_PI)/180)
+#define RTE_RAD2DEG(x)   (((x)*180)/M_PI)
+
 typedef void (*rte_callback_f)(void *arg);
 
 static inline uint32_t rte_roundup_pow_of_two(uint32_t v) {
