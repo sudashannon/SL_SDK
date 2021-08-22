@@ -7,3 +7,6 @@
 [submodule "src/utils/letter-shell"]
 	path = src/utils/letter-shell
 	url = https://github.com/NevermindZZT/letter-shell
+[submodule "src/utils/CmBacktrace"]
+	path = src/utils/CmBacktrace
+	url = https://github.com/armink/CmBacktrace.git
