@@ -4,8 +4,7 @@
 #include "bsp_lcd.h"
 #include "bsp_sensor.h"
 
-static lv_obj_t *imgobj_sensor = NULL;
-static lv_img_dsc_t sensor_disp_image;
+static lv_obj_t *img_obj[2] = {NULL};
 osThreadId_t gui_tid;
 
 static void lvgl_log_output(const char *data)
@@ -13,17 +12,35 @@ static void lvgl_log_output(const char *data)
     log_output(data, strlen(data));
 }
 
-void refresh_disp_image(image_t *cap_image)
+lv_obj_t *gui_get_disp_obj(uint8_t index)
 {
-    uint32_t pixel_count = sensor_disp_image.header.w * sensor_disp_image.header.h;
-    for (uint32_t i = 0; i < pixel_count; i++) {
-        if (cap_image->bpp == IMAGE_BPP_RGB565) {
-            ((uint16_t *)sensor_disp_image.data)[i] = __REV16(((uint16_t *)cap_image->data)[i]);
-        } else if(cap_image->bpp == IMAGE_BPP_GRAYSCALE) {
-            ((uint16_t *)sensor_disp_image.data)[i] = __REV16(COLOR_GRAYSCALE_TO_RGB565(((uint8_t *)cap_image->data)[i]));
+    return img_obj[index];
+}
+
+void refresh_disp_image(image_t *cap_image, lv_obj_t *disp_obj)
+{
+    lv_img_dsc_t *disp_image = lv_img_get_src(disp_obj);
+    if(disp_image) {
+        uint32_t w_ratio = ((uint32_t)cap_image->w << 16)/disp_image->header.w + 1;
+        uint32_t h_ratio = ((uint32_t)cap_image->h << 16)/disp_image->header.h + 1;
+        uint16_t *dest_data = disp_image->data;
+        uint32_t srcy = 0;
+        for (uint16_t y = 0; y < disp_image->header.h; y++) {
+            uint16_t *src_data = cap_image->data + cap_image->w * cap_image->bpp * (srcy >> 16);
+            uint32_t srcx = 0;
+            for (uint16_t x = 0; x < disp_image->header.w; x++) {
+                if (cap_image->bpp == IMAGE_BPP_GRAYSCALE) {
+                    dest_data[x] = __REV16(COLOR_GRAYSCALE_TO_RGB565(((uint8_t *)src_data)[srcx >> 16]));
+                } else {
+                    dest_data[x] =  __REV16((src_data)[srcx >> 16]);
+                }
+                srcx += w_ratio;
+            }
+            srcy += h_ratio;
+            dest_data += disp_image->header.w;
         }
+        lv_obj_invalidate(disp_obj);
     }
-    lv_obj_invalidate(imgobj_sensor);
 }
 
 
@@ -130,15 +147,29 @@ __NO_RETURN void gui_thread(void *param)
      * NULL means align on parent (which is the screen now)
      * 0, 0 at the end means an x, y offset after alignment*/
     lv_obj_align(label1, LV_ALIGN_CENTER, 0, 0);
-    imgobj_sensor = lv_img_create(scr);
-	sensor_disp_image.data = memory_alloc(BANK_DEFAULT, resolution[FRAME_SIZE][0] * resolution[FRAME_SIZE][1] * 2);
+
+    img_obj[0] = lv_img_create(scr);
+    lv_img_dsc_t sensor_disp_image;
 	sensor_disp_image.header.cf = LV_IMG_CF_TRUE_COLOR;
 	sensor_disp_image.header.always_zero = 0;
-	sensor_disp_image.header.w = resolution[FRAME_SIZE][0];
-	sensor_disp_image.header.h = resolution[FRAME_SIZE][1];
+	sensor_disp_image.header.w = 100;
+	sensor_disp_image.header.h = sensor_disp_image.header.w * resolution[FRAME_SIZE][1] / resolution[FRAME_SIZE][0];
+    sensor_disp_image.data = memory_alloc(BANK_DEFAULT, sensor_disp_image.header.w * sensor_disp_image.header.h * 2);
 	sensor_disp_image.data_size = sensor_disp_image.header.w * sensor_disp_image.header.h * sizeof(lv_color_t);
-	lv_img_set_src(imgobj_sensor, &sensor_disp_image);
-    lv_obj_center(imgobj_sensor);
+	lv_img_set_src(img_obj[0], &sensor_disp_image);
+    lv_obj_align(img_obj[0], LV_ALIGN_TOP_RIGHT, 0, 0);
+
+    img_obj[1] = lv_img_create(scr);
+    lv_img_dsc_t dealt_image;
+	dealt_image.header.cf = LV_IMG_CF_TRUE_COLOR;
+	dealt_image.header.always_zero = 0;
+	dealt_image.header.w = 200;
+	dealt_image.header.h = dealt_image.header.w * resolution[FRAME_SIZE][1] / resolution[FRAME_SIZE][0];
+    dealt_image.data = memory_alloc(BANK_DEFAULT, dealt_image.header.w * dealt_image.header.h * 2);
+	dealt_image.data_size = dealt_image.header.w * dealt_image.header.h * sizeof(lv_color_t);
+	lv_img_set_src(img_obj[1], &dealt_image);
+    lv_obj_align(img_obj[1], LV_ALIGN_BOTTOM_LEFT, 0, 0);
+
     for (;;) {
         /* Periodically call the lv_task handler.
          * It could be done in a timer interrupt or an OS task too.*/
