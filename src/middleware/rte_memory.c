@@ -53,11 +53,12 @@ typedef struct __mem_handle_t_ {
     mem_t mem;
     pool_t pool;
     rte_mutex_t *mutex;
+    uint32_t total_size;
 } mem_handle_t;
 
 /* The handle for memory */
 static mem_handle_t mem_handle[BANK_CNT] = {
-    {NULL, NULL, NULL},
+    {NULL, NULL, NULL, 0},
 };
 
 /* RealView Compilation Tools for ARM */
@@ -738,6 +739,7 @@ void memory_pool(mem_bank_t bank, rte_mutex_t *mutex, void *mem_pool, size_t mem
     mem_t mem = mem_create(mem_pool);
     mem_handle[bank].pool = mem_add_pool(mem, (char*)mem_pool + sizeof(control_t), mem_pool_size - sizeof(control_t));
     mem_handle[bank].mem = mem;
+    mem_handle[bank].total_size = mem_pool_size;
 }
 /**
  * @brief Alloc a size of memory stack.
@@ -839,18 +841,21 @@ void* memory_alloc_align(mem_bank_t bank, size_t align, size_t size)
  */
 void memory_free(mem_bank_t bank,void* ptr)
 {
-    /* Don't attempt to free a NULL pointer. */
-    if (ptr) {
-        MEM_LOCK(bank);
-        control_t* control = mem_cast(control_t*, mem_handle[bank].mem);
-        block_header_t* block = block_from_ptr(ptr);
-        if(!block_is_free(block)) {
-            block_mark_as_free(block);
-            block = block_merge_prev(control, block);
-            block = block_merge_next(control, block);
-            block_insert(control, block);
+    /* Check if the ptr is belonged to this bank */
+    if (ptr > mem_handle[bank].mem && ptr < mem_handle[bank].mem + mem_handle[bank].total_size) {
+        /* Don't attempt to free a NULL pointer. */
+        if (ptr) {
+            MEM_LOCK(bank);
+            control_t* control = mem_cast(control_t*, mem_handle[bank].mem);
+            block_header_t* block = block_from_ptr(ptr);
+            if(!block_is_free(block)) {
+                block_mark_as_free(block);
+                block = block_merge_prev(control, block);
+                block = block_merge_next(control, block);
+                block_insert(control, block);
+            }
+            MEM_UNLOCK(bank);
         }
-        MEM_UNLOCK(bank);
     }
 }
 /*

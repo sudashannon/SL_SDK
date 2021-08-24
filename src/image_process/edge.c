@@ -13,6 +13,8 @@
 #include "../../inc/middle_layer/rte_memory.h"
 #include "../../inc/middle_layer/rte_log.h"
 
+#define EDGE_LOGI(...) LOG_INFO("EDGE", __VA_ARGS__)
+
 typedef struct gvec {
     uint16_t t;
     uint16_t g;
@@ -21,8 +23,10 @@ typedef struct gvec {
 void edge_canny(image_t *src, rectangle_t *roi, int32_t low_thresh, int32_t high_thresh)
 {
     int32_t w = src->w;
-
-    gvec_t *gm = memory_calloc(BANK_MATH, roi->w * roi->h * sizeof(gvec_t));
+    uint32_t pixels_agerage_value = 0;
+    gvec_t *gm = memory_calloc(BANK_FB, roi->w * roi->h * sizeof(gvec_t));
+    if (!gm)
+        return;
 
     //1. Noise Reduction with a Gaussian filter
     denoise_sepconv3(src, GAUSSIAN, 1.0f/16.0f, 0);
@@ -30,22 +34,25 @@ void edge_canny(image_t *src, rectangle_t *roi, int32_t low_thresh, int32_t high
     //2. Finding Image Gradients
     for (int32_t gy = 1, y = roi->y + 1; y < roi->y + roi->h - 1; y++, gy++) {
         for (int32_t gx = 1, x = roi->x + 1; x < roi->x +roi->w - 1; x++, gx++) {
+            uint32_t base = y*w+x;
+            // Calculate average of the input image's pixels
+            pixels_agerage_value += src->data[base];
             int32_t vx = 0, vy = 0;
             // sobel kernel in the horizontal direction
-            vx  = src->data [(y-1)*w+x-1]
-                - src->data [(y-1)*w+x+1]
-                + (src->data[(y+0)*w+x-1]<<1)
-                - (src->data[(y+0)*w+x+1]<<1)
-                + src->data [(y+1)*w+x-1]
-                - src->data [(y+1)*w+x+1];
+            vx  = src->data [base - w - 1]
+                - src->data [base - w + 1]
+                + (src->data[base - 1])<<1
+                - (src->data[base + 1])<<1
+                + src->data [base + w -1]
+                - src->data [base + w +1];
 
             // sobel kernel in the vertical direction
-            vy  = src->data [(y-1)*w+x-1]
-                + (src->data[(y-1)*w+x+0]<<1)
-                + src->data [(y-1)*w+x+1]
-                - src->data [(y+1)*w+x-1]
-                - (src->data[(y+1)*w+x+0]<<1)
-                - src->data [(y+1)*w+x+1];
+            vy  = src->data [base - w - 1]
+                + (src->data[base - w + 0])<<1
+                + src->data [base - w + 1]
+                - src->data [base + w - 1]
+                - (src->data[base + w + 0])<<1
+                - src->data [base + w + 1];
 
             // Find magnitude
             int32_t g = (int32_t) sqrtf(vx*vx + vy*vy);
@@ -68,12 +75,16 @@ void edge_canny(image_t *src, rectangle_t *roi, int32_t low_thresh, int32_t high
         }
     }
 
+    pixels_agerage_value = pixels_agerage_value / (roi->w * roi->h);
+    low_thresh = pixels_agerage_value - low_thresh;
+    high_thresh = pixels_agerage_value + high_thresh;
     // 3. Hysteresis Thresholding
     // 4. Non-maximum Suppression and output
     for (int32_t gy=0, y=roi->y; y<roi->y+roi->h; y++, gy++) {
         for (int32_t gx=0, x=roi->x; x<roi->x+roi->w; x++, gx++) {
-            int32_t i = y*w+x;
-            gvec_t *va=NULL, *vb=NULL, *vc = &gm[gy*roi->w+gx];
+            uint32_t i = y*w+x;
+            uint32_t base = gy*roi->w + gx;
+            gvec_t *va=NULL, *vb=NULL, *vc = &gm[base];
 
             // Clear the borders
             if (y == (roi->y) || y == (roi->y+roi->h-1) ||
@@ -88,14 +99,14 @@ void edge_canny(image_t *src, rectangle_t *roi, int32_t low_thresh, int32_t high
                 continue;
             // Check if strong or weak edge
             } else if (vc->g >= high_thresh ||
-                       gm[(gy-1)*roi->w+(gx-1)].g >= high_thresh ||
-                       gm[(gy-1)*roi->w+(gx+0)].g >= high_thresh ||
-                       gm[(gy-1)*roi->w+(gx+1)].g >= high_thresh ||
-                       gm[(gy+0)*roi->w+(gx-1)].g >= high_thresh ||
-                       gm[(gy+0)*roi->w+(gx+1)].g >= high_thresh ||
-                       gm[(gy+1)*roi->w+(gx-1)].g >= high_thresh ||
-                       gm[(gy+1)*roi->w+(gx+0)].g >= high_thresh ||
-                       gm[(gy+1)*roi->w+(gx+1)].g >= high_thresh) {
+                       gm[base - roi->w - 1].g >= high_thresh ||
+                       gm[base - roi->w + 0].g >= high_thresh ||
+                       gm[base - roi->w + 1].g >= high_thresh ||
+                       gm[base + gx - 1].g >= high_thresh ||
+                       gm[base + gx + 1].g >= high_thresh ||
+                       gm[base + roi->w + gx - 1].g >= high_thresh ||
+                       gm[base + roi->w + gx + 0].g >= high_thresh ||
+                       gm[base + roi->w + gx + 1].g >= high_thresh) {
                 vc->g = vc->g;
             } else { // Not an edge
                 src->data[i] = 0;
@@ -104,26 +115,26 @@ void edge_canny(image_t *src, rectangle_t *roi, int32_t low_thresh, int32_t high
 
             switch (vc->t) {
                 case 0: {
-                    va = &gm[(gy+0)*roi->w+(gx-1)];
-                    vb = &gm[(gy+0)*roi->w+(gx+1)];
+                    va = &gm[base + gx - 1];
+                    vb = &gm[base + gx + 1];
                     break;
                 }
 
                 case 45: {
-                    va = &gm[(gy+1)*roi->w+(gx-1)];
-                    vb = &gm[(gy-1)*roi->w+(gx+1)];
+                    va = &gm[base + roi->w + gx - 1];
+                    vb = &gm[base - roi->w + 1];
                     break;
                 }
 
                 case 90: {
-                    va = &gm[(gy+1)*roi->w+(gx+0)];
-                    vb = &gm[(gy-1)*roi->w+(gx+0)];
+                    va = &gm[base + roi->w + gx + 0];
+                    vb = &gm[base - roi->w + 0];
                     break;
                 }
 
                 case 135: {
-                    va = &gm[(gy+1)*roi->w+(gx+1)];
-                    vb = &gm[(gy-1)*roi->w+(gx-1)];
+                    va = &gm[base + roi->w + gx + 1];
+                    vb = &gm[base - roi->w - 1];
                     break;
                 }
             }
@@ -136,5 +147,5 @@ void edge_canny(image_t *src, rectangle_t *roi, int32_t low_thresh, int32_t high
         }
     }
 
-    memory_free(BANK_MATH, gm);
+    memory_free(BANK_FB, gm);
 }

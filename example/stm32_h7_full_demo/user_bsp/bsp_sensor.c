@@ -742,6 +742,9 @@ int sensor_snapshot(sensor_t *sensor, image_t *image, uint32_t timeout_ms)
     uint32_t h = resolution[sensor->framesize][1];
     uint32_t pixel_count = w * h;
     uint8_t *framebuffer = NULL;
+    // Make sure the image's data is invalid before alloc new framebuffer.
+    if (image->data)
+        image_reuse(image);
     // Setup the size and address of the transfer
     switch (sensor->pixformat) {
         case PIXFORMAT_RGB565:
@@ -790,9 +793,6 @@ int sensor_snapshot(sensor_t *sensor, image_t *image, uint32_t timeout_ms)
 		}
         uint32_t end_tick = rte_get_tick();
         RTE_LOGD("snap consume %d ms", end_tick - start_tick);
-        // Make sure the image's data is invalid before given the framebuffer to it.
-        if (image->data)
-            image_reuse(image);
         image->data = framebuffer;
         return 0;
     } else if(snap_result == osErrorTimeout){
