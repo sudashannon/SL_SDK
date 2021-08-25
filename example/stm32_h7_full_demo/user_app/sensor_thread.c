@@ -28,7 +28,7 @@ __NO_RETURN void sensor_thread(void *param)
         int snap_result = sensor_snapshot(&sensor, &sensor_cap_image, 150);
         if (snap_result == 0) {
             refresh_disp_image(&sensor_cap_image, gui_get_disp_obj(0));
-            edge_canny(&sensor_cap_image, &roi, 100, 10);
+            edge_simple(&sensor_cap_image, &roi, 10, 200);
             refresh_disp_image(&sensor_cap_image, gui_get_disp_obj(1));
         } else {
             RTE_LOGF("sensor_snap failed! %d", snap_result);

@@ -32,6 +32,8 @@
 ".\objects\image_base.o"
 ".\objects\sincos_tab.o"
 ".\objects\edge.o"
+".\objects\filter.o"
+".\objects\binary.o"
 ".\objects\lv_disp.o"
 ".\objects\lv_event.o"
 ".\objects\lv_group.o"

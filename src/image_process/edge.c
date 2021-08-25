@@ -12,8 +12,7 @@
 #include "../../inc/image_process/image_process.h"
 #include "../../inc/middle_layer/rte_memory.h"
 #include "../../inc/middle_layer/rte_log.h"
-
-#define EDGE_LOGI(...) LOG_INFO("EDGE", __VA_ARGS__)
+#include "../../inc/data_structure/ds_linklist.h"
 
 typedef struct gvec {
     uint16_t t;
@@ -148,4 +147,20 @@ void edge_canny(image_t *src, rectangle_t *roi, int32_t low_thresh, int32_t high
     }
 
     memory_free(BANK_FB, gm);
+}
+
+void edge_simple(image_t *src, rectangle_t *roi, int low_thresh, int high_thresh)
+{
+    //1. Noise Reduction with a Gaussian filter
+    denoise_sepconv3(src, GAUSSIAN, 1.0f/16.0f, 0);
+    filter_morph(src, 1, kernel_high_pass_3, 1.0f, 0.0f, false, 0, false, NULL);
+    linked_list_t *thresholds = list_create(NULL);
+    color_thresholds_list_lnk_data_t *lnk_data = memory_calloc(BANK_DEFAULT, sizeof(color_thresholds_list_lnk_data_t));
+    lnk_data->LMin = low_thresh;
+    lnk_data->LMax = high_thresh;
+    list_push_tail_value(thresholds, lnk_data);
+    binary_image(src, src, thresholds, false, false, NULL);
+    list_destroy(thresholds);
+    memory_free(BANK_DEFAULT, lnk_data);
+    binary_erode(src, 1, 2, NULL);
 }

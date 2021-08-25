@@ -172,6 +172,28 @@ size_t image_size(image_t *ptr)
     }
 }
 
+bool image_get_mask_pixel(image_t *ptr, int x, int y)
+{
+    if ((0 <= x) && (x < ptr->w) && (0 <= y) && (y < ptr->h)) {
+        switch (ptr->bpp) {
+            case IMAGE_BPP_BINARY: {
+                return IMAGE_GET_BINARY_PIXEL(ptr, x, y);
+            }
+            case IMAGE_BPP_GRAYSCALE: {
+                return COLOR_GRAYSCALE_TO_BINARY(IMAGE_GET_GRAYSCALE_PIXEL(ptr, x, y));
+            }
+            case IMAGE_BPP_RGB565: {
+                return COLOR_RGB565_TO_BINARY(IMAGE_GET_RGB565_PIXEL(ptr, x, y));
+            }
+            default: {
+                return false;
+            }
+        }
+    }
+
+    return false;
+}
+
 inline int image_get_pixel_fast(int img_bpp, const void *row_ptr, int x)
 {
     switch(img_bpp) {

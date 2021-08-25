@@ -588,6 +588,16 @@
               <FileType>1</FileType>
               <FilePath>..\..\src\image_process\edge.c</FilePath>
             </File>
+            <File>
+              <FileName>filter.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\image_process\filter.c</FilePath>
+            </File>
+            <File>
+              <FileName>binary.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\image_process\binary.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

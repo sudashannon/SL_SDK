@@ -18,6 +18,11 @@
 
 #include "../middle_layer/rte.h"
 
+/**
+ * @brief Opaque structure representing the actual linked list descriptor
+ */
+typedef struct _linked_list_s linked_list_t;
+
 typedef enum image_bpp
 {
     IMAGE_BPP_BINARY,       // BPP = 0
@@ -427,6 +432,7 @@ extern const glyph_t font[95];
 void image_init(image_t *ptr, int32_t w, int32_t h, image_bpp_t bpp);
 void image_reuse(image_t *ptr);
 void image_copy(image_t *dst, image_t *src);
+bool image_get_mask_pixel(image_t *ptr, int x, int y);
 int image_get_pixel_fast(int img_bpp, const void *row_ptr, int x);
 void image_set_pixel(image_t *img, int x, int y, int p);
 void image_draw_line(image_t *img, int x0, int y0, int x1, int y1, int c, int thickness);
@@ -493,11 +499,23 @@ int point_quadrance(point_t *ptr0, point_t *ptr1);
 void point_rotate(int x, int y, float r, int center_x, int center_y, int16_t *new_x, int16_t *new_y);
 void point_min_area_rectangle(point_t *corners, point_t *new_corners, int corners_len);
 
+void filter_morph(image_t *img, int ksize,int *krn, float m, int b, bool threshold, int offset, bool invert, image_t *mask);
+
+void binary_image(image_t *out, image_t *img, linked_list_t *thresholds, bool invert, bool zero, image_t *mask);
+void binary_erode(image_t *img, int ksize, int threshold, image_t *mask);
+
 typedef enum {
     GAUSSIAN = 0,
     LAPLACIAN = 1,
     HIGHPASS = 2,
 } denoise_type_t;
+
+// Conv kernels
+extern const int8_t kernel_gauss_3[9];
+extern const int8_t kernel_gauss_5[25];
+extern const int kernel_laplacian_3[9];
+extern const int kernel_high_pass_3[9];
+
 void denoise_sepconv3(image_t *img, denoise_type_t filter_type, float m, int32_t b);
 
 void edge_canny(image_t *src, rectangle_t *roi, int32_t low_thresh, int32_t high_thresh);
