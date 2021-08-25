@@ -88,11 +88,26 @@ void list_unlock(linked_list_t *list);
 /* List access routines */
 
 /**
+ * @brief Remove first value from the list
+ * @param list : A valid pointer to a linked_list_t structure
+ * @return The value previous tail of the list
+ */
+void *list_pop_head_value(linked_list_t *list);
+
+/**
  * @brief Remove last value from the list
  * @param list : A valid pointer to a linked_list_t structure
  * @return The value previous tail of the list
  */
-void *list_pop_value(linked_list_t *list);
+void *list_pop_tail_value(linked_list_t *list);
+
+/**
+ * @brief Append a new value to the list (head)
+ * @param list : A valid pointer to a linked_list_t structure
+ * @param val : The value to store in the tail of the list
+ * @return : 0 if success, -1 otherwise
+ */
+int list_push_head_value(linked_list_t *list, void *val);
 
 /**
  * @brief Append a new value to the list (tail)
@@ -100,7 +115,7 @@ void *list_pop_value(linked_list_t *list);
  * @param val : The value to store in the tail of the list
  * @return : 0 if success, -1 otherwise
  */
-int list_push_value(linked_list_t *list, void *val);
+int list_push_tail_value(linked_list_t *list, void *val);
 
 /**
  * @brief Insert a new value at the beginning of the least (head)

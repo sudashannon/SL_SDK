@@ -38,8 +38,10 @@ static inline list_entry_t *create_entry();
 static inline void destroy_entry(list_entry_t *entry);
 
 /* List and list_entry_t manipulation routines */
-static inline list_entry_t *pop_entry(linked_list_t *list);
-static inline int push_entry(linked_list_t *list, list_entry_t *entry);
+static inline list_entry_t *pop_tail_entry(linked_list_t *list);
+static inline list_entry_t *pop_head_entry(linked_list_t *list);
+static inline int push_tail_entry(linked_list_t *list, list_entry_t *entry);
+static inline int push_head_entry(linked_list_t *list, list_entry_t *entry);
 static inline int unshift_entry(linked_list_t *list, list_entry_t *entry);
 static inline list_entry_t *shift_entry(linked_list_t *list);
 static inline int insert_entry(linked_list_t *list, list_entry_t *entry, size_t pos);
@@ -197,7 +199,7 @@ destroy_entry(list_entry_t *entry)
  * if you are using the list as a stack)
  */
 static inline
-list_entry_t *pop_entry(linked_list_t *list)
+list_entry_t *pop_tail_entry(linked_list_t *list)
 {
     list_entry_t *entry;
     RTE_LOCK(list->lock);
@@ -225,10 +227,42 @@ list_entry_t *pop_entry(linked_list_t *list)
 }
 
 /*
+ * Pops a list_entry_t from the start of the list (or bottom of the stack
+ * if you are using the list as a stack)
+ */
+static inline
+list_entry_t *pop_head_entry(linked_list_t *list)
+{
+    list_entry_t *entry;
+    RTE_LOCK(list->lock);
+
+    entry = list->head;
+    if(entry)
+    {
+        list->head = entry->next;
+        if(list->head)
+            list->head->prev = NULL;
+        list->length--;
+
+        entry->list = NULL;
+        entry->prev = NULL;
+        entry->next = NULL;
+
+        if (list->cur == entry)
+            list->cur = NULL;
+    }
+    if(list->length == 0)
+        list->head = list->tail = NULL;
+
+    RTE_UNLOCK(list->lock);
+    return entry;
+}
+
+/*
  * Pushs a list_entry_t at the end of a list
  */
 static inline int
-push_entry(linked_list_t *list, list_entry_t *entry)
+push_tail_entry(linked_list_t *list, list_entry_t *entry)
 {
     list_entry_t *p;
     if(!entry)
@@ -245,6 +279,34 @@ push_entry(linked_list_t *list, list_entry_t *entry)
         entry->prev = p;
         entry->next = NULL;
         list->tail = entry;
+    }
+    list->length++;
+    entry->list = list;
+    RTE_UNLOCK(list->lock);
+    return 0;
+}
+
+/*
+ * Pushs a list_entry_t at the start of a list
+ */
+static inline int
+push_head_entry(linked_list_t *list, list_entry_t *entry)
+{
+    list_entry_t *p;
+    if(!entry)
+        return -1;
+    RTE_LOCK(list->lock);
+    if(list->length == 0)
+    {
+        list->head = list->tail = entry;
+    }
+    else
+    {
+        p = list->head;
+        p->prev = entry;
+        entry->next = p;
+        entry->prev = NULL;
+        list->head = entry;
     }
     list->length++;
     entry->list = list;
@@ -327,12 +389,12 @@ insert_entry(linked_list_t *list, list_entry_t *entry, size_t pos)
     if(pos == 0) {
         ret = unshift_entry(list, entry);
     } else if(pos == list->length) {
-        ret = push_entry(list, entry);
+        ret = push_tail_entry(list, entry);
     } else if (pos > list->length) {
         unsigned int i;
         for (i = list->length; i < pos; i++) {
             list_entry_t *emptyEntry = create_entry();
-            if (!emptyEntry || push_entry(list, emptyEntry) != 0)
+            if (!emptyEntry || push_tail_entry(list, emptyEntry) != 0)
             {
                 if (emptyEntry)
                     destroy_entry(emptyEntry);
@@ -340,7 +402,7 @@ insert_entry(linked_list_t *list, list_entry_t *entry, size_t pos)
                 return -1;
             }
         }
-        ret = push_entry(list, entry);
+        ret = push_tail_entry(list, entry);
     }
 
     if (ret == 0) {
@@ -431,7 +493,7 @@ list_entry_t *fetch_entry(linked_list_t *list, size_t pos)
     if(pos == 0 )
         return shift_entry(list);
     else if(pos == list_count(list) - 1)
-        return pop_entry(list);
+        return pop_tail_entry(list);
 
     entry = remove_entry(list, pos);
     return entry;
@@ -577,10 +639,23 @@ get_entry_position(list_entry_t *entry)
 }
 
 void *
-list_pop_value(linked_list_t *list)
+list_pop_head_value(linked_list_t *list)
 {
     void *val = NULL;
-    list_entry_t *entry = pop_entry(list);
+    list_entry_t *entry = pop_head_entry(list);
+    if(entry)
+    {
+        val = entry->value;
+        destroy_entry(entry);
+    }
+    return val;
+}
+
+void *
+list_pop_tail_value(linked_list_t *list)
+{
+    void *val = NULL;
+    list_entry_t *entry = pop_tail_entry(list);
     if(entry)
     {
         val = entry->value;
@@ -590,14 +665,28 @@ list_pop_value(linked_list_t *list)
 }
 
 int
-list_push_value(linked_list_t *list, void *val)
+list_push_head_value(linked_list_t *list, void *val)
 {
     int res;
     list_entry_t *new_entry = create_entry();
     if(!new_entry)
         return -1;
     new_entry->value = val;
-    res = push_entry(list, new_entry);
+    res = push_head_entry(list, new_entry);
+    if(res != 0)
+        destroy_entry(new_entry);
+    return res;
+}
+
+int
+list_push_tail_value(linked_list_t *list, void *val)
+{
+    int res;
+    list_entry_t *new_entry = create_entry();
+    if(!new_entry)
+        return -1;
+    new_entry->value = val;
+    res = push_tail_entry(list, new_entry);
     if(res != 0)
         destroy_entry(new_entry);
     return res;
@@ -852,7 +941,7 @@ list_set_tagged_value(linked_list_t *list, char *tag, void *value, size_t len, i
 tagged_value_t *
 list_pop_tagged_value(linked_list_t *list)
 {
-    return (tagged_value_t *)list_pop_value(list);
+    return (tagged_value_t *)list_pop_tail_value(list);
 }
 
 /*
@@ -871,7 +960,7 @@ list_push_tagged_value(linked_list_t *list, tagged_value_t *tval)
         {
             new_entry->tagged = 1;
             new_entry->value = tval;
-            res = push_entry(list, new_entry);
+            res = push_tail_entry(list, new_entry);
             if(res != 0)
                 destroy_entry(new_entry);
         }
@@ -980,7 +1069,7 @@ list_get_tagged_values(linked_list_t *list, char *tag, linked_list_t *values)
         }
         if(strcmp(tval->tag, tag) == 0)
         {
-            list_push_value(values, tval->value);
+            list_push_tail_value(values, tval->value);
             ret++;
         }
     }

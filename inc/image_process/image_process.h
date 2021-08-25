@@ -12,7 +12,10 @@
 #ifndef __DS_IMAGE_H
 #define __DS_IMAGE_H
 
+#if defined (__ARMCC_VERSION) || defined(__CC_ARM) || defined(__CLANG_ARM)
 #include <cmsis_compiler.h>
+#endif
+
 #include "../middle_layer/rte.h"
 
 typedef enum image_bpp

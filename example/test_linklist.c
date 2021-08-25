@@ -112,11 +112,11 @@ void test_linklist(void)
     linked_list_t *list = list_create(&ll_mutex[0]);
     RTE_ASSERT(list != NULL);
 
-    RTE_LOGI("list_push_value() return value on success");
-    RTE_ASSERT(list_push_value(list, strdup("test1")) == 0);
+    RTE_LOGI("list_push_tail_value() return value on success");
+    RTE_ASSERT(list_push_tail_value(list, strdup("test1")) == 0);
 
-    list_push_value(list, strdup("test2"));
-    list_push_value(list, strdup("test3"));
+    list_push_tail_value(list, strdup("test2"));
+    list_push_tail_value(list, strdup("test3"));
 
     RTE_LOGI("list_count() after push");
     RTE_ASSERT(list_count(list) == 3);
@@ -135,23 +135,23 @@ void test_linklist(void)
     list_unshift_value(list, v);
     RTE_ASSERT(strcmp(list_pick_value(list, 0), "test1") == 0 );
 
-    RTE_LOGI("list_push_value() accepts NULL");
-    RTE_ASSERT(list_push_value(list, NULL) == 0);
+    RTE_LOGI("list_push_tail_value() accepts NULL");
+    RTE_ASSERT(list_push_tail_value(list, NULL) == 0);
 
     RTE_LOGI("length updated after pushing NULL");
     RTE_ASSERT(list_count(list) == 4);
 
-    RTE_LOGI("list_pop_value()");
-    v = list_pop_value(list);
+    RTE_LOGI("list_pop_tail_value()");
+    v = list_pop_tail_value(list);
     RTE_ASSERT(list_count(list) == 3);
-    RTE_LOGI("list_pop_value() returned last element");
+    RTE_LOGI("list_pop_tail_value() returned last element");
     RTE_ASSERT(v == NULL);
 
-    RTE_LOGI("still list_pop_value() return value");
-    v = list_pop_value(list);
+    RTE_LOGI("still list_pop_tail_value() return value");
+    v = list_pop_tail_value(list);
     RTE_ASSERT(strcmp(v, "test3") == 0);
 
-    list_push_value(list, v);
+    list_push_tail_value(list, v);
     RTE_LOGI("list_count() consistent");
     RTE_ASSERT(list_count(list) == 3);
 
@@ -159,7 +159,7 @@ void test_linklist(void)
     for (i = 4; i <= 100; i++) {
         char *val = malloc(100);
         sprintf(val, "test%d", i);
-        list_push_value(list, val);
+        list_push_tail_value(list, val);
     }
     RTE_ASSERT(list_count(list) == 100);
 
@@ -264,7 +264,7 @@ void test_linklist(void)
     for (i = 0; i < num_queued_items; i++) {
         char *val = malloc(21);
         sprintf(val, "%d", i);
-        list_push_value(arg.list, val);
+        list_push_tail_value(arg.list, val);
     }
 
     while(list_count(arg.list))
@@ -318,7 +318,7 @@ void test_linklist(void)
     int j;
     for (j = 0; j < max_num; ++j) {
         a[j] = rand() % max_num;
-        list_push_value(t, a + j);
+        list_push_tail_value(t, a + j);
     }
 
     list_sort(t, cmp);

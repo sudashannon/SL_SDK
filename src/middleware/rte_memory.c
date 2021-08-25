@@ -62,7 +62,7 @@ static mem_handle_t mem_handle[BANK_CNT] = {
 };
 
 /* RealView Compilation Tools for ARM */
-#if defined (__ARMCC_VERSION)
+#if defined (__ARMCC_VERSION) || defined(__CC_ARM) || defined(__CLANG_ARM)
 #include <cmsis_compiler.h>
 static inline int mem_ffs(unsigned int word)
 {
