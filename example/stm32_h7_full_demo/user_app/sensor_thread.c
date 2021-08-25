@@ -29,6 +29,15 @@ __NO_RETURN void sensor_thread(void *param)
         if (snap_result == 0) {
             refresh_disp_image(&sensor_cap_image, gui_get_disp_obj(0));
             edge_simple(&sensor_cap_image, &roi, 10, 200);
+            linked_list_t *line_ll = hough_find_lines(&sensor_cap_image, &roi, 2, 1, 20000, 25, 25);
+            if (line_ll) {
+                while (list_count(line_ll)) {
+                    find_lines_list_lnk_data_t *lnk_line = list_pop_tail_value(line_ll);
+                    image_draw_line(&sensor_cap_image, lnk_line->line.x1, lnk_line->line.y1, lnk_line->line.x2, lnk_line->line.y2, 255, 2);
+                    memory_free(BANK_DEFAULT, lnk_line);
+                }
+                list_destroy(line_ll);
+            }
             refresh_disp_image(&sensor_cap_image, gui_get_disp_obj(1));
         } else {
             RTE_LOGF("sensor_snap failed! %d", snap_result);

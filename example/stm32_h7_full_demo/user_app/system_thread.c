@@ -71,6 +71,10 @@ static void running_timer(void *arg)
     gpio_toggle(GPIO_RUN);
 }
 
+const osThreadAttr_t sensor_tconfig = {
+  .stack_size = 10240
+};
+
 __NO_RETURN void system_thread(void *argument)
 {
     (void)argument;
@@ -102,7 +106,7 @@ __NO_RETURN void system_thread(void *argument)
     osThreadSetPriority(gui_tid, osPriorityNormal);
     extern __NO_RETURN void sensor_thread(void *param);
     extern osThreadId_t sensor_tid;
-    sensor_tid = osThreadNew(sensor_thread, NULL, NULL);
+    sensor_tid = osThreadNew(sensor_thread, NULL, &sensor_tconfig);
     osThreadSetPriority(sensor_tid, osPriorityHigh);
     for (;;) {
         timer_tick_handle();

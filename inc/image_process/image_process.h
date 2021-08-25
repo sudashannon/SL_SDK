@@ -499,11 +499,22 @@ int point_quadrance(point_t *ptr0, point_t *ptr1);
 void point_rotate(int x, int y, float r, int center_x, int center_y, int16_t *new_x, int16_t *new_y);
 void point_min_area_rectangle(point_t *corners, point_t *new_corners, int corners_len);
 
+
+/////////////////
+// filter Stuff //
+/////////////////
 void filter_morph(image_t *img, int ksize,int *krn, float m, int b, bool threshold, int offset, bool invert, image_t *mask);
 
+
+/////////////////
+// binary Stuff //
+/////////////////
 void binary_image(image_t *out, image_t *img, linked_list_t *thresholds, bool invert, bool zero, image_t *mask);
 void binary_erode(image_t *img, int ksize, int threshold, image_t *mask);
 
+/////////////////
+// Conv & denoise Stuff //
+/////////////////
 typedef enum {
     GAUSSIAN = 0,
     LAPLACIAN = 1,
@@ -518,5 +529,32 @@ extern const int kernel_high_pass_3[9];
 
 void denoise_sepconv3(image_t *img, denoise_type_t filter_type, float m, int32_t b);
 
+/////////////////
+// edge Stuff //
+/////////////////
 void edge_canny(image_t *src, rectangle_t *roi, int32_t low_thresh, int32_t high_thresh);
+void edge_simple(image_t *src, rectangle_t *roi, int low_thresh, int high_thresh);
+
+/////////////////
+// Search & find Stuff //
+/////////////////
+
+typedef struct find_lines_list_lnk_data {
+    line_t line;
+    uint32_t magnitude;
+    int16_t theta, rho;
+} find_lines_list_lnk_data_t;
+
+typedef struct find_circles_list_lnk_data {
+    point_t p;
+    uint16_t r, magnitude;
+} find_circles_list_lnk_data_t;
+
+linked_list_t *hough_find_lines(image_t *ptr, rectangle_t *roi, unsigned int x_stride, unsigned int y_stride,
+                      uint32_t threshold, unsigned int theta_margin, unsigned int rho_margin);
+
+linked_list_t *hough_find_circles(image_t *ptr, rectangle_t *roi, unsigned int x_stride, unsigned int y_stride,
+                        uint32_t threshold, unsigned int x_margin, unsigned int y_margin, unsigned int r_margin,
+                        unsigned int r_min, unsigned int r_max, unsigned int r_step);
+
 #endif
