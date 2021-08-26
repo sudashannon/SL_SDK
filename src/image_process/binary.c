@@ -75,7 +75,7 @@ void binary_image(image_t *out, image_t *img, linked_list_t *thresholds, bool in
     bmp.w = img->w;
     bmp.h = img->h;
     bmp.bpp = IMAGE_BPP_BINARY;
-    bmp.data = memory_calloc(BANK_MATH, image_size(&bmp));
+    bmp.data = data_calloc_calculate(image_size(&bmp));
     LOG_ASSERT("IMAGE", bmp.data);
 
     binary_iterator_arg_t user_arg = {
@@ -231,7 +231,7 @@ void binary_image(image_t *out, image_t *img, linked_list_t *thresholds, bool in
         }
     }
 
-    memory_free(BANK_MATH, bmp.data);
+    data_free(bmp.data);
 }
 
 static void binary_erode_dilate(image_t *img, int ksize, int threshold, int e_or_d, image_t *mask)
@@ -244,7 +244,7 @@ static void binary_erode_dilate(image_t *img, int ksize, int threshold, int e_or
 
     switch(img->bpp) {
         case IMAGE_BPP_BINARY: {
-            buf.data = memory_alloc(BANK_MATH, (IMAGE_BINARY_LINE_LEN_BYTES(img) * brows));
+            buf.data = data_malloc_calculate((IMAGE_BINARY_LINE_LEN_BYTES(img) * brows));
             LOG_ASSERT("IMAGE", buf.data);
 
             for (int y = 0, yy = img->h; y < yy; y++) {
@@ -302,11 +302,11 @@ static void binary_erode_dilate(image_t *img, int ksize, int threshold, int e_or
                        IMAGE_BINARY_LINE_LEN_BYTES(img));
             }
 
-            memory_free(BANK_MATH, buf.data);
+            data_free(buf.data);
             break;
         }
         case IMAGE_BPP_GRAYSCALE: {
-            buf.data = memory_alloc(BANK_MATH, (IMAGE_GRAYSCALE_LINE_LEN_BYTES(img) * brows));
+            buf.data = data_malloc_calculate((IMAGE_GRAYSCALE_LINE_LEN_BYTES(img) * brows));
             LOG_ASSERT("IMAGE", buf.data);
 
             for (int y = 0, yy = img->h; y < yy; y++) {
@@ -367,11 +367,11 @@ static void binary_erode_dilate(image_t *img, int ksize, int threshold, int e_or
                        IMAGE_GRAYSCALE_LINE_LEN_BYTES(img));
             }
 
-            memory_free(BANK_MATH, buf.data);
+            data_free(buf.data);
             break;
         }
         case IMAGE_BPP_RGB565: {
-            buf.data = memory_alloc(BANK_MATH, (IMAGE_RGB565_LINE_LEN_BYTES(img) * brows));
+            buf.data = data_malloc_calculate((IMAGE_RGB565_LINE_LEN_BYTES(img) * brows));
             LOG_ASSERT("IMAGE", buf.data);
 
             for (int y = 0, yy = img->h; y < yy; y++) {
@@ -432,7 +432,7 @@ static void binary_erode_dilate(image_t *img, int ksize, int threshold, int e_or
                        IMAGE_RGB565_LINE_LEN_BYTES(img));
             }
 
-            memory_free(BANK_MATH, buf.data);
+            data_free(buf.data);
             break;
         }
         default: {

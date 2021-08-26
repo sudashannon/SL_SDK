@@ -51,7 +51,7 @@ void denoise_sepconv3(image_t *img, denoise_type_t filter_type, float m, int32_t
         return;
     int8_t *conv_kernel = filter_kernel[filter_type];
     uint8_t k_size = 3;
-    int32_t *line_buffer = memory_alloc(BANK_MATH, img->w * sizeof(int32_t) * 2);
+    int32_t *line_buffer = data_malloc_calculate(img->w * sizeof(int32_t) * 2);
 
     for (int32_t h = 0; h < img->h - k_size; h++) {
         // NOTE: This doesn't deal with borders right now. Adding if
@@ -76,5 +76,5 @@ void denoise_sepconv3(image_t *img, denoise_type_t filter_type, float m, int32_t
             }
         }
     }
-    memory_free(BANK_MATH, line_buffer);
+    data_free(line_buffer);
 }

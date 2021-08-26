@@ -732,3 +732,65 @@ void point_min_area_rectangle(point_t *corners, point_t *new_corners, int corner
     point_rotate(i_x2, i_y2, -i_r, corners[i_min].x, corners[i_min].y, &new_corners[2].x, &new_corners[2].y);
     point_rotate(i_x3, i_y3, -i_r, corners[i_min].x, corners[i_min].y, &new_corners[3].x, &new_corners[3].y);
 }
+
+void *data_malloc_calculate(uint32_t size)
+{
+    uint8_t *data = memory_alloc(BANK_MATH, size + 1);
+    if (data) {
+        *data = BANK_MATH;
+    } else {
+        data = memory_alloc(BANK_FB, size + 1);
+        if (data) {
+            *data = BANK_FB;
+        }
+    }
+    return data + 1;
+}
+
+void *data_calloc_calculate(uint32_t size)
+{
+    uint8_t *data = memory_calloc(BANK_MATH, size + 1);
+    if (data) {
+        *data = BANK_MATH;
+    } else {
+        data = memory_calloc(BANK_FB, size + 1);
+        if (data) {
+            *data = BANK_FB;
+        }
+    }
+    return data + 1;
+}
+
+void *data_malloc_object(uint32_t size)
+{
+    uint8_t *data = memory_alloc(BANK_DEFAULT, size + 1);
+    if (data) {
+        *data = BANK_DEFAULT;
+    } else {
+        data = memory_alloc(BANK_FB, size + 1);
+        if (data) {
+            *data = BANK_FB;
+        }
+    }
+    return data + 1;
+}
+
+void *data_calloc_object(uint32_t size)
+{
+    uint8_t *data = memory_calloc(BANK_DEFAULT, size + 1);
+    if (data) {
+        *data = BANK_DEFAULT;
+    } else {
+        data = memory_calloc(BANK_FB, size + 1);
+        if (data) {
+            *data = BANK_FB;
+        }
+    }
+    return data + 1;
+}
+
+void data_free(void *ptr)
+{
+    uint8_t *data = (uint8_t *)ptr;
+    memory_free((mem_bank_t)(*(data - 1)), data - 1);
+}

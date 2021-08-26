@@ -25,7 +25,7 @@ void filter_morph(image_t *img, int ksize,int *krn, float m, int b, bool thresho
 
     switch(img->bpp) {
         case IMAGE_BPP_BINARY: {
-            buf.data = memory_alloc(BANK_MATH, (IMAGE_BINARY_LINE_LEN_BYTES(img) * brows));
+            buf.data = data_malloc_calculate((IMAGE_BINARY_LINE_LEN_BYTES(img) * brows));
             LOG_ASSERT("IMAGE", buf.data);
 
             for (int y = 0, yy = img->h; y < yy; y++) {
@@ -88,11 +88,11 @@ void filter_morph(image_t *img, int ksize,int *krn, float m, int b, bool thresho
                        IMAGE_BINARY_LINE_LEN_BYTES(img));
             }
 
-            memory_free(BANK_MATH, buf.data);
+            data_free(buf.data);
             break;
         }
         case IMAGE_BPP_GRAYSCALE: {
-            buf.data = memory_alloc(BANK_MATH, (IMAGE_GRAYSCALE_LINE_LEN_BYTES(img) * brows));
+            buf.data = data_malloc_calculate((IMAGE_GRAYSCALE_LINE_LEN_BYTES(img) * brows));
             LOG_ASSERT("IMAGE", buf.data);
 
             for (int y = 0, yy = img->h; y < yy; y++) {
@@ -155,11 +155,11 @@ void filter_morph(image_t *img, int ksize,int *krn, float m, int b, bool thresho
                        IMAGE_GRAYSCALE_LINE_LEN_BYTES(img));
             }
 
-            memory_free(BANK_MATH, buf.data);
+            data_free(buf.data);
             break;
         }
         case IMAGE_BPP_RGB565: {
-            buf.data = memory_alloc(BANK_MATH, (IMAGE_RGB565_LINE_LEN_BYTES(img) * brows));
+            buf.data = data_malloc_calculate((IMAGE_RGB565_LINE_LEN_BYTES(img) * brows));
             LOG_ASSERT("IMAGE", buf.data);
 
             for (int y = 0, yy = img->h; y < yy; y++) {
@@ -237,7 +237,7 @@ void filter_morph(image_t *img, int ksize,int *krn, float m, int b, bool thresho
                        IMAGE_RGB565_LINE_LEN_BYTES(img));
             }
 
-            memory_free(BANK_MATH, buf.data);
+            data_free(buf.data);
             break;
         }
         default: {

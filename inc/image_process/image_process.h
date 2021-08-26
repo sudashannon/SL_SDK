@@ -444,6 +444,12 @@ void image_draw_string(image_t *img, int x_off, int y_off, const char *str, int 
 
 size_t image_size(image_t *ptr);
 
+void *data_malloc_calculate(uint32_t size);
+void *data_calloc_calculate(uint32_t size);
+void *data_malloc_object(uint32_t size);
+void *data_calloc_object(uint32_t size);
+void data_free(void *ptr);
+
 extern const float cos_table[360];
 extern const float sin_table[360];
 

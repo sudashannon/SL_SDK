@@ -23,7 +23,7 @@ void edge_canny(image_t *src, rectangle_t *roi, int32_t low_thresh, int32_t high
 {
     int32_t w = src->w;
     uint32_t pixels_agerage_value = 0;
-    gvec_t *gm = memory_calloc(BANK_FB, roi->w * roi->h * sizeof(gvec_t));
+    gvec_t *gm = data_calloc_calculate(roi->w * roi->h * sizeof(gvec_t));
     if (!gm)
         return;
 
@@ -146,7 +146,7 @@ void edge_canny(image_t *src, rectangle_t *roi, int32_t low_thresh, int32_t high
         }
     }
 
-    memory_free(BANK_FB, gm);
+    data_free(gm);
 }
 
 void edge_simple(image_t *src, rectangle_t *roi, int low_thresh, int high_thresh)
@@ -155,12 +155,12 @@ void edge_simple(image_t *src, rectangle_t *roi, int low_thresh, int high_thresh
     denoise_sepconv3(src, GAUSSIAN, 1.0f/16.0f, 0);
     filter_morph(src, 1, kernel_high_pass_3, 1.0f, 0.0f, false, 0, false, NULL);
     linked_list_t *thresholds = list_create(NULL);
-    color_thresholds_list_lnk_data_t *lnk_data = memory_calloc(BANK_DEFAULT, sizeof(color_thresholds_list_lnk_data_t));
+    color_thresholds_list_lnk_data_t *lnk_data = data_calloc_object(sizeof(color_thresholds_list_lnk_data_t));
     lnk_data->LMin = low_thresh;
     lnk_data->LMax = high_thresh;
     list_push_tail_value(thresholds, lnk_data);
     binary_image(src, src, thresholds, false, false, NULL);
     list_destroy(thresholds);
-    memory_free(BANK_DEFAULT, lnk_data);
+    data_free(lnk_data);
     binary_erode(src, 1, 2, NULL);
 }

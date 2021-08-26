@@ -30,7 +30,7 @@ linked_list_t *hough_find_lines(image_t *ptr, rectangle_t *roi, unsigned int x_s
             return NULL; // support 1, 2, 4
     }
 
-    uint32_t *acc = memory_calloc(BANK_MATH, sizeof(uint32_t) * theta_size * r_size);
+    uint32_t *acc = data_calloc_calculate(sizeof(uint32_t) * theta_size * r_size);
     LOG_ASSERT("IMAGE", acc);
     switch (ptr->bpp) {
         case IMAGE_BPP_BINARY: {
@@ -253,7 +253,7 @@ linked_list_t *hough_find_lines(image_t *ptr, rectangle_t *roi, unsigned int x_s
             &&  (row_ptr[x] >= row_ptr[x+theta_size])
             &&  (row_ptr[x] >= row_ptr[x+theta_size+1])) {
 
-                find_lines_list_lnk_data_t *lnk_line = memory_calloc(BANK_DEFAULT, sizeof(find_lines_list_lnk_data_t));
+                find_lines_list_lnk_data_t *lnk_line = data_calloc_object(sizeof(find_lines_list_lnk_data_t));
                 LOG_ASSERT("IMAGE", lnk_line);
                 lnk_line->magnitude = row_ptr[x];
                 lnk_line->theta = (x - 1) * hough_divide; // remove offset
@@ -264,7 +264,7 @@ linked_list_t *hough_find_lines(image_t *ptr, rectangle_t *roi, unsigned int x_s
         }
     }
 
-    memory_free(BANK_MATH, acc); // acc
+    data_free(acc); // acc
 
     for (;;) { // Merge overlapping.
         bool merge_occured = false;
@@ -316,7 +316,7 @@ linked_list_t *hough_find_lines(image_t *ptr, rectangle_t *roi, unsigned int x_s
                     }
 
                     merge_occured = true;
-                    memory_free(BANK_DEFAULT, tmp_line);
+                    data_free(tmp_line);
                 } else {
                     list_push_tail_value(out, tmp_line);
                 }
@@ -368,9 +368,9 @@ linked_list_t *hough_find_circles(image_t *ptr, rectangle_t *roi, unsigned int x
                         uint32_t threshold, unsigned int x_margin, unsigned int y_margin, unsigned int r_margin,
                         unsigned int r_min, unsigned int r_max, unsigned int r_step)
 {
-    uint16_t *theta_acc = memory_calloc(BANK_FB, sizeof(uint16_t) * roi->w * roi->h);
+    uint16_t *theta_acc = data_calloc_calculate(sizeof(uint16_t) * roi->w * roi->h);
     LOG_ASSERT("IMAGE", theta_acc);
-    uint16_t *magnitude_acc = memory_calloc(BANK_FB, sizeof(uint16_t) * roi->w * roi->h);
+    uint16_t *magnitude_acc = data_calloc_calculate(sizeof(uint16_t) * roi->w * roi->h);
     LOG_ASSERT("IMAGE", magnitude_acc);
 
     switch (ptr->bpp) {
@@ -589,6 +589,7 @@ linked_list_t *hough_find_circles(image_t *ptr, rectangle_t *roi, unsigned int x
     // Y_MAX
 
     linked_list_t *out = list_create(NULL);
+    LOG_ASSERT("IMAGE", out);
 
     for (int r = r_min, rr = r_max; r < rr; r += r_step) { // ignore r = 0/1
         int a_size, b_size, hough_divide = 1; // divides a and b accumulators
@@ -605,18 +606,18 @@ linked_list_t *hough_find_circles(image_t *ptr, rectangle_t *roi, unsigned int x
             hough_shift++;
             // support 1, 2, 4
             if (hough_divide > 4) {
-                memory_free(BANK_FB, magnitude_acc); // magnitude_acc
-                memory_free(BANK_FB, theta_acc); // theta_acc
+                data_free(magnitude_acc); // magnitude_acc
+                data_free(theta_acc); // theta_acc
                 list_destroy(out);
                 return NULL;
             }
         }
 
-        uint32_t *acc = memory_calloc(BANK_MATH, sizeof(uint32_t) * a_size * b_size);
+        uint32_t *acc = data_calloc_calculate(sizeof(uint32_t) * a_size * b_size);
         LOG_ASSERT("IMAGE", acc);
-        int16_t *rcos = memory_alloc(BANK_MATH, sizeof(int16_t)*360);
+        int16_t *rcos = data_malloc_calculate(sizeof(int16_t)*360);
         LOG_ASSERT("IMAGE", rcos);
-        int16_t *rsin = memory_alloc(BANK_MATH, sizeof(int16_t)*360);
+        int16_t *rsin = data_malloc_calculate(sizeof(int16_t)*360);
         LOG_ASSERT("IMAGE", rsin);
         for (int i=0; i<360; i++)
         {
@@ -674,7 +675,8 @@ linked_list_t *hough_find_circles(image_t *ptr, rectangle_t *roi, unsigned int x
                 &&  (val >= row_ptr[x+a_size])
                 &&  (val >= row_ptr[x+a_size+1])) {
 
-                    find_circles_list_lnk_data_t *lnk_data = memory_calloc(BANK_DEFAULT, sizeof(find_circles_list_lnk_data_t));
+                    find_circles_list_lnk_data_t *lnk_data = data_calloc_object(sizeof(find_circles_list_lnk_data_t));
+                    LOG_ASSERT("IMAGE", lnk_data);
                     lnk_data->magnitude = val;
                     lnk_data->p.x = ((x - 1) << hough_shift) + r + roi->x; // remove offset
                     lnk_data->p.y = ((y - 1) << hough_shift) + r + roi->y; // remove offset
@@ -687,18 +689,19 @@ linked_list_t *hough_find_circles(image_t *ptr, rectangle_t *roi, unsigned int x
             }
         }
 
-        memory_free(BANK_MATH, rsin); // rsin
-        memory_free(BANK_MATH, rcos); // rcos
-        memory_free(BANK_MATH, acc); // acc
+        data_free(rsin); // rsin
+        data_free(rcos); // rcos
+        data_free(acc); // acc
     }
 
-    memory_free(BANK_FB, magnitude_acc); // magnitude_acc
-    memory_free(BANK_FB, theta_acc); // theta_acc
+    data_free(magnitude_acc); // magnitude_acc
+    data_free(theta_acc); // theta_acc
 
     for (;;) { // Merge overlapping.
         bool merge_occured = false;
 
         linked_list_t *out_temp = list_create(NULL);
+        LOG_ASSERT("IMAGE", out_temp);
 
         while (list_count(out)) {
             find_circles_list_lnk_data_t *lnk_data = list_pop_head_value(out);
@@ -717,7 +720,7 @@ linked_list_t *hough_find_circles(image_t *ptr, rectangle_t *roi, unsigned int x
                     lnk_data->r = ((lnk_data->r * lnk_data->magnitude) + (tmp_data->r * tmp_data->magnitude)) / magnitude;
                     lnk_data->magnitude = magnitude / 2;
                     merge_occured = true;
-                    memory_free(BANK_DEFAULT, tmp_data);
+                    data_free(tmp_data);
                 } else {
                     list_push_tail_value(out, tmp_data);
                 }

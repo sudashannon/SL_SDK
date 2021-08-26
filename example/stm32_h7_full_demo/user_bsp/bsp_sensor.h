@@ -22,7 +22,6 @@
 // Chip ID Values
 #define OV2640_ID           (0x26)
 #define OV7725_ID           (0x77)
-#define SENSOR_FB_SIZE         (400 * 1024)      // FB memory: header + VGA/GS image
 
 typedef enum {
     PIXFORMAT_INVALID = 0,
