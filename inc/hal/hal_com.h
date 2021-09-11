@@ -24,8 +24,9 @@ typedef enum {
 
 typedef struct {
     uint32_t boundrate;
-    void *user_arg1;
-    void *user_arg2;
+    void *huart;
+    void *htx_dma;
+    void *hrx_dma;
 } com_configuration_t;
 
 /**

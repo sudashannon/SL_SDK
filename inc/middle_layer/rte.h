@@ -88,7 +88,10 @@ typedef int8_t  rte_error_t;
                                     (((v)->lock))((v)->mutex);                           \
                             } while(0)
 
-#define RTE_TRYLOCK(v, t)   (((v)->trylock))((v)->mutex, t)
+#define RTE_TRYLOCK(v, t, retval)   if((v) && ((v)->trylock) && ((v)->mutex))            \
+                                        retval = (((v)->trylock))((v)->mutex, t);        \
+                                    else                                                 \
+                                        retval = RTE_SUCCESS;
 
 #define RTE_UNLOCK(v)       do{                                                          \
                                 if((v) && ((v)->unlock) && ((v)->mutex))                 \
@@ -179,7 +182,6 @@ typedef void *ds_vector_t;
 typedef void *ds_ringbuffer_t;
 typedef void *ds_framebuffer_t;
 typedef void *ds_burstbuffer_t;
-typedef void *ds_image_t;
 typedef void *ds_hashtable_t;
 typedef void *ds_linklist_t;
 typedef uint8_t timer_id_t;

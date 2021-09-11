@@ -22,6 +22,7 @@ MEM_ALIGN_NBYTES (__attribute__((section (".RAM_RTE"))) static uint8_t mempool_b
 MEM_ALIGN_NBYTES (__attribute__((section (".RAM_DMA"))) static uint8_t dma_buffer[32 * 1024], MEM_BLOCK_ALIGN) = {0};
 MEM_ALIGN_NBYTES (__attribute__((section (".RAM_FB"))) static uint8_t fb_buffer[512 * 1024], MEM_BLOCK_ALIGN) = {0};
 MEM_ALIGN_NBYTES (__attribute__((section (".RAM_MATH"))) static uint8_t math_buffer[128 * 1024], MEM_BLOCK_ALIGN) = {0};
+MEM_ALIGN_NBYTES (__attribute__((section (".RAM_BACKUP"))) static uint8_t jpeg_buffer[64 * 1024], MEM_BLOCK_ALIGN) = {0};
 static rte_allocator_t rte_allocator_instance = {
     .malloc = NULL,
     .calloc = NULL,
@@ -189,6 +190,7 @@ void rte_init(void)
     mem_mutex_instance[BANK_FB].trylock = NULL;
     memory_pool(BANK_FB, NULL, fb_buffer, sizeof(fb_buffer));
     memory_pool(BANK_MATH, NULL, math_buffer, sizeof(math_buffer));
+    memory_pool(BANK_JPEG, NULL, jpeg_buffer, sizeof(jpeg_buffer));
     rte_allocator_instance.malloc = rte_malloc;
     rte_allocator_instance.calloc = rte_calloc;
     rte_allocator_instance.realloc = rte_realloc;

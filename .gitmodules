@@ -7,3 +7,6 @@
 [submodule "src/utils/letter-shell"]
 	path = src/utils/letter-shell
 	url = https://github.com/NevermindZZT/letter-shell
+[submodule "src/utils/sfud"]
+	path = src/utils/sfud
+	url = https://github.com/armink/SFUD.git

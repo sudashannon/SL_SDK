@@ -35,7 +35,7 @@ typedef enum image_bpp
 typedef struct image {
     int32_t w;
     int32_t h;
-    image_bpp_t bpp;
+    uint32_t bpp;
     uint8_t *data;
 } image_t;
 

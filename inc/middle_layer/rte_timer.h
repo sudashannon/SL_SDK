@@ -98,7 +98,7 @@ extern rte_error_t timer_resume(uint8_t group_id, uint8_t timer_id);
  *        or in the timer thread when with OS.
  *
  */
-extern void timer_tick_handle(void);
+extern void timer_tick_handle(uint32_t tick);
 /**
  * @brief Return current time in milliseconds
  *

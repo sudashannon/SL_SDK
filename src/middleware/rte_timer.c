@@ -267,7 +267,7 @@ rte_error_t timer_resume(uint8_t group_id, uint8_t timer_id)
  *        or in the timer thread when with OS.
  *
  */
-void timer_tick_handle(void)
+void timer_tick_handle(uint32_t tick)
 {
     // Loop through each group in the group table.
     for(uint8_t i = 0; i < timer_handle_instance.group_count; i++) {
@@ -280,7 +280,7 @@ void timer_tick_handle(void)
             if (timer->config.CNTEN) {
                 /* Decrease counter if needed */
                 if (timer->CNT)
-                    timer->CNT--;
+                    timer->CNT -= tick;
             }
         }
         ds_vector_unlock(timer_handle_instance.timer_group[i].timer_table);
@@ -288,7 +288,7 @@ void timer_tick_handle(void)
     if (timer_handle_instance.if_with_os)
         timer_group_poll(0);
     else
-        timer_handle_instance.timer_tick_count++;
+        timer_handle_instance.timer_tick_count += tick;
 }
 /**
  * @brief Return current time in milliseconds

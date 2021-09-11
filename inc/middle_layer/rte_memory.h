@@ -23,6 +23,7 @@ enum {
     BANK_DMA = 1,
     BANK_FB = 2,
     BANK_MATH = 3,
+    BANK_JPEG = 4,
     BANK_CNT,
 };
 

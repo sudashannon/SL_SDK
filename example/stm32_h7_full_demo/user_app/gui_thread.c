@@ -19,14 +19,14 @@ lv_obj_t *gui_get_disp_obj(uint8_t index)
 
 void refresh_disp_image(image_t *cap_image, lv_obj_t *disp_obj)
 {
-    lv_img_dsc_t *disp_image = lv_img_get_src(disp_obj);
+    lv_img_dsc_t *disp_image = (lv_img_dsc_t *)lv_img_get_src(disp_obj);
     if(disp_image) {
         uint32_t w_ratio = ((uint32_t)cap_image->w << 16)/disp_image->header.w + 1;
         uint32_t h_ratio = ((uint32_t)cap_image->h << 16)/disp_image->header.h + 1;
-        uint16_t *dest_data = disp_image->data;
+        uint16_t *dest_data = (uint16_t *)disp_image->data;
         uint32_t srcy = 0;
         for (uint16_t y = 0; y < disp_image->header.h; y++) {
-            uint16_t *src_data = cap_image->data + cap_image->w * cap_image->bpp * (srcy >> 16);
+            uint16_t *src_data = (uint16_t *)(cap_image->data + cap_image->w * cap_image->bpp * (srcy >> 16));
             uint32_t srcx = 0;
             for (uint16_t x = 0; x < disp_image->header.w; x++) {
                 if (cap_image->bpp == IMAGE_BPP_GRAYSCALE) {
@@ -50,7 +50,7 @@ void refresh_disp_image(image_t *cap_image, lv_obj_t *disp_obj)
 static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t * color_p)
 {
     /*The most simple case (but also the slowest) to put all pixels to the screen one-by-one*/
-    bsp_lcd_fill_frame(area->x1, area->y1, area->x2, area->y2, color_p);
+    bsp_lcd_fill_frame(area->x1, area->y1, area->x2, area->y2, (uint16_t *)color_p);
     /* IMPORTANT!!!
      * Inform the graphics library that you are ready with the flushing*/
     lv_disp_flush_ready(disp_drv);

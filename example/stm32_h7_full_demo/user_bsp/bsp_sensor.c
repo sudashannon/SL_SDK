@@ -9,6 +9,8 @@
  *
  */
 #include "bsp_sensor.h"
+#include "ov2640.h"
+#include "ov7725.h"
 #include "i2c.h"
 #include "dcmi.h"
 #include "cmsis_os2.h"
@@ -775,7 +777,7 @@ int sensor_snapshot(sensor_t *sensor, image_t *image, uint32_t timeout_ms)
         return SENSOR_ERROR_FRAMEBUFFER_OVERFLOW;
 	// Start a regular transfer
     uint32_t start_tick = rte_get_tick();
-    HAL_StatusTypeDef result = HAL_DCMI_Start_DMA(sensor->dcmi, DCMI_MODE_SNAPSHOT, framebuffer, length);
+    HAL_StatusTypeDef result = HAL_DCMI_Start_DMA(sensor->dcmi, DCMI_MODE_SNAPSHOT, (uint32_t)framebuffer, length);
 	if (result != HAL_OK)
         return SENSOR_ERROR_CAPTURE_FAILED;
     osStatus_t snap_result = osSemaphoreAcquire(sensor->sema, timeout_ms);

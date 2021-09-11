@@ -44,12 +44,12 @@ static void bsp_lcd_set_cursor(uint16_t x1, uint16_t x2, uint16_t y1, uint16_t y
     x2 = __REV16(x2);
     y1 = __REV16(y1);
     y2 = __REV16(y2);
-    bsp_lcd_write_ndata(&x1, 2);
-    bsp_lcd_write_ndata(&x2, 2);
+    bsp_lcd_write_ndata((uint8_t *)&x1, 2);
+    bsp_lcd_write_ndata((uint8_t *)&x2, 2);
 
 	bsp_lcd_write_command(0x2B);
-    bsp_lcd_write_ndata(&y1, 2);
-    bsp_lcd_write_ndata(&y2, 2);
+    bsp_lcd_write_ndata((uint8_t *)&y1, 2);
+    bsp_lcd_write_ndata((uint8_t *)&y2, 2);
 }
 void bsp_lcd_put_pixel(uint16_t x, uint16_t y, uint16_t color)
 {
@@ -87,7 +87,7 @@ void bsp_lcd_fill_color_normal(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y
 		line_buffer[i] = __REV16(color);
     HAL_RAM_CLEAN_PRE_SEND(line_buffer, send_count);
     for(i = 0; i < row; i++) {
-        hal_device_write_async(spi_lcd, (uint8_t *)line_buffer, send_count);
+        hal_device_write_async(spi_lcd, (uint8_t *)line_buffer, send_count, osWaitForever);
 	}
 	// SPI2 CS HIGH
 	gpio_set_high(LCD_CS);
@@ -103,7 +103,7 @@ void bsp_lcd_fill_frame(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint
 	for(uint32_t i = 0; i < size;) {
         uint16_t send_count = (uint16_t) (size > UINT16_MAX ? UINT16_MAX : size);
         HAL_RAM_CLEAN_PRE_SEND(color_map, send_count);
-        rte_error_t result = hal_device_write_async(spi_lcd, (uint8_t*)color_map, send_count);
+        rte_error_t result = hal_device_write_async(spi_lcd, (uint8_t*)color_map, send_count, osWaitForever);
         if (result == RTE_SUCCESS) {
             color_map += send_count;
             i += send_count;

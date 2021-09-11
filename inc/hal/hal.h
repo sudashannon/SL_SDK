@@ -35,7 +35,6 @@
 #define HAL_RAM_CLEAN_AFTER_REC(p, size)
 #endif
 
-
 typedef uint8_t hal_device_id_t;
 typedef uint8_t hal_operation_id_t;
 struct __hal_device;
@@ -47,64 +46,31 @@ struct __hal_device;
 
 typedef void (*hal_device_op_callback_f)(struct __hal_device *device, hal_operation_id_t op, void *arg);
 
-typedef rte_error_t (*device_read_sync_f)(struct __hal_device *device, uint8_t *dest_buf, uint32_t *buf_size, uint32_t timeout_ms);
+typedef rte_error_t (*device_read_f)(struct __hal_device *device, uint8_t *dest_buf, uint32_t *buf_size, uint32_t timeout_ms);
 
-typedef rte_error_t (*device_read_async_f)(struct __hal_device *device, uint8_t *dest_buf, uint32_t *buf_size);
-
-typedef rte_error_t (*device_write_sync_f)(struct __hal_device *device, uint8_t *src_buf, uint32_t buf_size, uint32_t timeout_ms);
-
-typedef rte_error_t (*device_write_async_f)(struct __hal_device *device, uint8_t *src_buf, uint32_t buf_size);
+typedef rte_error_t (*device_write_f)(struct __hal_device *device, uint8_t *src_buf, uint32_t buf_size, uint32_t timeout_ms);
 
 typedef struct __hal_device {
     hal_device_id_t device_id;
-    device_read_sync_f read;
-    device_read_async_f read_async;
-    device_write_sync_f write;
-    device_write_async_f write_async;
+    device_read_f read;
+    device_read_f read_async;
+    device_write_f write;
+    device_write_f write_async;
+    rte_mutex_t *mutex;
     void *user_arg;
     hal_device_op_callback_f op_callback;
 } hal_device_t;
 
-static inline rte_error_t hal_device_read_sync(hal_device_t *device, uint8_t *dest_buf,
-                                        uint32_t *buf_size, uint32_t timeout_ms)
-{
-    if (RTE_UNLIKELY(device == NULL) ||
-        RTE_UNLIKELY(dest_buf == NULL) ||
-        RTE_UNLIKELY(buf_size == NULL)) {
-        return RTE_ERR_PARAM;
-    }
-    return device->read(device, dest_buf, buf_size, timeout_ms);
-}
+rte_error_t hal_device_read_sync(hal_device_t *device, uint8_t *dest_buf,
+                                uint32_t *buf_size, uint32_t timeout_ms);
 
-static inline rte_error_t hal_device_write_sync(hal_device_t *device, uint8_t *src_buf,
-                                        uint32_t buf_size, uint32_t timeout_ms)
-{
-    if (RTE_UNLIKELY(device == NULL) ||
-        RTE_UNLIKELY(src_buf == NULL)) {
-        return RTE_ERR_PARAM;
-    }
-    return device->write(device, src_buf, buf_size, timeout_ms);
-}
+rte_error_t hal_device_write_sync(hal_device_t *device, uint8_t *src_buf,
+                                uint32_t buf_size, uint32_t timeout_ms);
 
-static inline rte_error_t hal_device_read_async(hal_device_t *device, uint8_t *dest_buf,
-                                        uint32_t *buf_size)
-{
-    if (RTE_UNLIKELY(device == NULL) ||
-        RTE_UNLIKELY(dest_buf == NULL) ||
-        RTE_UNLIKELY(buf_size == NULL)) {
-        return RTE_ERR_PARAM;
-    }
-    return device->read_async(device, dest_buf, buf_size);
-}
+rte_error_t hal_device_read_async(hal_device_t *device, uint8_t *dest_buf,
+                                uint32_t *buf_size, uint32_t timeout_ms);
 
-static inline rte_error_t hal_device_write_async(hal_device_t *device, uint8_t *src_buf,
-                                        uint32_t buf_size)
-{
-    if (RTE_UNLIKELY(device == NULL) ||
-        RTE_UNLIKELY(src_buf == NULL)) {
-        return RTE_ERR_PARAM;
-    }
-    return device->write_async(device, src_buf, buf_size);
-}
+rte_error_t hal_device_write_async(hal_device_t *device, uint8_t *src_buf,
+                                uint32_t buf_size, uint32_t timeout_ms);
 
 #endif

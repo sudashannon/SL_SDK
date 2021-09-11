@@ -13,7 +13,7 @@
 
 spi_device_t spi_control_handle[SPI_N] = {0};
 
-static rte_error_t spi_send(hal_device_t *device, uint8_t *data, uint16_t size, uint32_t timeout_ms)
+static rte_error_t spi_send(hal_device_t *device, uint8_t *data, uint32_t size, uint32_t timeout_ms)
 {
     HAL_StatusTypeDef result = HAL_ERROR;
     if (size == 0)
@@ -29,7 +29,7 @@ static rte_error_t spi_send(hal_device_t *device, uint8_t *data, uint16_t size, 
         return RTE_ERR_UNDEFINE;
 }
 
-static rte_error_t spi_recv(hal_device_t *device, uint8_t *buffer, uint16_t *size, uint32_t timeout_ms)
+static rte_error_t spi_recv(hal_device_t *device, uint8_t *buffer, uint32_t *size, uint32_t timeout_ms)
 {
     HAL_StatusTypeDef result = HAL_ERROR;
     if (*size == 0)
@@ -45,7 +45,7 @@ static rte_error_t spi_recv(hal_device_t *device, uint8_t *buffer, uint16_t *siz
         return RTE_ERR_UNDEFINE;
 }
 
-static rte_error_t spi_send_async(hal_device_t *device, uint8_t *data, uint16_t size)
+static rte_error_t spi_send_async(hal_device_t *device, uint8_t *data, uint32_t size, uint32_t timeout_ms)
 {
     HAL_StatusTypeDef result = HAL_ERROR;
     if (size == 0)
@@ -54,7 +54,7 @@ static rte_error_t spi_send_async(hal_device_t *device, uint8_t *data, uint16_t 
                 spi_control_handle[device->device_id].spi_handle,
                 data, size);
     if (result == HAL_OK) {
-        osSemaphoreAcquire(spi_control_handle[device->device_id].tx_sema, osWaitForever);
+        osSemaphoreAcquire(spi_control_handle[device->device_id].tx_sema, timeout_ms);
         return RTE_SUCCESS;
     }
     else if(result == HAL_TIMEOUT)

@@ -1,5 +1,5 @@
 #ifndef __BSP_SENSOR_H
-#define __BSP_SENSRO_H
+#define __BSP_SENSOR_H
 
 #include "RTE_Components.h"
 #include CMSIS_device_header
@@ -221,7 +221,7 @@ typedef struct _sensor {
     int  (*set_special_effect)  (sensor_t *sensor, sde_t sde);
     int  (*set_lens_correction) (sensor_t *sensor, int enable, int radi, int coef);
     int  (*ioctl)               (sensor_t *sensor, int request, va_list ap);
-    int  (*snapshot)            (sensor_t *sensor, ds_image_t pimage, uint32_t flags);
+    int  (*snapshot)            (sensor_t *sensor, image_t *pimage, uint32_t flags);
 } sensor_t;
 
 extern sensor_t sensor;

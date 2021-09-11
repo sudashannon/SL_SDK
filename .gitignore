@@ -4,4 +4,6 @@ example/stm32_h7_full_demo/Objects/*.o
 example/stm32_h7_full_demo/Objects/*.d
 example/stm32_h7_full_demo/Objects/*.iex
 example/stm32_h7_full_demo/Objects/*.__i
+example/stm32_h7_full_demo/Objects/*.build_log.htm
+example/stm32_h7_full_demo/Objects/*.lnp
 .vscode/

@@ -322,7 +322,7 @@
             <PlainCh>0</PlainCh>
             <Ropi>0</Ropi>
             <Rwpi>0</Rwpi>
-            <wLevel>1</wLevel>
+            <wLevel>3</wLevel>
             <uThumb>0</uThumb>
             <uSurpInc>0</uSurpInc>
             <uC99>0</uC99>
@@ -527,6 +527,11 @@
               <FileName>hal_spi_stm32h7.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\src\hal\hal_spi_stm32h7.c</FilePath>
+            </File>
+            <File>
+              <FileName>hal.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\hal\hal.c</FilePath>
             </File>
           </Files>
         </Group>

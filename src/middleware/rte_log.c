@@ -800,6 +800,6 @@ rte_error_t log_control(log_command_t command, void *param)
 void log_output(const char *buffer, size_t length)
 {
     LOG_LOCK(&log_config_handle);
-    log_config_handle.out_func(buffer, length);
+    log_config_handle.out_func((uint8_t *)buffer, length);
     LOG_UNLOCK(&log_config_handle);
 }

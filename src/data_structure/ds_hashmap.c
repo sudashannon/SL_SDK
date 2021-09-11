@@ -202,6 +202,7 @@ rte_error_t ht_clear(ds_hashtable_t ptable)
     }
     ds_vector_unlock(table->chains_array);
     ds_vector_clear(table->chains_array);
+    return RTE_SUCCESS;
 }
 /**
  * @brief Destroy the table and removing all the stored items

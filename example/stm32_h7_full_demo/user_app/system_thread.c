@@ -20,7 +20,7 @@ static char shellBuffer[512];
 
 static size_t rte_data_out(uint8_t *data, size_t length)
 {
-    hal_device_write_sync(com_debug, data, (uint16_t)length, HAL_MAX_DELAY);
+    hal_device_write_async(com_debug, data, (uint32_t)length, HAL_MAX_DELAY);
     return length;
 }
 
@@ -29,9 +29,9 @@ static size_t rte_data_out(uint8_t *data, size_t length)
  *
  * @param data 数据
  */
-unsigned short userShellWrite(char *data, unsigned short len)
+short userShellWrite(char *data, unsigned short len)
 {
-    hal_device_write_sync(com_debug, data, (uint16_t)len, HAL_MAX_DELAY);
+    hal_device_write_sync(com_debug, (uint8_t *)data, (uint32_t)len, HAL_MAX_DELAY);
     return len;
 }
 /**
@@ -40,9 +40,9 @@ unsigned short userShellWrite(char *data, unsigned short len)
  * @param data 数据
  * @return char 状态
  */
-unsigned short userShellRead(char *data, unsigned short len)
+short userShellRead(char *data, unsigned short len)
 {
-    rte_error_t result = hal_device_read_sync(com_debug, data, &len, 50);
+    rte_error_t result = hal_device_read_async(com_debug, (uint8_t *)data, (uint32_t *)&len, 50);
     if(result == RTE_SUCCESS) {
         return len;
     }
@@ -72,7 +72,7 @@ static void running_timer(void *arg)
 }
 
 const osThreadAttr_t sensor_tconfig = {
-  .stack_size = 10240
+    .stack_size = 10240
 };
 
 __NO_RETURN void system_thread(void *argument)
@@ -81,8 +81,9 @@ __NO_RETURN void system_thread(void *argument)
     rte_init();
     // Init all hardware.
     com_configuration_t com_config = {0};
-    com_config.user_arg1 = &huart1;
-    com_config.user_arg2 = &hdma_usart1_rx;
+    com_config.huart = &huart1;
+    com_config.hrx_dma = &hdma_usart1_rx;
+    com_config.htx_dma = &hdma_usart1_tx;
     com_create(COM_1, &com_config, &com_debug);
 
     log_level_t log_level = LOG_LEVEL_INFO;
@@ -103,13 +104,13 @@ __NO_RETURN void system_thread(void *argument)
     extern __NO_RETURN void gui_thread(void *param);
     extern osThreadId_t gui_tid;
     gui_tid = osThreadNew(gui_thread, NULL, NULL);
-    osThreadSetPriority(gui_tid, osPriorityNormal);
+    osThreadSetPriority(gui_tid, osPriorityBelowNormal);
     extern __NO_RETURN void sensor_thread(void *param);
     extern osThreadId_t sensor_tid;
     sensor_tid = osThreadNew(sensor_thread, NULL, &sensor_tconfig);
     osThreadSetPriority(sensor_tid, osPriorityHigh);
     for (;;) {
-        timer_tick_handle();
-        osDelay(1);
+        timer_tick_handle(10);
+        osDelay(10);
     }
 }
