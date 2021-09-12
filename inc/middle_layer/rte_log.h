@@ -81,7 +81,7 @@ typedef uint32_t (*log_get_tick_f)(void);
     do {														                                \
         if(!(v)) {											                                    \
             LOG_FATAL(MODULE, "assert [%s] fail! at %s %d", LOG_STR(v), __FILE__, __LINE__);    \
-            RTE_UNUSED(*((volatile uint8_t *)NULL));                                            \
+            (*((uint32_t *)0xdeafbeaf)) = 0xdeadbeaf;                                           \
         }													                                    \
     } while(0)
 

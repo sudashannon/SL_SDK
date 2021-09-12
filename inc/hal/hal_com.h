@@ -18,8 +18,8 @@
  *
  */
 typedef enum {
-    COM_1 = 0,
-    COM_N,
+    com_1 = 0,
+    com_N,
 } com_name_t;
 
 typedef struct {

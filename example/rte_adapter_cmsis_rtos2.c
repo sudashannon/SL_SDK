@@ -75,6 +75,16 @@ rte_error_t rte_mutex_lock(void *mutex)
     return (osOK == osMutexAcquire(mutex, osWaitForever) ? RTE_SUCCESS : RTE_ERR_UNDEFINE );
 }
 /**
+ * @brief Wrapper for mutex try lock, which is adapted for CMSIS-RTOS2.
+ *
+ * @param mutex
+ * @return rte_error_t
+ */
+rte_error_t rte_mutex_trylock(void *mutex, uint32_t timeout_ms)
+{
+    return (osOK == osMutexAcquire(mutex, timeout_ms) ? RTE_SUCCESS : RTE_ERR_TIMEOUT );
+}
+/**
  * @brief Wrapper for mutex unlock, which is adapted for CMSIS-RTOS2.
  *
  * @param mutex

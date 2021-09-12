@@ -58,10 +58,10 @@
  *====================*/
 
 /*Default display refresh period. LVG will redraw changed ares with this period time*/
-#define LV_DISP_DEF_REFR_PERIOD     30      /*[ms]*/
+#define LV_DISP_DEF_REFR_PERIOD     25      /*[ms]*/
 
 /*Input device read period in milliseconds*/
-#define LV_INDEV_DEF_READ_PERIOD    30      /*[ms]*/
+#define LV_INDEV_DEF_READ_PERIOD    25      /*[ms]*/
 
 /*Use a custom tick source that tells the elapsed time in milliseconds.
  *It removes the need to manually update the tick with `lv_tick_inc()`)*/
@@ -200,7 +200,7 @@ e.g. "stm32f769xx.h" or "stm32f429xx.h"*/
 #define LV_USE_REFR_DEBUG       0
 
 /*Change the built in (v)snprintf functions*/
-#define LV_SPRINTF_CUSTOM   0
+#define LV_SPRINTF_CUSTOM   1
 #if LV_SPRINTF_CUSTOM
 #  define LV_SPRINTF_INCLUDE <stdio.h>
 #  define lv_snprintf     snprintf

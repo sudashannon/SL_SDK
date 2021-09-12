@@ -33,8 +33,12 @@
 #define RTE_DEVICE_HAL_GPIO
 /* Keil::Device:STM32Cube HAL:I2C:1.8.0 */
 #define RTE_DEVICE_HAL_I2C
+/* Keil::Device:STM32Cube HAL:MDMA:1.8.0 */
+#define RTE_DEVICE_HAL_MDMA
 /* Keil::Device:STM32Cube HAL:PWR:1.8.0 */
 #define RTE_DEVICE_HAL_PWR
+/* Keil::Device:STM32Cube HAL:QSPI:1.8.0 */
+#define RTE_DEVICE_HAL_QSPI
 /* Keil::Device:STM32Cube HAL:RCC:1.8.0 */
 #define RTE_DEVICE_HAL_RCC
 /* Keil::Device:STM32Cube HAL:SPI:1.8.0 */

@@ -26,11 +26,10 @@
     }
 
 rte_error_t hal_device_read_sync(hal_device_t *device, uint8_t *dest_buf,
-                                        uint32_t *buf_size, uint32_t timeout_ms)
+                                uint32_t *buf_size, uint32_t timeout_ms)
 {
     if (RTE_UNLIKELY(device == NULL) ||
         RTE_UNLIKELY(dest_buf == NULL) ||
-        RTE_UNLIKELY(buf_size == NULL) ||
         RTE_UNLIKELY(device->read == NULL)) {
         return RTE_ERR_PARAM;
     }
@@ -63,7 +62,6 @@ rte_error_t hal_device_read_async(hal_device_t *device, uint8_t *dest_buf,
 {
     if (RTE_UNLIKELY(device == NULL) ||
         RTE_UNLIKELY(dest_buf == NULL) ||
-        RTE_UNLIKELY(buf_size == NULL) ||
         RTE_UNLIKELY(device->read_async == NULL)) {
         return RTE_ERR_PARAM;
     }

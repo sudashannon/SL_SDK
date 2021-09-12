@@ -84,7 +84,7 @@ __NO_RETURN void system_thread(void *argument)
     com_config.huart = &huart1;
     com_config.hrx_dma = &hdma_usart1_rx;
     com_config.htx_dma = &hdma_usart1_tx;
-    com_create(COM_1, &com_config, &com_debug);
+    com_create(com_1, &com_config, &com_debug);
 
     log_level_t log_level = LOG_LEVEL_INFO;
     log_control(LOG_CMD_SET_LEVEL, &log_level);

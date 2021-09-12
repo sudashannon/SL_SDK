@@ -120,7 +120,7 @@ void bsp_lcd_init(void)
     spi_lcd_config.spi_handle = &hspi2;
     spi_lcd_config.tx_dma_handle = &hdma_spi2_tx;
     spi_lcd_config.rx_dma_handle = NULL;
-    spi_create(SPI_LCD, &spi_lcd_config, &spi_lcd);
+    spi_create(spi_1, &spi_lcd_config, &spi_lcd);
 
     bsp_lcd_write_command(0x01);
     rte_delay_ms(50);

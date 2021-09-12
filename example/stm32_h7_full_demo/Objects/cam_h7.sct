@@ -33,3 +33,9 @@ LR_IROM1 0x08000000 0x00200000  {    ; load region size_region
 
 }
 
+LR_ROM1 0x90000000 0x00800000  {
+  ER_ROM1 0x90000000 0x00800000  {  ; load address = execution address
+	*.o(EXCODE)
+	*(.ROM_EX)
+  }
+}

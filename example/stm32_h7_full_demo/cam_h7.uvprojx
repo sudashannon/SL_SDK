@@ -463,6 +463,16 @@
               <FileType>1</FileType>
               <FilePath>.\RTE\Device\STM32H743VITx\STCubeGenerated\Src\dcmi.c</FilePath>
             </File>
+            <File>
+              <FileName>mdma.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\RTE\Device\STM32H743VITx\STCubeGenerated\Src\mdma.c</FilePath>
+            </File>
+            <File>
+              <FileName>quadspi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\RTE\Device\STM32H743VITx\STCubeGenerated\Src\quadspi.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -1344,7 +1354,19 @@
           <targetInfo name="Target 1"/>
         </targetInfos>
       </component>
+      <component Cclass="Device" Cgroup="STM32Cube HAL" Csub="MDMA" Cvendor="Keil" Cversion="1.8.0" condition="STM32H7 HAL">
+        <package name="STM32H7xx_DFP" schemaVersion="1.6.3" url="http://www.keil.com/pack/" vendor="Keil" version="2.7.0"/>
+        <targetInfos>
+          <targetInfo name="Target 1"/>
+        </targetInfos>
+      </component>
       <component Cclass="Device" Cgroup="STM32Cube HAL" Csub="PWR" Cvendor="Keil" Cversion="1.8.0" condition="STM32H7 HAL">
+        <package name="STM32H7xx_DFP" schemaVersion="1.6.3" url="http://www.keil.com/pack/" vendor="Keil" version="2.7.0"/>
+        <targetInfos>
+          <targetInfo name="Target 1"/>
+        </targetInfos>
+      </component>
+      <component Cclass="Device" Cgroup="STM32Cube HAL" Csub="QSPI" Cvendor="Keil" Cversion="1.8.0" condition="STM32H7 HAL MDMA">
         <package name="STM32H7xx_DFP" schemaVersion="1.6.3" url="http://www.keil.com/pack/" vendor="Keil" version="2.7.0"/>
         <targetInfos>
           <targetInfo name="Target 1"/>

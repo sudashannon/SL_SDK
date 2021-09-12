@@ -40,6 +40,13 @@ extern rte_error_t rte_deinit(void);
  */
 extern rte_error_t rte_mutex_lock(void *mutex);
 /**
+ * @brief Wrapper for mutex try lock, which is adapted for CMSIS-RTOS2.
+ *
+ * @param mutex
+ * @return rte_error_t
+ */
+extern rte_error_t rte_mutex_trylock(void *mutex, uint32_t timeout_ms);
+/**
  * @brief Wrapper for mutex unlock, which is adapted for different OS.
  *
  * @param mutex

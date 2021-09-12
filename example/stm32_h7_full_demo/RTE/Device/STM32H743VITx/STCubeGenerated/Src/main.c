@@ -22,6 +22,8 @@
 #include "dcmi.h"
 #include "dma.h"
 #include "i2c.h"
+#include "mdma.h"
+#include "quadspi.h"
 #include "spi.h"
 #include "usart.h"
 #include "gpio.h"
@@ -108,6 +110,8 @@ int main(void)
   MX_USART1_UART_Init();
   MX_SPI2_Init();
   MX_I2C2_Init();
+  MX_MDMA_Init();
+  MX_QUADSPI_Init();
   MX_DCMI_Init();
   /* USER CODE BEGIN 2 */
   osKernelInitialize();                 // Initialize CMSIS-RTOS

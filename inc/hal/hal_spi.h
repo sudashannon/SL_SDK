@@ -15,21 +15,10 @@
 #include "hal.h"
 #include "cmsis_os2.h"
 
-typedef struct {
-    // Configuration section.
-    // Resource section.
-    SPI_HandleTypeDef *spi_handle;
-    DMA_HandleTypeDef *tx_dma_handle;
-    DMA_HandleTypeDef *rx_dma_handle;
-    osSemaphoreId_t tx_sema;
-    // Inherit section from hal device.
-    hal_device_t device;
-} spi_device_t;
-
 typedef enum
 {
-	SPI_LCD = 0,
-	SPI_N,
+	spi_1 = 0,
+	spi_N,
 } spi_name_t;
 
 typedef struct {
