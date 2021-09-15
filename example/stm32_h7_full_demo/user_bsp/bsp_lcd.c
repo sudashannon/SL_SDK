@@ -78,7 +78,7 @@ void bsp_lcd_fill_color_normal(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y
 	bsp_lcd_write_command(0x2C);
     gpio_set_low(LCD_CS);
     gpio_set_high(LCD_DC);
-	uint16_t *line_buffer = memory_alloc(BANK_DMA, (x1 - x0 + 1) * 2);
+	uint16_t *line_buffer = memory_alloc_align(BANK_DMA, 32, (x1 - x0 + 1) * 2);
     uint32_t i = 0;
     uint32_t col = (x1 - x0 + 1);
     uint32_t row = (y1 - y0 + 1);
@@ -205,7 +205,7 @@ void bsp_lcd_init(void)
     bsp_lcd_fill_color_normal(0, 0, 239, 320, 0x1234);
     uint32_t end_tick = rte_get_tick();
     RTE_LOGI("lcd fill time %d ms", end_tick - start_tick);
-    uint16_t *image = memory_alloc(BANK_DMA, 50 * 50 * sizeof(uint16_t));
+    uint16_t *image = memory_alloc_align(BANK_DMA, 32, 50 * 50 * sizeof(uint16_t));
     memset(image, 0x5678, 50 * 50 * sizeof(uint16_t));
     bsp_lcd_fill_frame(10, 10, 59, 59, image);
     memory_free(BANK_DMA, image);

@@ -14,7 +14,7 @@
 
 // http://www.fmwconcepts.com/imagemagick/digital_image_filtering.pdf
 
-void filter_morph(image_t *img, int ksize,int *krn, float m, int b, bool threshold, int offset, bool invert, image_t *mask)
+void filter_morph(image_t *img, int ksize,const int8_t *krn, float m, int b, bool threshold, int offset, bool invert, image_t *mask)
 {
     int brows = ksize + 1;
     image_t buf;

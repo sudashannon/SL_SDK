@@ -509,7 +509,7 @@ void point_min_area_rectangle(point_t *corners, point_t *new_corners, int corner
 /////////////////
 // filter Stuff //
 /////////////////
-void filter_morph(image_t *img, int ksize,int *krn, float m, int b, bool threshold, int offset, bool invert, image_t *mask);
+void filter_morph(image_t *img, int ksize,const int8_t *krn, float m, int b, bool threshold, int offset, bool invert, image_t *mask);
 
 
 /////////////////
@@ -530,8 +530,8 @@ typedef enum {
 // Conv kernels
 extern const int8_t kernel_gauss_3[9];
 extern const int8_t kernel_gauss_5[25];
-extern const int kernel_laplacian_3[9];
-extern const int kernel_high_pass_3[9];
+extern const int8_t kernel_laplacian_3[9];
+extern const int8_t kernel_high_pass_3[9];
 
 void denoise_sepconv3(image_t *img, denoise_type_t filter_type, float m, int32_t b);
 

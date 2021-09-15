@@ -22,7 +22,6 @@
 #include "dcmi.h"
 #include "dma.h"
 #include "i2c.h"
-#include "mdma.h"
 #include "quadspi.h"
 #include "spi.h"
 #include "usart.h"
@@ -110,7 +109,6 @@ int main(void)
   MX_USART1_UART_Init();
   MX_SPI2_Init();
   MX_I2C2_Init();
-  MX_MDMA_Init();
   MX_QUADSPI_Init();
   MX_DCMI_Init();
   /* USER CODE BEGIN 2 */
@@ -208,7 +206,7 @@ void MPU_Config(void)
   MPU_InitStruct.TypeExtField = MPU_TEX_LEVEL1;
   MPU_InitStruct.AccessPermission = MPU_REGION_FULL_ACCESS;
   MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_ENABLE;
-  MPU_InitStruct.IsShareable = MPU_ACCESS_SHAREABLE;
+  MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
   MPU_InitStruct.IsCacheable = MPU_ACCESS_CACHEABLE;
   MPU_InitStruct.IsBufferable = MPU_ACCESS_BUFFERABLE;
 

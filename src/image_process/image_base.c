@@ -735,62 +735,72 @@ void point_min_area_rectangle(point_t *corners, point_t *new_corners, int corner
 
 void *data_malloc_calculate(uint32_t size)
 {
-    uint8_t *data = memory_alloc(BANK_MATH, size + 1);
+    uint8_t *data = memory_alloc_align(BANK_MATH, 32, size + 32);
     if (data) {
         *data = BANK_MATH;
     } else {
-        data = memory_alloc(BANK_FB, size + 1);
+        data = memory_alloc_align(BANK_FB, 32, size + 32);
         if (data) {
             *data = BANK_FB;
+        } else {
+            return NULL;
         }
     }
-    return data + 1;
+    return (data + 32);
 }
 
 void *data_calloc_calculate(uint32_t size)
 {
-    uint8_t *data = memory_calloc(BANK_MATH, size + 1);
+    uint8_t *data = memory_alloc_align(BANK_MATH, 32, size + 32);
     if (data) {
         *data = BANK_MATH;
     } else {
-        data = memory_calloc(BANK_FB, size + 1);
+        data = memory_alloc_align(BANK_FB, 32, size + 32);
         if (data) {
             *data = BANK_FB;
+        } else {
+            return NULL;
         }
     }
-    return data + 1;
+    memset(data + 32, 0, size);
+    return (data + 32);
 }
 
 void *data_malloc_object(uint32_t size)
 {
-    uint8_t *data = memory_alloc(BANK_DEFAULT, size + 1);
+    uint8_t *data = memory_alloc_align(BANK_DEFAULT, 32, size + 32);
     if (data) {
         *data = BANK_DEFAULT;
     } else {
-        data = memory_alloc(BANK_FB, size + 1);
+        data = memory_alloc_align(BANK_FB, 32, size + 32);
         if (data) {
             *data = BANK_FB;
+        } else {
+            return NULL;
         }
     }
-    return data + 1;
+    return (data + 32);
 }
 
 void *data_calloc_object(uint32_t size)
 {
-    uint8_t *data = memory_calloc(BANK_DEFAULT, size + 1);
+    uint8_t *data = memory_alloc_align(BANK_DEFAULT, 32, size + 32);
     if (data) {
         *data = BANK_DEFAULT;
     } else {
-        data = memory_calloc(BANK_FB, size + 1);
+        data = memory_alloc_align(BANK_FB, 32, size + 32);
         if (data) {
             *data = BANK_FB;
+        } else {
+            return NULL;
         }
     }
-    return data + 1;
+    memset(data + 32, 0, size);
+    return (data + 32);
 }
 
 void data_free(void *ptr)
 {
     uint8_t *data = (uint8_t *)ptr;
-    memory_free((mem_bank_t)(*(data - 1)), data - 1);
+    memory_free((mem_bank_t)(*(data - 32)), data - 32);
 }

@@ -27,19 +27,19 @@ const int8_t kernel_gauss_5[5*5] = {
     1,  4,  6,  4, 1
 };
 
-const int kernel_laplacian_3[3*3] = {
+const int8_t kernel_laplacian_3[3*3] = {
     -1, -1, -1,
     -1,  8, -1,
     -1, -1, -1
 };
 
-const int kernel_high_pass_3[3*3] = {
+const int8_t kernel_high_pass_3[3*3] = {
     -1, -1, -1,
     -1, +8, -1,
     -1, -1, -1
 };
 
-static int8_t *filter_kernel[] = {
+const static int8_t *filter_kernel[] = {
     kernel_gauss_3,
     kernel_laplacian_3,
     kernel_high_pass_3,
@@ -49,7 +49,7 @@ void denoise_sepconv3(image_t *img, denoise_type_t filter_type, float m, int32_t
 {
     if (img->bpp != IMAGE_BPP_GRAYSCALE)
         return;
-    int8_t *conv_kernel = filter_kernel[filter_type];
+    const int8_t *conv_kernel = filter_kernel[filter_type];
     uint8_t k_size = 3;
     int32_t *line_buffer = data_malloc_calculate(img->w * sizeof(int32_t) * 2);
 

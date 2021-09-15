@@ -753,22 +753,22 @@ int sensor_snapshot(sensor_t *sensor, image_t *image, uint32_t timeout_ms)
         case PIXFORMAT_YUV422:
             // RGB/YUV read 2 bytes per pixel.
             length = (pixel_count * sizeof(uint16_t)) / sizeof(uint32_t);
-            framebuffer = memory_alloc(BANK_FB, pixel_count * sizeof(uint16_t));
+            framebuffer = memory_alloc_align(BANK_FB, 32, pixel_count * sizeof(uint16_t));
             break;
         case PIXFORMAT_BAYER:
             // BAYER/RAW: 1 byte per pixel
             length = (pixel_count * sizeof(uint8_t)) / sizeof(uint32_t);
-            framebuffer = memory_alloc(BANK_FB, pixel_count * sizeof(uint8_t));
+            framebuffer = memory_alloc_align(BANK_FB, 32, pixel_count * sizeof(uint8_t));
             break;
         case PIXFORMAT_GRAYSCALE:
             // 1/2BPP Grayscale.
             length = (pixel_count * sensor->gs_bpp) / sizeof(uint32_t);
-            framebuffer = memory_alloc(BANK_FB, pixel_count * sensor->gs_bpp);
+            framebuffer = memory_alloc_align(BANK_FB, 32, pixel_count * sensor->gs_bpp);
             break;
         case PIXFORMAT_JPEG:
             // Sensor has hardware JPEG set max frame size.
             length = 0xFFFC;
-            framebuffer = memory_alloc(BANK_FB, length * sizeof(uint32_t));
+            framebuffer = memory_alloc_align(BANK_FB, 32, length * sizeof(uint32_t));
             break;
         default:
             return SENSOR_ERROR_INVALID_PIXFORMAT;

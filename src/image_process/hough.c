@@ -12,6 +12,7 @@
 #include "../../inc/image_process/image_process.h"
 #include "../../inc/middle_layer/rte_memory.h"
 #include "../../inc/middle_layer/rte_log.h"
+#include "../../inc/data_structure/ds_linklist.h"
 
 linked_list_t *hough_find_lines(image_t *ptr, rectangle_t *roi, unsigned int x_stride, unsigned int y_stride,
                       uint32_t threshold, unsigned int theta_margin, unsigned int rho_margin)

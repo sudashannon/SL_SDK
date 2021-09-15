@@ -98,8 +98,8 @@ __NO_RETURN void gui_thread(void *param)
 
     /* Example for 2) */
     static lv_disp_draw_buf_t draw_buf_dsc_2;
-    lv_color_t *buf_2_1 = (lv_color_t *)memory_calloc(BANK_DEFAULT, 320 * 10 * sizeof(lv_color_t));
-    lv_color_t *buf_2_2 = (lv_color_t *)memory_calloc(BANK_DEFAULT, 320 * 10 * sizeof(lv_color_t));
+    lv_color_t *buf_2_1 = (lv_color_t *)memory_alloc_align(BANK_DEFAULT, 32, 320 * 10 * sizeof(lv_color_t));
+    lv_color_t *buf_2_2 = (lv_color_t *)memory_alloc_align(BANK_DEFAULT, 32, 320 * 10 * sizeof(lv_color_t));
     lv_disp_draw_buf_init(&draw_buf_dsc_2, buf_2_1, buf_2_2, 320 * 10);   /*Initialize the display buffer*/
 
     /* Example for 3) also set disp_drv.full_refresh = 1 below*/
@@ -154,7 +154,7 @@ __NO_RETURN void gui_thread(void *param)
 	sensor_disp_image.header.always_zero = 0;
 	sensor_disp_image.header.w = 100;
 	sensor_disp_image.header.h = sensor_disp_image.header.w * resolution[FRAME_SIZE][1] / resolution[FRAME_SIZE][0];
-    sensor_disp_image.data = memory_alloc(BANK_DEFAULT, sensor_disp_image.header.w * sensor_disp_image.header.h * 2);
+    sensor_disp_image.data = memory_alloc_align(BANK_DEFAULT, 32, sensor_disp_image.header.w * sensor_disp_image.header.h * 2);
 	sensor_disp_image.data_size = sensor_disp_image.header.w * sensor_disp_image.header.h * sizeof(lv_color_t);
 	lv_img_set_src(img_obj[0], &sensor_disp_image);
     lv_obj_align(img_obj[0], LV_ALIGN_TOP_RIGHT, 0, 0);
@@ -165,7 +165,7 @@ __NO_RETURN void gui_thread(void *param)
 	dealt_image.header.always_zero = 0;
 	dealt_image.header.w = 200;
 	dealt_image.header.h = dealt_image.header.w * resolution[FRAME_SIZE][1] / resolution[FRAME_SIZE][0];
-    dealt_image.data = memory_alloc(BANK_DEFAULT, dealt_image.header.w * dealt_image.header.h * 2);
+    dealt_image.data = memory_alloc_align(BANK_DEFAULT, 32, dealt_image.header.w * dealt_image.header.h * 2);
 	dealt_image.data_size = dealt_image.header.w * dealt_image.header.h * sizeof(lv_color_t);
 	lv_img_set_src(img_obj[1], &dealt_image);
     lv_obj_align(img_obj[1], LV_ALIGN_BOTTOM_LEFT, 0, 0);

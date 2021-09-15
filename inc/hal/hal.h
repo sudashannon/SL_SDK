@@ -18,17 +18,17 @@
     the SCB_CleanDCache_by_Addr() requires a 32-Byte aligned address
     adjust the address and the D-Cache size to clean accordingly.
 */
-#define HAL_RAM_CLEAN_PRE_SEND(p, size)    do{                                                                                              \
-                                                uint32_t alignedAddr = (uint32_t)p & (uint32_t)(~0x1F);                                     \
-                                                SCB_CleanDCache_by_Addr((uint32_t*)alignedAddr, (int32_t)(size + ((uint32_t)p - alignedAddr)));        \
+#define HAL_RAM_CLEAN_PRE_SEND(p, size)    do{                                            \
+                                                RTE_ASSERT(((uint32_t)p % 32) == 0);      \
+                                                SCB_CleanDCache_by_Addr(p, size);         \
                                             }while(0)
 /*
     the SCB_InvalidateDCache_by_Addr() requires a 32-Byte aligned address,
     adjust the address and the D-Cache size to invalidate accordingly.
 */
-#define HAL_RAM_CLEAN_AFTER_REC(p, size)   do{                                                                                              \
-                                                uint32_t alignedAddr = (uint32_t)p & (uint32_t)(~0x1F);                                     \
-                                                SCB_InvalidateDCache_by_Addr((uint32_t*)alignedAddr, (int32_t)(size + ((uint32_t)p - alignedAddr)));   \
+#define HAL_RAM_CLEAN_AFTER_REC(p, size)   do{                                           \
+                                                RTE_ASSERT(((uint32_t)p % 32) == 0);     \
+                                                SCB_InvalidateDCache_by_Addr(p, size);   \
                                             }while(0)
 #else
 #define HAL_RAM_CLEAN_PRE_SEND(p, size)

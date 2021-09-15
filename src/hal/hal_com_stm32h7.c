@@ -68,7 +68,7 @@ static rte_error_t com_send_async(hal_device_t *device, uint8_t *data, uint32_t 
 {
     com_name_t com_name = device->device_id;
     if (com_control_handle[com_name].tx_dma_handle != NULL) {
-        uint8_t *tx_buffer = memory_alloc(BANK_DMA, size);
+        uint8_t *tx_buffer = memory_alloc_align(BANK_DMA, 32, size);
         if (tx_buffer == NULL)
             return RTE_ERR_NO_RSRC;
         memcpy(tx_buffer, data, size);
@@ -132,7 +132,7 @@ rte_error_t com_create(com_name_t com_name, com_configuration_t *config, hal_dev
     com_control_handle[com_name].tx_dma_handle = config->htx_dma;
     // Check if use rx dma
     if (com_control_handle[com_name].rx_dma_handle != NULL) {
-        com_control_handle[com_name].buffer = memory_calloc(BANK_DMA, com_control_handle[com_name].capacity);
+        com_control_handle[com_name].buffer = memory_alloc_align(BANK_DMA, 32, com_control_handle[com_name].capacity);
     }
 
     // Create general resources
