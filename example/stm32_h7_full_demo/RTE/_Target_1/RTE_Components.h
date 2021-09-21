@@ -21,31 +21,33 @@
         #define RTE_CMSIS_RTOS2_RTX5            /* CMSIS-RTOS2 Keil RTX5 */
 /* Keil::Device:STM32Cube Framework:STM32CubeMX:1.1.0 */
 #define RTE_DEVICE_FRAMEWORK_CUBE_MX
-/* Keil::Device:STM32Cube HAL:Common:1.8.0 */
+/* Keil::Device:STM32Cube HAL:Common:1.9.0 */
 #define RTE_DEVICE_HAL_COMMON
-/* Keil::Device:STM32Cube HAL:Cortex:1.8.0 */
+/* Keil::Device:STM32Cube HAL:Cortex:1.9.0 */
 #define RTE_DEVICE_HAL_CORTEX
-/* Keil::Device:STM32Cube HAL:DCMI:1.8.0 */
+/* Keil::Device:STM32Cube HAL:DCMI:1.9.0 */
 #define RTE_DEVICE_HAL_DCMI
-/* Keil::Device:STM32Cube HAL:DMA:1.8.0 */
+/* Keil::Device:STM32Cube HAL:DMA:1.9.0 */
 #define RTE_DEVICE_HAL_DMA
-/* Keil::Device:STM32Cube HAL:GPIO:1.8.0 */
+/* Keil::Device:STM32Cube HAL:GPIO:1.9.0 */
 #define RTE_DEVICE_HAL_GPIO
-/* Keil::Device:STM32Cube HAL:I2C:1.8.0 */
+/* Keil::Device:STM32Cube HAL:I2C:1.9.0 */
 #define RTE_DEVICE_HAL_I2C
-/* Keil::Device:STM32Cube HAL:MDMA:1.8.0 */
+/* Keil::Device:STM32Cube HAL:JPEG:1.9.0 */
+#define RTE_DEVICE_HAL_JPEG
+/* Keil::Device:STM32Cube HAL:MDMA:1.9.0 */
 #define RTE_DEVICE_HAL_MDMA
-/* Keil::Device:STM32Cube HAL:PWR:1.8.0 */
+/* Keil::Device:STM32Cube HAL:PWR:1.9.0 */
 #define RTE_DEVICE_HAL_PWR
-/* Keil::Device:STM32Cube HAL:QSPI:1.8.0 */
+/* Keil::Device:STM32Cube HAL:QSPI:1.9.0 */
 #define RTE_DEVICE_HAL_QSPI
-/* Keil::Device:STM32Cube HAL:RCC:1.8.0 */
+/* Keil::Device:STM32Cube HAL:RCC:1.9.0 */
 #define RTE_DEVICE_HAL_RCC
-/* Keil::Device:STM32Cube HAL:SPI:1.8.0 */
+/* Keil::Device:STM32Cube HAL:SPI:1.9.0 */
 #define RTE_DEVICE_HAL_SPI
-/* Keil::Device:STM32Cube HAL:UART:1.8.0 */
+/* Keil::Device:STM32Cube HAL:UART:1.9.0 */
 #define RTE_DEVICE_HAL_UART
-/* Keil::Device:Startup:1.8.0 */
+/* Keil::Device:Startup:1.9.0 */
 #define RTE_DEVICE_STARTUP_STM32H7XX    /* Device Startup for STM32H7 */
 
 

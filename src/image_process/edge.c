@@ -40,18 +40,18 @@ void edge_canny(image_t *src, rectangle_t *roi, int32_t low_thresh, int32_t high
             // sobel kernel in the horizontal direction
             vx  = src->data [base - w - 1]
                 - src->data [base - w + 1]
-                + (src->data[base - 1])<<1
-                - (src->data[base + 1])<<1
+                + ((src->data[base - 1])<<1)
+                - ((src->data[base + 1])<<1)
                 + src->data [base + w -1]
                 - src->data [base + w +1];
 
             // sobel kernel in the vertical direction
             vy  = src->data [base - w - 1]
-                + (src->data[base - w + 0])<<1
+                + ((src->data[base - w + 0])<<1)
                 + src->data [base - w + 1]
                 - src->data [base + w - 1]
-                - (src->data[base + w + 0])<<1
-                - src->data [base + w + 1];
+                - ((src->data[base + w + 0])<<1)
+                - (src->data [base + w + 1]);
 
             // Find magnitude
             int32_t g = (int32_t) sqrtf(vx*vx + vy*vy);

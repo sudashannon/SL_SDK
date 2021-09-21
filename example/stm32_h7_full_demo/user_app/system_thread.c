@@ -10,7 +10,7 @@
 #include "lvgl.h"
 
 osThreadId_t system_thread_id;
-static hal_device_t *com_debug = NULL;
+hal_device_t *com_debug = NULL;
 /**
  * @brief Used for letter-shell.
  *
@@ -20,7 +20,7 @@ static char shellBuffer[512];
 
 static size_t rte_data_out(uint8_t *data, size_t length)
 {
-    hal_device_write_async(com_debug, data, (uint32_t)length, HAL_MAX_DELAY);
+    hal_device_write_sync(com_debug, data, (uint32_t)length, HAL_MAX_DELAY);
     return length;
 }
 

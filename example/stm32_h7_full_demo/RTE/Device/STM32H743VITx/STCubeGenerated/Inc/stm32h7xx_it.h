@@ -61,6 +61,8 @@ void USART1_IRQHandler(void);
 void DMA2_Stream0_IRQHandler(void);
 void DCMI_IRQHandler(void);
 void QUADSPI_IRQHandler(void);
+void JPEG_IRQHandler(void);
+void MDMA_IRQHandler(void);
 /* USER CODE BEGIN EFP */
 
 /* USER CODE END EFP */
