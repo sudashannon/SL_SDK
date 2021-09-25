@@ -403,11 +403,6 @@
               <FileType>1</FileType>
               <FilePath>.\user_app\sensor_thread.c</FilePath>
             </File>
-            <File>
-              <FileName>jpeg_thread.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\user_app\jpeg_thread.c</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>

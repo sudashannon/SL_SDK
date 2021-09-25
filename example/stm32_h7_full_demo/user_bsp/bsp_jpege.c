@@ -208,8 +208,6 @@ void HAL_JPEG_EncodeCpltCallback(JPEG_HandleTypeDef *hjpeg)
         output_img.buffer[output_img.img->bpp] = 0xD9;
         output_img.img->bpp += sizeof(uint8_t);
     }
-    // Clean trailing data after 0xFFD9 at the end of the jpeg byte stream.
-    output_img.img->bpp = jpeg_clean_trailing_bytes(output_img.img->bpp, output_img.img->data);
     osSemaphoreRelease(output_img.encode_over_sema);
 }
 
@@ -284,5 +282,8 @@ rte_error_t bsp_jpeg_compress(image_t *src, image_t *dst, int quality)
         return RTE_ERR_MISMATCH; // overflow
     }
     memory_free(BANK_FB, input_mcu.buffer); // mcu_row_buffer
+
+    // Clean trailing data after 0xFFD9 at the end of the jpeg byte stream.
+    dst->bpp = jpeg_clean_trailing_bytes(dst->bpp, dst->data);
     return RTE_SUCCESS;
 }

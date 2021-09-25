@@ -105,10 +105,6 @@ __NO_RETURN void system_thread(void *argument)
     extern osThreadId_t gui_tid;
     gui_tid = osThreadNew(gui_thread, NULL, NULL);
     osThreadSetPriority(gui_tid, osPriorityBelowNormal);
-    extern __NO_RETURN void jpeg_thread(void *param);
-    extern osThreadId_t jpeg_tid;
-    jpeg_tid = osThreadNew(jpeg_thread, NULL, NULL);
-    osThreadSetPriority(jpeg_tid, osPriorityHigh);
     extern __NO_RETURN void sensor_thread(void *param);
     extern osThreadId_t sensor_tid;
     sensor_tid = osThreadNew(sensor_thread, NULL, &sensor_tconfig);
