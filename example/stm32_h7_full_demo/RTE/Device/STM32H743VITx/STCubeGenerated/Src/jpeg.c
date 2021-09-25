@@ -87,7 +87,7 @@ void HAL_JPEG_MspInit(JPEG_HandleTypeDef* jpegHandle)
 
     /* JPEG_OUTFIFO_TH Init */
     hmdma_jpeg_outfifo_th.Instance = MDMA_Channel1;
-    hmdma_jpeg_infifo_th.Init.Request = MDMA_REQUEST_JPEG_OUTFIFO_TH;
+    hmdma_jpeg_outfifo_th.Init.Request = MDMA_REQUEST_JPEG_OUTFIFO_TH;
     hmdma_jpeg_outfifo_th.Init.TransferTriggerMode = MDMA_BUFFER_TRANSFER;
     hmdma_jpeg_outfifo_th.Init.Priority = MDMA_PRIORITY_VERY_HIGH;
     hmdma_jpeg_outfifo_th.Init.Endianness = MDMA_LITTLE_ENDIANNESS_PRESERVE;

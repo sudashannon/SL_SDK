@@ -144,22 +144,7 @@ typedef struct {
 static input_mcu_t input_mcu = {0};
 static output_img_t output_img = {0};
 
-// JIFF-APP0 header designed to be injected at the start of the JPEG byte stream.
-// Contains a variable sized COM header at the end for cache alignment.
-static const uint8_t JPEG_APP0[] = {
-    0xFF, 0xE0, // JIFF-APP0
-    0x00, 0x10, // 16
-    0x4A, 0x46, 0x49, 0x46, 0x00, // JIFF
-    0x01, 0x01, // V1.01
-    0x01, // DPI
-    0x00, 0x00, // Xdensity 0
-    0x00, 0x00, // Ydensity 0
-    0x00, // Xthumbnail 0
-    0x00, // Ythumbnail 0
-    0xFF, 0xFE // COM
-};
-
-static void refresh_mcu_raw_buffer(void)
+static void refresh_input_mcu_buffer(void)
 {
     uint32_t dy = input_mcu.img->h - input_mcu.img_row_count;
     if (dy > MCU_H) {
@@ -182,40 +167,31 @@ static void refresh_mcu_raw_buffer(void)
 
 void HAL_JPEG_GetDataCallback(JPEG_HandleTypeDef *hjpeg, uint32_t NbDecodedData)
 {
-    HAL_JPEG_Pause(hjpeg, JPEG_PAUSE_RESUME_INPUT);
-    // Restart the DMA process on the next row of MCUs (that were already prepared).
-    if (input_mcu.img_row_count < input_mcu.img->h) {
-        input_mcu.img_row_count += MCU_H;
-        refresh_mcu_raw_buffer();
-        HAL_RAM_CLEAN_PRE_SEND((uint32_t *)input_mcu.buffer, input_mcu.buffer_size);
-        HAL_JPEG_ConfigInputBuffer(hjpeg, input_mcu.buffer, input_mcu.buffer_size);
-        HAL_JPEG_Resume(hjpeg, JPEG_PAUSE_RESUME_INPUT);
+    if (NbDecodedData == input_mcu.buffer_size) {
+        // Restart the DMA process on the next row of MCUs (that were already prepared).
+        if (input_mcu.img_row_count < input_mcu.img->h) {
+            input_mcu.img_row_count += MCU_H;
+            refresh_input_mcu_buffer();
+            HAL_RAM_CLEAN_PRE_SEND((uint32_t *)input_mcu.buffer, input_mcu.buffer_size);
+            HAL_JPEG_ConfigInputBuffer(hjpeg, input_mcu.buffer, input_mcu.buffer_size);
+        }
+    } else {
+        HAL_JPEG_ConfigInputBuffer(hjpeg, input_mcu.buffer + NbDecodedData, input_mcu.buffer_size - NbDecodedData);
     }
 }
 
 void HAL_JPEG_DataReadyCallback(JPEG_HandleTypeDef *hjpeg, uint8_t *pDataOut, uint32_t OutDataLength)
 {
-    HAL_JPEG_Pause(hjpeg, JPEG_PAUSE_RESUME_OUTPUT);
     // We have received this much data.
     output_img.real_size += OutDataLength;
     if ((output_img.real_size + OUTPUT_CHUNK_SIZE) > output_img.buffer_size) {
         // We abort the transfer early when we find overflow for receiving anymore data.
-        ATOMIC_SET(&output_img.if_error, true);
+        output_img.if_error = true;
         osSemaphoreRelease(output_img.encode_over_sema);
     } else {
-        // Check if the transferred chunk is the last chunk
-        if (OutDataLength == OUTPUT_CHUNK_SIZE) {
-            uint8_t *new_pDataOut = pDataOut + OutDataLength;
-            // DMA will write data to the output buffer in __SCB_DCACHE_LINE_SIZE aligned chunks. At the
-            // end of JPEG compression the processor will manually transfer the remaining parts of the
-            // image in randomly aligned chunks. We only want to invalidate the cache of the output
-            // buffer for the initial DMA chunks. So, this code below will do that and then only
-            // invalidate aligned regions when the processor is moving the final parts of the image.
-            HAL_RAM_CLEAN_AFTER_REC((uint32_t *) new_pDataOut, OUTPUT_CHUNK_SIZE);
-            // We are ok to receive more data.
-            HAL_JPEG_ConfigOutputBuffer(hjpeg, new_pDataOut, OUTPUT_CHUNK_SIZE);
-            HAL_JPEG_Resume(hjpeg, JPEG_PAUSE_RESUME_OUTPUT);
-        }
+        uint8_t *new_output_data = pDataOut + OutDataLength;
+        // We are ok to receive more data.
+        HAL_JPEG_ConfigOutputBuffer(hjpeg, new_output_data, OUTPUT_CHUNK_SIZE);
     }
 }
 
@@ -223,7 +199,7 @@ void HAL_JPEG_EncodeCpltCallback(JPEG_HandleTypeDef *hjpeg)
 {
     // Set output size.
     output_img.img->bpp = output_img.real_size;
-    // STM32H7 BUG FIX! The JPEG Encoder will ocassionally trigger the EOCF interrupt before writing
+    // STM32H7 BUG FIX! The JPEG Encoder will occasionally trigger the EOCF interrupt before writing
     // a final 0x000000D9 long into the output fifo as the end of the JPEG image. When this occurs
     // the output fifo will have a single 0 value in it after the encoding process finishes.
     if (__HAL_JPEG_GET_FLAG(hjpeg, JPEG_FLAG_OFNEF) && (!hjpeg->Instance->DOR)) {
@@ -263,10 +239,8 @@ rte_error_t bsp_jpeg_compress(image_t *src, image_t *dst, int quality)
             break;
     }
 
-    int src_w_mcus = (src->w + MCU_W - 1) / MCU_W;
-    int src_w_mcus_bytes = src_w_mcus * mcu_size;
-    int src_w_mcus_bytes_2 = src_w_mcus_bytes * 2;
-    int src_h_mcus = (src->h + MCU_H - 1) / MCU_H;
+    uint32_t src_w_mcus = (src->w + MCU_W - 1) / MCU_W;
+    uint32_t src_w_mcus_bytes = src_w_mcus * mcu_size;
 
     // If dst->data == NULL then we need to fb_alloc() space for the payload which will be fb_free()'d
     // by the caller. We have to alloc this memory for all cases if we return from the method.
@@ -276,71 +250,38 @@ rte_error_t bsp_jpeg_compress(image_t *src, image_t *dst, int quality)
     }
 
     uint32_t avail = memory_sizeof_max(BANK_JPEG);
-    uint32_t space = src_w_mcus_bytes_2 + FB_ALLOC_PADDING;
-
-    if (avail < space) {
-        RTE_LOGF("alloc for jpeg buffer failed!");
-        return RTE_ERR_NO_MEM;
-    }
-
-    dst->bpp = avail - space;
+    dst->bpp = avail - (__SCB_DCACHE_LINE_SIZE << 8);
     dst->data = memory_alloc_align(BANK_JPEG, __SCB_DCACHE_LINE_SIZE, dst->bpp);
     RTE_ASSERT(dst->data);
-
-    // Compute size of the APP0 header with cache alignment padding.
-    int app0_size = sizeof(JPEG_APP0);
-    int app0_unalign_size = app0_size % __SCB_DCACHE_LINE_SIZE;
-    int app0_padding_size = app0_unalign_size ? (__SCB_DCACHE_LINE_SIZE - app0_unalign_size) : 0;
-    int app0_total_size = app0_size + app0_padding_size;
-
-    if (dst->bpp < app0_total_size) {
-        RTE_LOGF("app0_total_size overflow! %d %d", dst->bpp, app0_total_size);
-        memory_free(BANK_JPEG, dst->data);
-        return RTE_ERR_MISMATCH; // overflow
-    }
-
     HAL_JPEG_ConfigEncoding(&hjpeg, &JPEG_Info);
-
-    // Adjust JPEG size and address by app0 header size.
-    dst->bpp -= app0_total_size;
 
     // Init the output and input handle.
     output_img.img = dst;
     output_img.buffer_size = dst->bpp;
     output_img.real_size = 0;
-    output_img.buffer = dst->data + app0_total_size;
-    ATOMIC_SET(&output_img.if_error, false);
+    output_img.buffer = dst->data;
+    output_img.if_error = false;
 
-    input_mcu.buffer = memory_alloc_align(BANK_FB, __SCB_DCACHE_LINE_SIZE, src_w_mcus_bytes_2);
+    input_mcu.buffer = memory_alloc_align(BANK_FB, __SCB_DCACHE_LINE_SIZE, src_w_mcus_bytes);
     RTE_ASSERT(input_mcu.buffer);
     input_mcu.img = src;
     input_mcu.input_chunk_size = mcu_size;
     input_mcu.buffer_size = src_w_mcus_bytes;
     input_mcu.img_row_count = 0;
-    refresh_mcu_raw_buffer();
+    refresh_input_mcu_buffer();
+    HAL_RAM_CLEAN_PRE_SEND((uint32_t *)input_mcu.buffer, input_mcu.buffer_size);
     // Start the DMA process off on the first row of MCUs.
-    HAL_JPEG_Encode_IT(&hjpeg, input_mcu.buffer, input_mcu.buffer_size, output_img.buffer, OUTPUT_CHUNK_SIZE);
-    // After writing the last MCU to the JPEG core it will eventually generate an end-of-conversion
-    // interrupt which will finish the JPEG encoding process and clear the busy flag.
-
+    HAL_JPEG_Encode_DMA(&hjpeg, input_mcu.buffer, input_mcu.buffer_size, output_img.buffer, OUTPUT_CHUNK_SIZE);
+    // Wait encode over.
     osSemaphoreAcquire(output_img.encode_over_sema, osWaitForever);
-    if (ATOMIC_READ(&output_img.if_error) == true) {
+    // Check if error happens.
+    if (output_img.if_error == true) {
         HAL_JPEG_Abort(&hjpeg);
         memory_free(BANK_FB, input_mcu.buffer); // mcu_row_buffer (after DMA is aborted)
         memory_free(BANK_JPEG, dst->data);
         return RTE_ERR_MISMATCH; // overflow
     }
     memory_free(BANK_FB, input_mcu.buffer); // mcu_row_buffer
-
-    // Update the JPEG image size by the new APP0 header and it's padding. However, we have to move
-    // the SOI header to the front of the image first...
-    dst->bpp += app0_total_size;
-    memcpy(dst->data, output_img.buffer, sizeof(uint16_t)); // move SOI
-    memcpy(dst->data + sizeof(uint16_t), JPEG_APP0, sizeof(JPEG_APP0)); // inject APP0
-
-    // Add on a comment header with 0 padding to ensure cache alignment after the APP0 header.
-    *((uint16_t *) (dst->data + sizeof(uint16_t) + sizeof(JPEG_APP0))) = __REV16(app0_padding_size); // size
-    memset(dst->data + sizeof(uint32_t) + sizeof(JPEG_APP0), 0, app0_padding_size - sizeof(uint16_t)); // data
 
     // Clean trailing data after 0xFFD9 at the end of the jpeg byte stream.
     dst->bpp = jpeg_clean_trailing_bytes(dst->bpp, dst->data);
