@@ -744,9 +744,6 @@ int sensor_snapshot(sensor_t *sensor, image_t *image, uint32_t timeout_ms)
     uint32_t h = resolution[sensor->framesize][1];
     uint32_t pixel_count = w * h;
     uint8_t *framebuffer = NULL;
-    // Make sure the image's data is invalid before alloc new framebuffer.
-    if (image->data)
-        image_reuse(image);
     // Setup the size and address of the transfer
     switch (sensor->pixformat) {
         case PIXFORMAT_RGB565:
@@ -780,6 +777,11 @@ int sensor_snapshot(sensor_t *sensor, image_t *image, uint32_t timeout_ms)
     HAL_StatusTypeDef result = HAL_DCMI_Start_DMA(sensor->dcmi, DCMI_MODE_SNAPSHOT, (uint32_t)framebuffer, length);
 	if (result != HAL_OK)
         return SENSOR_ERROR_CAPTURE_FAILED;
+    // Send the old data to jpeg thread and let it to encode the image.
+    if (image->data) {
+        extern osSemaphoreId_t jpeg_sema;
+        osSemaphoreRelease(jpeg_sema);
+    }
     osStatus_t snap_result = osSemaphoreAcquire(sensor->sema, timeout_ms);
     if (snap_result == osOK) {
         HAL_RAM_CLEAN_AFTER_REC(framebuffer, length * sizeof(uint32_t));
