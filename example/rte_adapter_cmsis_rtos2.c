@@ -101,7 +101,7 @@ rte_error_t rte_mutex_unlock(void *mutex)
  */
 uint32_t HAL_GetTick(void)
 {
-    return osKernelGetTickCount();
+    return rte_get_tick();
 }
 /**
  * @brief Wrapper for get system's tick, which is adapted for CMSIS-RTOS2.
@@ -110,7 +110,20 @@ uint32_t HAL_GetTick(void)
  */
 uint32_t rte_get_tick(void)
 {
-    return osKernelGetTickCount();
+    /* Return current time in milliseconds */
+    if (osKernelGetState () == osKernelRunning) {
+        return osKernelGetTickCount();
+	} else {
+        static uint32_t ticks = 0U;
+        uint32_t i;
+        /* If Kernel is not running wait approximately 1 ms then increment
+                and return auxiliary tick counter value */
+        for (i = (SystemCoreClock >> 14U); i > 0U; i--) {
+            __NOP(); __NOP(); __NOP(); __NOP(); __NOP(); __NOP();
+            __NOP(); __NOP(); __NOP(); __NOP(); __NOP(); __NOP();
+        }
+        return ++ticks;
+    }
 }
 /**
  * @brief Wrapper for hal delay, which is adapted for CMSIS-RTOS2.

@@ -1,0 +1,22 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "openocd",
+            "type": "shell",
+            "command": "openocd",
+            "args": [
+                "-f", "${workspaceFolder}/example/armgcc_stm32h7_demo/debug.cfg",
+                "-c", "init",
+                "-c", "reset halt"
+            ]
+        },
+        {
+            "label": "init",
+            "type": "shell",
+            "command": "xmake f -p cross"
+        }
+    ]
+}

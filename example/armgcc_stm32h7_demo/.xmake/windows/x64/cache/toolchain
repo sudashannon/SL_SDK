@@ -1,0 +1,40 @@
+{
+    tool_target_stm32h7_demo_cross_none_ld = {
+        program = [[C:\Program Files (x86)\GNU Arm Embedded Toolchain\10 2021.07\bin\arm-none-eabi-g++]],
+        toolname = "gxx",
+        toolchain_info = {
+            arch = "none",
+            cachekey = "armgcc_arch_none_plat_cross",
+            plat = "cross",
+            name = "armgcc"
+        }
+    },
+    armgcc_arch_none_plat_cross = {
+        sdkdir = [[C:\Program Files (x86)\GNU Arm Embedded Toolchain\10 2021.07]],
+        plat = "cross",
+        cross = "arm-none-eabi-",
+        __global = true,
+        bindir = [[C:\Program Files (x86)\GNU Arm Embedded Toolchain\10 2021.07\bin]],
+        arch = "none"
+    },
+    tool_target_stm32h7_demo_cross_none_as = {
+        program = [[C:\Program Files (x86)\GNU Arm Embedded Toolchain\10 2021.07\bin\arm-none-eabi-gcc]],
+        toolname = "gcc",
+        toolchain_info = {
+            arch = "none",
+            cachekey = "armgcc_arch_none_plat_cross",
+            plat = "cross",
+            name = "armgcc"
+        }
+    },
+    tool_target_stm32h7_demo_cross_none_cc = {
+        program = [[C:\Program Files (x86)\GNU Arm Embedded Toolchain\10 2021.07\bin\arm-none-eabi-gcc]],
+        toolname = "gcc",
+        toolchain_info = {
+            arch = "none",
+            cachekey = "armgcc_arch_none_plat_cross",
+            plat = "cross",
+            name = "armgcc"
+        }
+    }
+}

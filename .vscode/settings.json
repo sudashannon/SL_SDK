@@ -1,0 +1,12 @@
+{
+    "files.associations": {
+        "stm32h7xx.h": "c",
+        "stm32h753xx.h": "c",
+        "stm32h750xx.h": "c",
+        "stm32h742xx.h": "c",
+        "stm32h743xx.h": "c",
+        "math.h": "c",
+        "hal.h": "c",
+        "rte_include.h": "c"
+    }
+}

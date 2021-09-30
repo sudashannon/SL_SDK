@@ -1,0 +1,64 @@
+{
+    find_programver = {
+        ["C:\\Program Files (x86)\\GNU Arm Embedded Toolchain\\10 2021.07\\bin\\arm-none-eabi-gcc"] = "10.3-2021.07"
+    },
+    find_program_armgcc_arch_none_plat_cross_checktoolcc = {
+        ["arm-none-eabi-gcc"] = [[C:\Program Files (x86)\GNU Arm Embedded Toolchain\10 2021.07\bin\arm-none-eabi-gcc]]
+    },
+    ["detect.tools.gcc.has_flags"] = {
+        ["C:\\Program Files (x86)\\GNU Arm Embedded Toolchain\\10 2021.07\\bin\\arm-none-eabi-gcc_10.3-2021.07"] = {
+            ["-pie"] = true,
+            ["--help"] = true,
+            ["-print-multiarch"] = true,
+            ["-time"] = true,
+            ["--version"] = true,
+            ["--target-help"] = true,
+            ["-print-libgcc-file-name"] = true,
+            ["-print-multi-directory"] = true,
+            ["-print-multi-os-directory"] = true,
+            ["-Xassembler"] = true,
+            ["-print-sysroot"] = true,
+            ["-save-temps"] = true,
+            ["--param"] = true,
+            ["-Xpreprocessor"] = true,
+            ["-print-multi-lib"] = true,
+            ["-o"] = true,
+            ["-S"] = true,
+            ["-pipe"] = true,
+            ["-v"] = true,
+            ["-E"] = true,
+            ["-Xlinker"] = true,
+            ["-B"] = true,
+            ["-pass-exit-codes"] = true,
+            ["-print-sysroot-headers-suffix"] = true,
+            ["-print-search-dirs"] = true,
+            ["-c"] = true,
+            ["-dumpversion"] = true,
+            ["-no-canonical-prefixes"] = true,
+            ["-dumpmachine"] = true,
+            ["-x"] = true,
+            ["-shared"] = true,
+            ["-dumpspecs"] = true
+        }
+    },
+    find_program = {
+        ["C:\\Program Files (x86)\\GNU Arm Embedded Toolchain\\10 2021.07\\bin\\arm-none-eabi-gcc"] = [[C:\Program Files (x86)\GNU Arm Embedded Toolchain\10 2021.07\bin\arm-none-eabi-gcc]]
+    },
+    find_program_armgcc_arch_none_plat_cross_checktoolld = {
+        ["arm-none-eabi-g++"] = [[C:\Program Files (x86)\GNU Arm Embedded Toolchain\10 2021.07\bin\arm-none-eabi-g++]]
+    },
+    find_program_armgcc_arch_none_plat_cross_checktoolas = {
+        ["arm-none-eabi-gcc"] = [[C:\Program Files (x86)\GNU Arm Embedded Toolchain\10 2021.07\bin\arm-none-eabi-gcc]]
+    },
+    ["lib.detect.has_flags"] = {
+        ["cross_none_C:\\Program Files (x86)\\GNU Arm Embedded Toolchain\\10 2021.07\\bin\\arm-none-eabi-gcc_10.3-2021.07_cc_cxflags__-Warray-bounds"] = true,
+        ["cross_none_C:\\Program Files (x86)\\GNU Arm Embedded Toolchain\\10 2021.07\\bin\\arm-none-eabi-gcc_10.3-2021.07_cc_cxflags__-mthumb"] = true,
+        ["cross_none_C:\\Program Files (x86)\\GNU Arm Embedded Toolchain\\10 2021.07\\bin\\arm-none-eabi-gcc_10.3-2021.07_cc_cxflags__-fdata-sections"] = true,
+        ["cross_none_C:\\Program Files (x86)\\GNU Arm Embedded Toolchain\\10 2021.07\\bin\\arm-none-eabi-gcc_10.3-2021.07_cc_cxflags__-mcpu=cortex-m7"] = true,
+        ["cross_none_C:\\Program Files (x86)\\GNU Arm Embedded Toolchain\\10 2021.07\\bin\\arm-none-eabi-gcc_10.3-2021.07_cc_cxflags__-ffunction-sections"] = true,
+        ["cross_none_C:\\Program Files (x86)\\GNU Arm Embedded Toolchain\\10 2021.07\\bin\\arm-none-eabi-gcc_10.3-2021.07_as___-O0"] = true,
+        ["cross_none_C:\\Program Files (x86)\\GNU Arm Embedded Toolchain\\10 2021.07\\bin\\arm-none-eabi-gcc_10.3-2021.07_cc_cxflags__-mfpu=fpv5-d16"] = true,
+        ["cross_none_C:\\Program Files (x86)\\GNU Arm Embedded Toolchain\\10 2021.07\\bin\\arm-none-eabi-gcc_10.3-2021.07_cc_cxflags__-DSTM32H743xx"] = true,
+        ["cross_none_C:\\Program Files (x86)\\GNU Arm Embedded Toolchain\\10 2021.07\\bin\\arm-none-eabi-gcc_10.3-2021.07_cc___-O0"] = true
+    }
+}
