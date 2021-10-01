@@ -1,12 +1,3 @@
 [submodule "rte/src/utils/lvgl"]
 	path = rte/src/utils/lvgl
 	url = https://github.com/littlevgl/lvgl
-[submodule "rte/src/utils/argoat"]
-	path = rte/src/utils/argoat
-	url = https://github.com/nullgemm/argoat
-[submodule "rte/src/utils/letter-shell"]
-	path = rte/src/utils/letter-shell
-	url = https://github.com/NevermindZZT/letter-shell
-[submodule "rte/src/utils/sfud"]
-	path = rte/src/utils/sfud
-	url = https://github.com/armink/SFUD.git
