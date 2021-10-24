@@ -1,6 +1,7 @@
 # SL_SDK
 
 ## 1. Introduction
+
     SL_SDK is the software development kit for embedded devices, such as Cortex-M based MCU or RISC-V MCU. It provides varies of platform-related and cross-platform code to speed-up the development.
 
     Till now, the SL_SDK is consist of following modules:
