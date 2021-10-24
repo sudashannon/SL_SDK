@@ -13,8 +13,8 @@
 #include "cmsis_os2.h"
 
 typedef struct {
-    HAL_DEVICE_DEFINE(qspi);
     MDMA_HandleTypeDef *mdma_handle;
+    hal_device_t device;
 } qspi_device_t;
 
 static qspi_device_t qspi_control_handle[qspi_N];
@@ -26,7 +26,7 @@ static rte_error_t qspi_send(hal_device_t *device, uint8_t *data, uint32_t size,
     if (size == 0)
         return RTE_SUCCESS;
     result = HAL_QSPI_Transmit(
-                qspi_control_handle[device->device_id].qspi_hal_obj,
+                qspi_control_handle[device->device_id].device.fd,
                 data, timeout_ms);
     if (result == HAL_OK)
         return RTE_SUCCESS;
@@ -42,7 +42,7 @@ static rte_error_t qspi_recv(hal_device_t *device, uint8_t *buffer, uint32_t *si
     HAL_StatusTypeDef result = HAL_ERROR;
     qspi_name_t qspi_name = device->device_id;
     result = HAL_QSPI_Receive(
-                qspi_control_handle[qspi_name].qspi_hal_obj, buffer, timeout_ms);
+                qspi_control_handle[qspi_name].device.fd, buffer, timeout_ms);
     if (result == HAL_OK) {
         return RTE_SUCCESS;
     } else if(result == HAL_TIMEOUT) {
@@ -64,22 +64,22 @@ static rte_error_t qspi_send_async(hal_device_t *device, uint8_t *data, uint32_t
         //     return RTE_ERR_NO_RSRC;
         // memcpy(tx_buffer, data, size);
         // HAL_RAM_CLEAN_PRE_SEND(tx_buffer, size);
-        // HAL_UART_Transmit_DMA(qspi_control_handle[qspi_name].qspi_hal_obj,
+        // HAL_UART_Transmit_DMA(qspi_control_handle[qspi_name].device.fd,
         //                     tx_buffer,
         //                     size);
         // if (osSemaphoreAcquire(qspi_control_handle[qspi_name].tx_sema, timeout_ms) == osOK) {
         //     memory_free(BANK_DMA, tx_buffer);
         //     return RTE_SUCCESS;
         // }
-        // HAL_UART_AbortTransmit_IT(qspi_control_handle[qspi_name].qspi_hal_obj);
+        // HAL_UART_AbortTransmit_IT(qspi_control_handle[qspi_name].device.fd);
         // memory_free(BANK_DMA, tx_buffer);
         return RTE_ERR_TIMEOUT;
     } else {
-        HAL_QSPI_Transmit_IT(qspi_control_handle[qspi_name].qspi_hal_obj, data);
-        if (osSemaphoreAcquire(qspi_control_handle[qspi_name].tx_sema, timeout_ms) == osOK) {
+        HAL_QSPI_Transmit_IT(qspi_control_handle[qspi_name].device.fd, data);
+        if (osSemaphoreAcquire(qspi_control_handle[qspi_name].device.tx_sema, timeout_ms) == osOK) {
             return RTE_SUCCESS;
         }
-        HAL_QSPI_Abort_IT(qspi_control_handle[qspi_name].qspi_hal_obj);
+        HAL_QSPI_Abort_IT(qspi_control_handle[qspi_name].device.fd);
         return RTE_ERR_TIMEOUT;
     }
 }
@@ -89,7 +89,7 @@ static rte_error_t qspi_recv_async(hal_device_t *device, uint8_t *buffer, uint32
     RTE_UNUSED(size);
     qspi_name_t qspi_name = device->device_id;
     if (qspi_control_handle[qspi_name].mdma_handle != NULL) {
-        // HAL_UARTEx_ReceiveToIdle_DMA(qspi_control_handle[qspi_name].qspi_hal_obj,
+        // HAL_UARTEx_ReceiveToIdle_DMA(qspi_control_handle[qspi_name].device.fd,
         //                     qspi_control_handle[qspi_name].buffer,
         //                     qspi_control_handle[qspi_name].capacity);
         // if (osSemaphoreAcquire(qspi_control_handle[qspi_name].rx_sema, timeout_ms) == osOK) {
@@ -99,15 +99,15 @@ static rte_error_t qspi_recv_async(hal_device_t *device, uint8_t *buffer, uint32
         //     return RTE_SUCCESS;
         // }
         // *size = 0;
-        // HAL_UART_AbortReceive_IT(qspi_control_handle[qspi_name].qspi_hal_obj);
+        // HAL_UART_AbortReceive_IT(qspi_control_handle[qspi_name].device.fd);
         return RTE_ERR_TIMEOUT;
     } else {
-        HAL_QSPI_Receive_IT(qspi_control_handle[qspi_name].qspi_hal_obj, buffer);
-        if (osSemaphoreAcquire(qspi_control_handle[qspi_name].rx_sema, timeout_ms) == osOK) {
+        HAL_QSPI_Receive_IT(qspi_control_handle[qspi_name].device.fd, buffer);
+        if (osSemaphoreAcquire(qspi_control_handle[qspi_name].device.rx_sema, timeout_ms) == osOK) {
             return RTE_SUCCESS;
         }
         *size = 0;
-        HAL_QSPI_Abort_IT(qspi_control_handle[qspi_name].qspi_hal_obj);
+        HAL_QSPI_Abort_IT(qspi_control_handle[qspi_name].device.fd);
         return RTE_ERR_TIMEOUT;
     }
 }
@@ -135,12 +135,12 @@ void w25_flash_map(void)
     s_mem_mapped_cfg.TimeOutActivation = QSPI_TIMEOUT_COUNTER_DISABLE;
     s_mem_mapped_cfg.TimeOutPeriod = 0;
 
-    HAL_QSPI_MemoryMapped(qspi_control_handle[qspi_1].qspi_hal_obj, &s_command, &s_mem_mapped_cfg);
+    HAL_QSPI_MemoryMapped(qspi_control_handle[qspi_1].device.fd, &s_command, &s_mem_mapped_cfg);
 }
 
 rte_error_t qspi_create(qspi_name_t qspi_name, qspi_configuration_t *config, hal_device_t **device)
 {
-    qspi_control_handle[qspi_name].qspi_hal_obj = config->hqspi;
+    qspi_control_handle[qspi_name].device.fd = config->hqspi;
     HAL_DEVICE_INIT_GENERAL(qspi, qspi_name, qspi_recv, qspi_send, qspi_recv_async, qspi_send_async, config->hqspi);
     return RTE_SUCCESS;
 }

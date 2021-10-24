@@ -17,32 +17,8 @@
 
 typedef enum
 {
-	spi_1 = 0,
+	spi_lcd = 0,
 	spi_N,
 } spi_name_t;
-
-typedef struct {
-    void *spi_handle;
-    void *tx_dma_handle;
-    void *rx_dma_handle;
-} spi_configuration_t;
-
-/**
- * @brief Create a selected spi device.
- *
- * @param com_name
- * @param config
- * @param device
- * @return rte_error_t
- */
-extern rte_error_t spi_create(spi_name_t spi_name, spi_configuration_t *config, hal_device_t **device);
-/**
- * @brief Destroy a selected com device.
- *
- * @param com_name
- * @param device
- * @return rte_error_t
- */
-extern rte_error_t spi_destroy(spi_name_t com_name, hal_device_t *device);
 
 #endif

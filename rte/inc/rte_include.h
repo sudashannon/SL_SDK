@@ -6,6 +6,7 @@
 #include "middle_layer/rte_memory.h"
 #include "middle_layer/rte_atomic.h"
 #include "middle_layer/rte_timer.h"
+#include "middle_layer/rte_shell.h"
 #include "data_structure/ds_vector.h"
 #include "data_structure/ds_ringbuffer.h"
 #include "data_structure/ds_hashmap.h"

@@ -101,7 +101,7 @@ typedef int8_t  rte_error_t;
 #define RTE_STRDUP(ptr, str)                                                             \
 do{                                                                                      \
     if (str) {                                                                           \
-        ptr = rte_get_general_allocator()->calloc(strlen(str) + 1);                      \
+        ptr = rte_calloc(strlen(str) + 1);                                               \
         memcpy(ptr, str, strlen(str));                                                   \
     }                                                                                    \
 } while(0)
@@ -216,13 +216,6 @@ typedef struct {
     uint16_t msg_len;
     uint8_t msg_buf[0];
 } rte_msg_t;
-
-/**
- * @brief Get the general rte allocator.
- *
- * @return rte_allocator_t*
- */
-extern rte_allocator_t *rte_get_general_allocator(void);
 
 #ifdef __cplusplus
 }

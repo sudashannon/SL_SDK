@@ -15,6 +15,7 @@
   ..\..\rte\inc\middle_layer\rte_memory.h \
   ..\..\rte\inc\middle_layer\rte_atomic.h \
   ..\..\rte\inc\middle_layer\rte_timer.h \
+  ..\..\rte\inc\middle_layer\rte_shell.h \
   ..\..\rte\inc\data_structure\ds_vector.h \
   ..\..\rte\inc\data_structure\..\middle_layer\rte.h \
   ..\..\rte\inc\data_structure\ds_ringbuffer.h \

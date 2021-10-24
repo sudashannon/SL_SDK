@@ -114,7 +114,7 @@ int main(void)
   MX_QUADSPI_Init();
   MX_DCMI_Init();
   MX_MDMA_Init();
-  MX_JPEG_Init();
+//  MX_JPEG_Init();
   /* USER CODE BEGIN 2 */
   osKernelInitialize();                 // Initialize CMSIS-RTOS
   system_thread_id = osThreadNew(system_thread, NULL, NULL);    // Create application main thread

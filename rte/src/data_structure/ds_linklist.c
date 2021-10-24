@@ -1,6 +1,7 @@
 /* linked list management library - by xant
  */
 #include "../../inc/data_structure/ds_linklist.h"
+#include "../../inc/middle_layer/rte_memory.h"
 
 typedef struct _list_entry_s {
     struct _linked_list_s *list;
@@ -61,7 +62,7 @@ static inline int swap_entries(linked_list_t *list, size_t pos1, size_t pos2);
 linked_list_t *
 list_create(rte_mutex_t *mutex)
 {
-    linked_list_t *list = (linked_list_t *)rte_get_general_allocator()->calloc(sizeof(linked_list_t));
+    linked_list_t *list = (linked_list_t *)rte_calloc(sizeof(linked_list_t));
     if(list) {
         list->lock = mutex;
     }
@@ -79,7 +80,7 @@ list_destroy(linked_list_t *list)
         while (list->slices)
             slice_destroy(list->slices->value);
         list_clear(list);
-        rte_get_general_allocator()->free(list);
+        rte_free(list);
     }
 }
 
@@ -88,16 +89,16 @@ list_destroy_tagged_value_internal(tagged_value_t *tval, void (*free_cb)(void *v
 {
     if(tval)
     {
-        rte_get_general_allocator()->free(tval->tag);
+        rte_free(tval->tag);
         if(tval->value) {
             if(tval->type == TV_TYPE_LIST)
                 list_destroy((linked_list_t *)tval->value);
             else if (free_cb)
                 free_cb(tval->value);
             else if (tval->vlen)
-                rte_get_general_allocator()->free(tval->value);
+                rte_free(tval->value);
         }
-        rte_get_general_allocator()->free(tval);
+        rte_free(tval);
     }
 }
 
@@ -163,7 +164,7 @@ list_unlock(linked_list_t *list)
 static inline
 list_entry_t *create_entry()
 {
-    list_entry_t *new_entry = (list_entry_t *)rte_get_general_allocator()->calloc(sizeof(list_entry_t));
+    list_entry_t *new_entry = (list_entry_t *)rte_calloc(sizeof(list_entry_t));
     /*
     if (!new_entry) {
         fprintf(stderr, "Can't create new entry: %s", strerror(errno));
@@ -190,7 +191,7 @@ destroy_entry(list_entry_t *entry)
             if(pos >= 0)
                 remove_entry(entry->list, pos);
         }
-        rte_get_general_allocator()->free(entry);
+        rte_free(entry);
     }
 }
 
@@ -815,7 +816,7 @@ list_foreach_value(linked_list_t *list, int (*item_handler)(void *item, size_t i
 tagged_value_t *
 list_create_tagged_value_nocopy(char *tag, void *val)
 {
-    tagged_value_t *newval = (tagged_value_t *)rte_get_general_allocator()->calloc(sizeof(tagged_value_t));
+    tagged_value_t *newval = (tagged_value_t *)rte_calloc(sizeof(tagged_value_t));
     if(!newval) {
         //fprintf(stderr, "Can't create new tagged value: %s", strerror(errno));
         return NULL;
@@ -839,7 +840,7 @@ list_create_tagged_value_nocopy(char *tag, void *val)
 tagged_value_t *
 list_create_tagged_value(char *tag, void *val, size_t vlen)
 {
-    tagged_value_t *newval = (tagged_value_t *)rte_get_general_allocator()->calloc(sizeof(tagged_value_t));
+    tagged_value_t *newval = (tagged_value_t *)rte_calloc(sizeof(tagged_value_t));
     if(!newval) {
         //fprintf(stderr, "Can't create new tagged value: %s", strerror(errno));
         return NULL;
@@ -851,7 +852,7 @@ list_create_tagged_value(char *tag, void *val, size_t vlen)
     {
         if(vlen)
         {
-            newval->value = rte_get_general_allocator()->calloc(vlen + 1);
+            newval->value = rte_calloc(vlen + 1);
             if(newval->value)
             {
                 memcpy(newval->value, val, vlen);
@@ -859,8 +860,8 @@ list_create_tagged_value(char *tag, void *val, size_t vlen)
                 newval->vlen = vlen;
             } else {
                 //fprintf(stderr, "Can't copy value: %s", strerror(errno));
-                rte_get_general_allocator()->free(newval->tag);
-                rte_get_general_allocator()->free(newval);
+                rte_free(newval->tag);
+                rte_free(newval);
                 return NULL;
             }
             newval->type = TV_TYPE_BINARY;
@@ -884,7 +885,7 @@ list_create_tagged_value(char *tag, void *val, size_t vlen)
 tagged_value_t *
 list_create_tagged_sublist(char *tag, linked_list_t *sublist)
 {
-    tagged_value_t *newval = (tagged_value_t *)rte_get_general_allocator()->calloc(sizeof(tagged_value_t));
+    tagged_value_t *newval = (tagged_value_t *)rte_calloc(sizeof(tagged_value_t));
     if(!newval) {
         //fprintf(stderr, "Can't create new tagged value: %s", strerror(errno));
         return NULL;
@@ -1229,7 +1230,7 @@ list_sort(linked_list_t *list, list_comparator_callback_t comparator)
 slice_t *
 slice_create(linked_list_t *list, size_t offset, size_t length)
 {
-    slice_t *slice = rte_get_general_allocator()->calloc(sizeof(slice_t));
+    slice_t *slice = rte_calloc(sizeof(slice_t));
     slice->list = list;
     slice->offset = offset;
     slice->length = length;
@@ -1268,7 +1269,7 @@ slice_destroy(slice_t *slice)
         prev = cur;
         cur = cur->next;
     }
-    rte_get_general_allocator()->free(slice);
+    rte_free(slice);
 }
 
 int

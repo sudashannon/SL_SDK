@@ -9,25 +9,113 @@
  *
  */
 
-#include "../inc/hal.h"
+#include "hal.h"
+#include "hal_com.h"
 
 #define HAL_DEVICE_TRY_LOCK(device, timeout_ms, retval)             \
-    if (device->mutex) {                                            \
-        uint32_t start_tick = rte_get_tick();                       \
-        uint32_t consumed_time = rte_tick_consume(start_tick);      \
-        RTE_TRYLOCK(device->mutex, timeout_ms, retval);             \
+        uint32_t start_time = rte_get_tick_ms();                    \
+        RTE_TRYLOCK(&(device->mutex), timeout_ms, retval);          \
+        uint32_t consumed_time = rte_time_consume(start_time);      \
         if (retval != RTE_SUCCESS)                                  \
             return retval;                                          \
         if (consumed_time >= left_time) {                           \
-            RTE_UNLOCK(device->mutex);                              \
+            RTE_UNLOCK(&(device->mutex));                           \
             return RTE_ERR_TIMEOUT;                                 \
         }                                                           \
-        left_time -= consumed_time;                                 \
-    }
+        left_time -= consumed_time
 
-rte_error_t hal_device_read_sync(hal_device_t *device, uint8_t *dest_buf,
+static ds_hashtable_t hal_device_table = NULL;
+static rte_mutex_t ht_chain_mutex_instance = {NULL};
+static rte_mutex_t ht_bucket_mutex_instance = {NULL};
+
+void *hal_get_device_table(void)
+{
+    return hal_device_table;
+}
+
+rte_error_t hal_init(void)
+{
+    ht_chain_mutex_instance.mutex = (void *)osMutexNew(NULL);
+    ht_chain_mutex_instance.lock = rte_mutex_lock;
+    ht_chain_mutex_instance.unlock = rte_mutex_unlock;
+    ht_chain_mutex_instance.trylock = rte_mutex_trylock;
+    ht_bucket_mutex_instance.mutex = (void *)osMutexNew(NULL);
+    ht_bucket_mutex_instance.lock = rte_mutex_lock;
+    ht_bucket_mutex_instance.unlock = rte_mutex_unlock;
+    ht_bucket_mutex_instance.trylock = rte_mutex_trylock;
+    hashtable_configuration_t hal_dt_config = {
+        .initial_capacity = HASHTABLE_MIN_CAPACITY,
+        .chain_mutex = &ht_chain_mutex_instance,
+        .bucket_mutex = &ht_bucket_mutex_instance,
+        .free_cb = NULL,
+    };
+    ht_create(&hal_dt_config, &hal_device_table);
+    hal_device_constructor_t *constructor_func_base = NULL;
+    uint16_t constructor_num = 0;
+#if defined(__CC_ARM) || (defined(__ARMCC_VERSION) && __ARMCC_VERSION >= 6000000)
+    extern const uintptr_t hal_constructors$$Base;
+    extern const uintptr_t hal_constructors$$Limit;
+    constructor_func_base = (hal_device_constructor_t *)(&hal_constructors$$Base);
+    constructor_num = ((hal_device_constructor_t *)(&hal_constructors$$Limit) - (hal_device_constructor_t *)(&hal_constructors$$Base));
+#elif defined(__ICCARM__) || defined(__ICCRX__)
+    #pragma section="hal_constructors"
+    constructor_func_base = (hal_device_constructor_t *)(__section_begin("hal_constructors"));
+    constructor_num = ((hal_device_constructor_t *)(__section_end("hal_constructors")) - (hal_device_constructor_t *)(__section_begin("hal_constructors")));
+#elif defined(__GNUC__)
+    extern const uintptr_t __hal_constructors_start;
+    extern const uintptr_t __hal_constructors_end;
+    constructor_func_base = (hal_device_constructor_t *)(&__hal_constructors_start);
+    constructor_num = ((hal_device_constructor_t *)(&__hal_constructors_end) - (hal_device_constructor_t *)(&__hal_constructors_start));
+#endif
+    for (uint16_t i = 0; i < constructor_num; i++) {
+        hal_device_constructor_t *func = constructor_func_base + i;
+        if(func)
+            (*func)();
+    }
+    return RTE_SUCCESS;
+}
+
+rte_error_t hal_deinit(void)
+{
+    ht_destroy(hal_device_table);
+    osMutexDelete(ht_chain_mutex_instance.mutex);
+    osMutexDelete(ht_bucket_mutex_instance.mutex);
+    hal_device_destructor_t *destructor_func_base = NULL;
+    uint16_t destructor_num = 0;
+#if defined(__CC_ARM) || (defined(__ARMCC_VERSION) && __ARMCC_VERSION >= 6000000)
+    extern const uintptr_t hal_destructors$$Base;
+    extern const uintptr_t hal_destructors$$Limit;
+    destructor_func_base = (hal_device_destructor_t *)(&hal_destructors$$Base);
+    destructor_num = ((hal_device_destructor_t *)(&hal_destructors$$Limit) - (hal_device_destructor_t *)(&hal_destructors$$Base));
+#elif defined(__ICCARM__) || defined(__ICCRX__)
+    #pragma section="hal_destructors"
+    destructor_func_base = (hal_device_destructor_t *)(__section_begin("hal_destructors"));
+    destructor_num = ((hal_device_destructor_t *)(__section_end("hal_destructors")) - (hal_device_destructor_t *)(__section_begin("hal_destructors")));
+#elif defined(__GNUC__)
+    extern const uintptr_t __hal_destructors_start;
+    extern const uintptr_t __hal_destructors_end;
+    destructor_func_base = (hal_device_destructor_t *)(&__hal_destructors_start);
+    destructor_num = ((hal_device_destructor_t *)(&__hal_destructors_end) - (hal_device_destructor_t *)(&__hal_destructors_start));
+#endif
+    for (uint16_t i = 0; i < destructor_num; i++) {
+        hal_device_destructor_t *func = destructor_func_base + i;
+        if(func)
+            (*func)();
+    }
+    return RTE_SUCCESS;
+}
+
+hal_device_t *hal_get_device(const char *device_name)
+{
+    hal_device_t *retval = NULL;
+    retval = ht_get(hal_device_table, (void *)device_name, strlen(device_name), NULL);
+    return retval;
+}
+
+rte_error_t hal_device_read_sync(char *device_name, uint8_t *dest_buf,
                                 uint32_t *buf_size, uint32_t timeout_ms)
 {
+    hal_device_t *device = hal_get_device(device_name);
     if (RTE_UNLIKELY(device == NULL) ||
         RTE_UNLIKELY(dest_buf == NULL) ||
         RTE_UNLIKELY(device->read == NULL)) {
@@ -37,13 +125,14 @@ rte_error_t hal_device_read_sync(hal_device_t *device, uint8_t *dest_buf,
     uint32_t left_time = timeout_ms;
     HAL_DEVICE_TRY_LOCK(device, left_time, retval);
     retval = device->read(device, dest_buf, buf_size, left_time);
-    RTE_UNLOCK(device->mutex);
+    RTE_UNLOCK(&device->mutex);
     return retval;
 }
 
-rte_error_t hal_device_write_sync(hal_device_t *device, uint8_t *src_buf,
+rte_error_t hal_device_write_sync(char *device_name, uint8_t *src_buf,
                                         uint32_t buf_size, uint32_t timeout_ms)
 {
+    hal_device_t *device = hal_get_device(device_name);
     if (RTE_UNLIKELY(device == NULL) ||
         RTE_UNLIKELY(src_buf == NULL) ||
         RTE_UNLIKELY(device->write == NULL)) {
@@ -53,13 +142,14 @@ rte_error_t hal_device_write_sync(hal_device_t *device, uint8_t *src_buf,
     uint32_t left_time = timeout_ms;
     HAL_DEVICE_TRY_LOCK(device, left_time, retval);
     retval = device->write(device, src_buf, buf_size, left_time);
-    RTE_UNLOCK(device->mutex);
+    RTE_UNLOCK(&device->mutex);
     return retval;
 }
 
-rte_error_t hal_device_read_async(hal_device_t *device, uint8_t *dest_buf,
+rte_error_t hal_device_read_async(char *device_name, uint8_t *dest_buf,
                                         uint32_t *buf_size, uint32_t timeout_ms)
 {
+    hal_device_t *device = hal_get_device(device_name);
     if (RTE_UNLIKELY(device == NULL) ||
         RTE_UNLIKELY(dest_buf == NULL) ||
         RTE_UNLIKELY(device->read_async == NULL)) {
@@ -69,13 +159,14 @@ rte_error_t hal_device_read_async(hal_device_t *device, uint8_t *dest_buf,
     uint32_t left_time = timeout_ms;
     HAL_DEVICE_TRY_LOCK(device, left_time, retval);
     retval = device->read_async(device, dest_buf, buf_size, left_time);
-    RTE_UNLOCK(device->mutex);
+    RTE_UNLOCK(&device->mutex);
     return retval;
 }
 
-rte_error_t hal_device_write_async(hal_device_t *device, uint8_t *src_buf,
+rte_error_t hal_device_write_async(char *device_name, uint8_t *src_buf,
                                         uint32_t buf_size, uint32_t timeout_ms)
 {
+    hal_device_t *device = hal_get_device(device_name);
     if (RTE_UNLIKELY(device == NULL) ||
         RTE_UNLIKELY(src_buf == NULL) ||
         RTE_UNLIKELY(device->write_async == NULL)) {
@@ -85,6 +176,6 @@ rte_error_t hal_device_write_async(hal_device_t *device, uint8_t *src_buf,
     uint32_t left_time = timeout_ms;
     HAL_DEVICE_TRY_LOCK(device, left_time, retval);
     retval = device->write_async(device, src_buf, buf_size, left_time);
-    RTE_UNLOCK(device->mutex);
+    RTE_UNLOCK(&device->mutex);
     return retval;
 }

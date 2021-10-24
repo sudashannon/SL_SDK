@@ -10,16 +10,21 @@
  */
 #include "../inc/hal_spi.h"
 #include "cmsis_os2.h"
+#include "spi.h"
 
 typedef struct {
+    // General resource section.
+    hal_device_t device;
     // Configuration section.
     // Resource section.
-    DMA_HandleTypeDef *tx_dma_handle;
-    DMA_HandleTypeDef *rx_dma_handle;
-    HAL_DEVICE_DEFINE(spi);
+    void *driver_handle;
 } spi_device_t;
 
-spi_device_t spi_control_handle[spi_N] = {0};
+spi_device_t spi_control_handle[spi_N] = {
+    {
+        .driver_handle = &hspi2,
+    }
+};
 
 static rte_error_t spi_send(hal_device_t *device, uint8_t *data, uint32_t size, uint32_t timeout_ms)
 {
@@ -27,7 +32,7 @@ static rte_error_t spi_send(hal_device_t *device, uint8_t *data, uint32_t size, 
     if (size == 0)
         return RTE_SUCCESS;
     result = HAL_SPI_Transmit(
-                spi_control_handle[device->device_id].spi_hal_obj,
+                spi_control_handle[device->device_id].device.fd,
                 data, size, timeout_ms);
     if (result == HAL_OK)
         return RTE_SUCCESS;
@@ -43,7 +48,7 @@ static rte_error_t spi_recv(hal_device_t *device, uint8_t *buffer, uint32_t *siz
     if (*size == 0)
         return RTE_SUCCESS;
     result = HAL_SPI_Receive(
-                spi_control_handle[device->device_id].spi_hal_obj,
+                spi_control_handle[device->device_id].device.fd,
                 buffer, *size, timeout_ms);
     if (result == HAL_OK)
         return RTE_SUCCESS;
@@ -59,10 +64,10 @@ static rte_error_t spi_send_async(hal_device_t *device, uint8_t *data, uint32_t 
     if (size == 0)
         return RTE_SUCCESS;
     result = HAL_SPI_Transmit_DMA(
-                spi_control_handle[device->device_id].spi_hal_obj,
+                spi_control_handle[device->device_id].device.fd,
                 data, size);
     if (result == HAL_OK) {
-        osSemaphoreAcquire(spi_control_handle[device->device_id].tx_sema, timeout_ms);
+        osSemaphoreAcquire(spi_control_handle[device->device_id].device.tx_sema, timeout_ms);
         return RTE_SUCCESS;
     }
     else if(result == HAL_TIMEOUT)
@@ -71,17 +76,12 @@ static rte_error_t spi_send_async(hal_device_t *device, uint8_t *data, uint32_t 
         return RTE_ERR_UNDEFINE;
 }
 
-rte_error_t spi_create(spi_name_t spi_name, spi_configuration_t *config, hal_device_t **device)
+rte_error_t spi_create(spi_name_t spi_name, hal_device_t **device)
 {
-    if (RTE_UNLIKELY(config == NULL) ||
-        RTE_UNLIKELY(device == NULL))
+    if (RTE_UNLIKELY(device == NULL))
         return RTE_ERR_PARAM;
-    // Given hal lib's resources
-    spi_control_handle[spi_name].spi_hal_obj = config->spi_handle;
-    spi_control_handle[spi_name].tx_dma_handle = config->tx_dma_handle;
-    spi_control_handle[spi_name].rx_dma_handle = config->rx_dma_handle;
 
-    HAL_DEVICE_INIT_GENERAL(spi, spi_name, spi_recv, spi_send, NULL, spi_send_async, config->spi_handle);
+    HAL_DEVICE_INIT_GENERAL(spi, spi_name, spi_recv, spi_send, NULL, spi_send_async, spi_control_handle[spi_name].driver_handle);
     return RTE_SUCCESS;
 }
 

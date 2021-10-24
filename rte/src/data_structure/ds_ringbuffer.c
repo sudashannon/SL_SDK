@@ -19,6 +19,7 @@
  */
 
 #include "../../inc/data_structure/ds_ringbuffer.h"
+#include "../../inc/middle_layer/rte_memory.h"
 
 typedef struct _ds_ringbuffer {
     uint8_t *data;
@@ -26,7 +27,6 @@ typedef struct _ds_ringbuffer {
     uint32_t head;
     uint32_t tail;
     rte_mutex_t *mutex;
-    rte_allocator_t *allocator;
 } ds_ringbuffer_impl_t;
 
 #define BUFFER_LOCK(buffer)           RTE_LOCK(buffer->mutex)
@@ -46,24 +46,19 @@ rte_error_t ds_ringbuffer_create(uint32_t capacity, rte_mutex_t *mutex, ds_ringb
         RTE_UNLIKELY(capacity == 0)) {
         return RTE_ERR_PARAM;
     }
-    rte_allocator_t *allocator = rte_get_general_allocator();
-    if (RTE_UNLIKELY(allocator == NULL)) {
-        return RTE_ERR_NO_RSRC;
-    }
     ds_ringbuffer_impl_t *buffer = NULL;
 
-    buffer = allocator->calloc(sizeof(ds_ringbuffer_impl_t));
+    buffer = rte_calloc(sizeof(ds_ringbuffer_impl_t));
     if (!buffer)
         return RTE_ERR_NO_MEM;
 
     buffer->capacity = rte_roundup_pow_of_two(capacity);
     buffer->head = 0;
     buffer->tail = 0;
-    buffer->data = (uint8_t *)allocator->calloc(sizeof(uint8_t) * buffer->capacity);
-    buffer->allocator = allocator;
+    buffer->data = (uint8_t *)rte_calloc(sizeof(uint8_t) * buffer->capacity);
     buffer->mutex = mutex;
     if (!buffer->data) {
-        allocator->free(buffer);
+        rte_free(buffer);
         return RTE_ERR_NO_MEM;
     }
 
@@ -79,16 +74,15 @@ rte_error_t ds_ringbuffer_create(uint32_t capacity, rte_mutex_t *mutex, ds_ringb
 rte_error_t ds_ringbuffer_destroy(ds_ringbuffer_t handle)
 {
     ds_ringbuffer_impl_t *buffer = (ds_ringbuffer_impl_t *)handle;
-    if (RTE_UNLIKELY(buffer == NULL) ||
-        RTE_UNLIKELY(buffer->allocator == NULL)) {
+    if (RTE_UNLIKELY(buffer == NULL)) {
         return RTE_ERR_PARAM;
     }
     BUFFER_LOCK(buffer);
     if (buffer->data)
-        buffer->allocator->free(buffer->data);
+       rte_free(buffer->data);
     // Record this mutex cause its owner will be released in the free api.
     rte_mutex_t *buffer_mutex = buffer->mutex;
-    buffer->allocator->free(buffer);
+   rte_free(buffer);
     RTE_UNLOCK(buffer_mutex);
     return RTE_SUCCESS;
 }

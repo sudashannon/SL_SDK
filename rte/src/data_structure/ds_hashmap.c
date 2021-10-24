@@ -14,6 +14,7 @@
 #include "../../inc/middle_layer/rte_atomic.h"
 #include "../../inc/middle_layer/rte_log.h"
 #include "../../inc/middle_layer/rte_timer.h"
+#include "../../inc/middle_layer/rte_memory.h"
 
 #define HT_KEY_EQUALS(_k1, _kl1, _k2, _kl2) \
             (_k1) && (_k1) && \
@@ -97,8 +98,8 @@ do {                                                            \
     if (table->free_item_cb)                                    \
         table->free_item_cb(item->data);                        \
     if (item->key != item->kbuf)                                \
-        rte_get_general_allocator()->free(item->key);           \
-    rte_get_general_allocator()->free(item);                    \
+        rte_free(item->key);           \
+    rte_free(item);                    \
 } while(0)
 
 /**
@@ -135,7 +136,7 @@ rte_error_t ht_create(hashtable_configuration_t *configuration, ds_hashtable_t *
     if (RTE_UNLIKELY(hashtable == NULL)||
         RTE_UNLIKELY(configuration == NULL))
         return RTE_ERR_PARAM;
-    hashtable_impl_t *table = (hashtable_impl_t *)rte_get_general_allocator()->calloc(sizeof(hashtable_impl_t));
+    hashtable_impl_t *table = (hashtable_impl_t *)rte_calloc(sizeof(hashtable_impl_t));
     if (!table) {
         return RTE_ERR_NO_MEM;
     }
@@ -144,7 +145,7 @@ rte_error_t ht_create(hashtable_configuration_t *configuration, ds_hashtable_t *
     // The bucket array will hold all bucket instance and be expanded by the hashmap module.
     table->mutex = configuration->bucket_mutex;
     table->buckets_count = rte_roundup_pow_of_two(configuration->initial_capacity);
-    table->buckets_array = rte_get_general_allocator()->calloc(sizeof(hashtable_bucket_t *) * table->buckets_count);
+    table->buckets_array = rte_calloc(sizeof(hashtable_bucket_t *) * table->buckets_count);
     // The chain array will be expanded by the vector module, only hold the using bucket.
     vector_configuration_t chain_configuration = VECTOR_CONFIG_INITIALIZER;
     chain_configuration.if_deep_copy = 0;
@@ -157,10 +158,10 @@ rte_error_t ht_create(hashtable_configuration_t *configuration, ds_hashtable_t *
     if (table->buckets_array == NULL ||
         table->chains_array == NULL) {
         if (table->buckets_array)
-            rte_get_general_allocator()->free(table->buckets_array);
+            rte_free(table->buckets_array);
         if (table->chains_array)
             ds_vector_destroy(table->chains_array);
-        rte_get_general_allocator()->free(table);
+        rte_free(table);
         return RTE_ERR_NO_RSRC;
     }
 
@@ -198,7 +199,7 @@ rte_error_t ht_clear(ds_hashtable_t ptable)
             HT_FREE_ITEM(table, item);
             item = next;
         }
-        rte_get_general_allocator()->free(hashchain);
+        rte_free(hashchain);
     }
     ds_vector_unlock(table->chains_array);
     ds_vector_clear(table->chains_array);
@@ -219,9 +220,9 @@ rte_error_t ht_destroy(ds_hashtable_t ptable)
 
     HT_LOCK(table);
     rte_mutex_t *tmp_mutex = table->mutex;
-    rte_get_general_allocator()->free(table->buckets_array);
+    rte_free(table->buckets_array);
     ds_vector_destroy(table->chains_array);
-    rte_get_general_allocator()->free(table);
+    rte_free(table);
     RTE_UNLOCK(tmp_mutex);
     return RTE_SUCCESS;
 }
@@ -247,7 +248,7 @@ static hashtable_bucket_t *ht_set_bucket(
         return chain;
     }
     // Create a new bucket here.
-    hashtable_bucket_t *bucket = rte_get_general_allocator()->calloc(sizeof(hashtable_bucket_t));
+    hashtable_bucket_t *bucket = rte_calloc(sizeof(hashtable_bucket_t));
     if (!bucket) {
         return NULL;
     }
@@ -267,8 +268,8 @@ static void ht_grow_internal(hashtable_impl_t *table)
 {
     HT_LOCK(table);
     table->buckets_count = table->buckets_count << 1;
-    rte_get_general_allocator()->free(table->buckets_array);
-    table->buckets_array = rte_get_general_allocator()->calloc(sizeof(hashtable_bucket_t *) * table->buckets_count);
+    rte_free(table->buckets_array);
+    table->buckets_array = rte_calloc(sizeof(hashtable_bucket_t *) * table->buckets_count);
     HT_UNLOCK(table);
 
     uint32_t index = 0;
@@ -330,7 +331,7 @@ static rte_error_t ht_set_internal(
     }
     if (if_found == false) {
         // If not found, create a new element and attach the element to the chain.
-        item = (hashtable_element_t *)rte_get_general_allocator()->calloc(sizeof(hashtable_element_t));
+        item = (hashtable_element_t *)rte_calloc(sizeof(hashtable_element_t));
         if (!item) {
             CHAIN_UNLOCK(bucket);
             return RTE_ERR_NO_MEM;
@@ -340,9 +341,9 @@ static rte_error_t ht_set_internal(
         item->next = NULL;
         // Check if default key buffer is enough for the user's key.
         if (klen > sizeof(item->kbuf)) {
-            item->key = rte_get_general_allocator()->malloc(klen);
+            item->key = rte_malloc(klen);
             if (!item->key) {
-                rte_get_general_allocator()->free(item);
+                rte_free(item);
                 CHAIN_UNLOCK(bucket);
                 return RTE_ERR_NO_MEM;
             }
@@ -354,11 +355,11 @@ static rte_error_t ht_set_internal(
         // Check if the data needs to be copied.
         if (if_copy) {
             if (dlen) {
-                item->data = rte_get_general_allocator()->malloc(dlen);
+                item->data = rte_malloc(dlen);
                 if (!item->data) {
                     if (klen > sizeof(item->kbuf))
-                        rte_get_general_allocator()->free(item->key);
-                    rte_get_general_allocator()->free(item);
+                        rte_free(item->key);
+                    rte_free(item);
                     CHAIN_UNLOCK(bucket);
                     return RTE_ERR_NO_MEM;
                 }
@@ -385,14 +386,14 @@ static rte_error_t ht_set_internal(
         // Check if the data needs to be copied.
         if (if_copy) {
             if (dlen) {
-                item->data = rte_get_general_allocator()->realloc(item->data, dlen);
+                item->data = rte_realloc(item->data, dlen);
                 if (!item->data) {
                     CHAIN_UNLOCK(bucket);
                     return RTE_ERR_NO_MEM;
                 }
                 memcpy(item->data, data, dlen);
             } else {
-                rte_get_general_allocator()->free(item->data);
+                rte_free(item->data);
                 item->data = NULL;
             }
         } else {
@@ -850,7 +851,7 @@ ht_get_helper(
         if (arg->copy_cb) {
             arg->data = arg->copy_cb(*value, *vlen, arg->user);
         } else {
-            arg->data = rte_get_general_allocator()->malloc(*vlen);
+            arg->data = rte_malloc(*vlen);
             if (!arg->data)
                 return RTE_ERR_NO_MEM;
             memcpy(arg->data, *value, *vlen);

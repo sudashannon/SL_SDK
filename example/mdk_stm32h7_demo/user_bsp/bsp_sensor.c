@@ -776,7 +776,7 @@ int sensor_snapshot(sensor_t *sensor, image_t *image, uint32_t timeout_ms)
     if (framebuffer == NULL)
         return SENSOR_ERROR_FRAMEBUFFER_OVERFLOW;
 	// Start a regular transfer
-    uint32_t start_tick = rte_get_tick();
+    uint32_t start_tick = rte_get_tick_ms();
     HAL_StatusTypeDef result = HAL_DCMI_Start_DMA(sensor->dcmi, DCMI_MODE_SNAPSHOT, (uint32_t)framebuffer, length);
 	if (result != HAL_OK)
         return SENSOR_ERROR_CAPTURE_FAILED;
@@ -793,7 +793,7 @@ int sensor_snapshot(sensor_t *sensor, image_t *image, uint32_t timeout_ms)
                 src += sensor->gs_bpp;
             }
 		}
-        uint32_t end_tick = rte_get_tick();
+        uint32_t end_tick = rte_get_tick_ms();
         RTE_LOGD("snap consume %d ms", end_tick - start_tick);
         image->data = framebuffer;
         return 0;

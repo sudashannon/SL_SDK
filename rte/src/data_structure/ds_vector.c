@@ -19,6 +19,7 @@
  */
 
 #include "../../inc/data_structure/ds_vector.h"
+#include "../../inc/middle_layer/rte_memory.h"
 
 typedef struct __ds_vector {
     uint8_t if_deep_copy:1;
@@ -31,7 +32,6 @@ typedef struct __ds_vector {
     void *data;
     vector_element_free_cb_f free_cb;
     rte_mutex_t *mutex;              // mutex for the whole vector.
-    rte_allocator_t *allocator;
 } ds_vector_impl_t;
 
 #define VECTOR_LOCK(vector)           RTE_LOCK(vector->mutex)
@@ -52,13 +52,9 @@ rte_error_t ds_vector_create(vector_configuration_t *config, ds_vector_t *handle
         RTE_UNLIKELY(config->if_deep_copy && config->element_size == 0)) {
         return RTE_ERR_PARAM;
     }
-    rte_allocator_t *allocator = rte_get_general_allocator();
-    if (RTE_UNLIKELY(allocator == NULL)) {
-        return RTE_ERR_NO_RSRC;
-    }
     ds_vector_impl_t *vector = NULL;
 
-    vector = allocator->calloc(sizeof(ds_vector_impl_t));
+    vector = rte_calloc(sizeof(ds_vector_impl_t));
     if (!vector)
         return RTE_ERR_NO_MEM;
 
@@ -72,12 +68,11 @@ rte_error_t ds_vector_create(vector_configuration_t *config, ds_vector_t *handle
     } else {
         vector->element_size = sizeof(void *);
     }
-    vector->data = allocator->calloc(vector->element_size * vector->capacity);
+    vector->data = rte_calloc(vector->element_size * vector->capacity);
     vector->free_cb = config->free_cb;
-    vector->allocator = allocator;
     vector->mutex = config->mutex;
     if (!vector->data) {
-        allocator->free(vector);
+        rte_free(vector);
         return RTE_ERR_NO_MEM;
     }
 
@@ -93,8 +88,7 @@ rte_error_t ds_vector_create(vector_configuration_t *config, ds_vector_t *handle
 rte_error_t ds_vector_clear(ds_vector_t handle)
 {
     ds_vector_impl_t *vector = (ds_vector_impl_t *)handle;
-    if (RTE_UNLIKELY(vector == NULL) ||
-        RTE_UNLIKELY(vector->allocator == NULL)) {
+    if (RTE_UNLIKELY(vector == NULL)) {
         return RTE_ERR_PARAM;
     }
     VECTOR_LOCK(vector);
@@ -122,8 +116,7 @@ rte_error_t ds_vector_clear(ds_vector_t handle)
 rte_error_t ds_vector_destroy(ds_vector_t handle)
 {
     ds_vector_impl_t *vector = (ds_vector_impl_t *)handle;
-    if (RTE_UNLIKELY(vector == NULL) ||
-        RTE_UNLIKELY(vector->allocator == NULL)) {
+    if (RTE_UNLIKELY(vector == NULL)) {
         return RTE_ERR_PARAM;
     }
     VECTOR_LOCK(vector);
@@ -138,10 +131,10 @@ rte_error_t ds_vector_destroy(ds_vector_t handle)
     }
 
     if (vector->data)
-        vector->allocator->free(vector->data);
+        rte_free(vector->data);
     // Record this mutex cause its owner will be released in the free api.
     rte_mutex_t *vector_mutex = vector->mutex;
-    vector->allocator->free(vector);
+    rte_free(vector);
     RTE_UNLOCK(vector_mutex);
     return RTE_SUCCESS;
 }
@@ -155,8 +148,7 @@ rte_error_t ds_vector_destroy(ds_vector_t handle)
 rte_error_t ds_vector_expand(ds_vector_t handle, uint32_t new_size)
 {
     ds_vector_impl_t *vector = (ds_vector_impl_t *)handle;
-    if (RTE_UNLIKELY(vector == NULL) ||
-        RTE_UNLIKELY(vector->allocator == NULL)) {
+    if (RTE_UNLIKELY(vector == NULL)) {
         return RTE_ERR_PARAM;
     }
     VECTOR_LOCK(vector);
@@ -167,8 +159,7 @@ rte_error_t ds_vector_expand(ds_vector_t handle, uint32_t new_size)
     uint32_t oldcapacity = 0;
     oldcapacity = vector->capacity;
     void *tmp = NULL;
-    tmp = vector->allocator->realloc(
-                    vector->data,
+    tmp = rte_realloc(vector->data,
                     vector->element_size * new_size);
     if (tmp == NULL) {
         VECTOR_UNLOCK(vector);
@@ -227,7 +218,6 @@ rte_error_t ds_vector_push(ds_vector_t handle, void *value)
 {
     ds_vector_impl_t *vector = (ds_vector_impl_t *)handle;
     if (RTE_UNLIKELY(vector == NULL) ||
-        RTE_UNLIKELY(vector->allocator == NULL) ||
         RTE_UNLIKELY(vector->if_deep_copy == true && value == NULL)) {
         return RTE_ERR_PARAM;
     }
@@ -246,7 +236,6 @@ rte_error_t ds_vector_push(ds_vector_t handle, void *value)
             return RTE_ERR_NO_RSRC;
         }
     }
-
     index = (vector->head + vector->length) & (vector->capacity - 1);
     if(vector->if_deep_copy)
         memcpy((uint8_t *)vector->data + index * vector->element_size, value, vector->element_size);

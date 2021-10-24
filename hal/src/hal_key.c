@@ -81,7 +81,7 @@ rte_error_t key_create(gpio_name_t gpio_name, uint8_t pressed_value, key_t **key
         return RTE_ERR_PARAM;
     }
 
-    key_t *obj = rte_get_general_allocator()->calloc(sizeof(key_t));
+    key_t *obj = rte_calloc(sizeof(key_t));
     if (!obj)
         return RTE_ERR_NO_MEM;
     obj->pressed_value = pressed_value;
@@ -91,7 +91,7 @@ rte_error_t key_create(gpio_name_t gpio_name, uint8_t pressed_value, key_t **key
     obj->state_machine = KEY_SM_POLL;
     timer_configuration_t config = TIMER_CONFIG_INITIALIZER;
     timer_id_t running_timer_id = 0;
-    config.repeat_period_tick = KEY_FILTER_TIME;
+    config.repeat_period_ms = KEY_FILTER_TIME;
     config.timer_callback = key_timer;
     config.parameter = obj;
     rte_error_t result = timer_create_new(rte_get_main_timergroup(), &config, &running_timer_id);
@@ -115,7 +115,7 @@ rte_error_t key_destroy(key_t **key_handle)
     if (!*key_handle)
         return RTE_ERR_PARAM;
     timer_delete(rte_get_main_timergroup(), (*key_handle)->timer_index);
-    rte_get_general_allocator()->free(*key_handle);
+    rte_free(*key_handle);
     *key_handle = NULL;
     return RTE_SUCCESS;
 }

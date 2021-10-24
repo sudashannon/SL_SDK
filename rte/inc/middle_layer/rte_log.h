@@ -138,6 +138,14 @@ extern void log_sec2time(time_t timetick, struct tm *tm);
  */
 extern int log_snprintf(char * restrict s, size_t n, const char * restrict format, ...);
 /**
+ * @brief Provide simple vprintf function, do not support '%f'.
+ *
+ * @param pcString
+ * @param vaArgP
+ * @return int
+ */
+extern int log_vprintf(const char *pcString, va_list vaArgP);
+/**
  * @brief Provide simple sprintf function, do not support '%f'.
  *
  * @param s

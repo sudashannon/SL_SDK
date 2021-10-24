@@ -23,36 +23,6 @@ MEM_ALIGN_NBYTES (__attribute__((section (".RAM_DMA"))) static uint8_t dma_buffe
 MEM_ALIGN_NBYTES (__attribute__((section (".RAM_FB"))) static uint8_t fb_buffer[512 * 1024], MEM_BLOCK_ALIGN) = {0};
 MEM_ALIGN_NBYTES (__attribute__((section (".RAM_MATH"))) static uint8_t math_buffer[128 * 1024], MEM_BLOCK_ALIGN) = {0};
 MEM_ALIGN_NBYTES (__attribute__((section (".RAM_BACKUP"))) static uint8_t jpeg_buffer[64 * 1024], MEM_BLOCK_ALIGN) = {0};
-static rte_allocator_t rte_allocator_instance = {
-    .malloc = NULL,
-    .calloc = NULL,
-    .realloc = NULL,
-    .free = NULL,
-};
-/**
- * @brief Mutex used for general allocator, which is adapted for CMSIS-RTOS2.
- *
- */
-static const osMutexAttr_t mem_mutex_attr[BANK_CNT] = {
-    {
-        LOG_STR(BANK_DEFAULT),
-        osMutexPrioInherit | osMutexRecursive,
-        NULL,
-        0U
-    },
-    {
-        LOG_STR(BANK_DMA),
-        osMutexPrioInherit | osMutexRecursive,
-        NULL,
-        0U
-    },
-    {
-        LOG_STR(BANK_FB),
-        osMutexPrioInherit | osMutexRecursive,
-        NULL,
-        0U
-    }
-};
 /**
  * @brief Used for main timer group internal.
  *
@@ -101,14 +71,14 @@ rte_error_t rte_mutex_unlock(void *mutex)
  */
 uint32_t HAL_GetTick(void)
 {
-    return rte_get_tick();
+    return rte_get_tick_ms();
 }
 /**
  * @brief Wrapper for get system's tick, which is adapted for CMSIS-RTOS2.
  *
  * @return uint32_t
  */
-uint32_t rte_get_tick(void)
+uint32_t rte_get_tick_ms(void)
 {
     /* Return current time in milliseconds */
     if (osKernelGetState () == osKernelRunning) {
@@ -152,51 +122,31 @@ void rte_yield(void)
     osThreadYield();
 }
 /**
- * @brief Wrapper for memory malloc, which is adapted for internal memory pool.
- *
- * @param size
- * @return void*
- */
-static void *rte_malloc(uint32_t size)
-{
-    return memory_alloc(BANK_DEFAULT, size);
-}
-/**
- * @brief Wrapper for memory calloc, which is adapted for internal memory pool.
- *
- * @param size
- * @return void*
- */
-static void *rte_calloc(uint32_t size)
-{
-    return memory_calloc(BANK_DEFAULT, size);
-}
-/**
- * @brief Wrapper for memory realloc, which is adapted for internal memory pool.
- *
- * @param ptr
- * @param size
- * @return void*
- */
-static void *rte_realloc(void *ptr, uint32_t size)
-{
-    return memory_realloc(BANK_DEFAULT, ptr, size);
-}
-/**
- * @brief Wrapper for memory free, which is adapted for internal memory pool.
- *
- * @param ptr
- */
-static void rte_free(void *ptr)
-{
-    memory_free(BANK_DEFAULT, ptr);
-}
-/**
  * @brief Init the rte, must be called before tbe system begins.
  *
  */
 void rte_init(void)
 {
+    osMutexAttr_t mem_mutex_attr[BANK_CNT] = {
+        {
+            LOG_STR(BANK_DEFAULT),
+            osMutexPrioInherit | osMutexRecursive,
+            NULL,
+            0U
+        },
+        {
+            LOG_STR(BANK_DMA),
+            osMutexPrioInherit | osMutexRecursive,
+            NULL,
+            0U
+        },
+        {
+            LOG_STR(BANK_FB),
+            osMutexPrioInherit | osMutexRecursive,
+            NULL,
+            0U
+        }
+    };
     mem_mutex_instance[BANK_DEFAULT].mutex = (void *)osMutexNew(&mem_mutex_attr[BANK_DEFAULT]);
     mem_mutex_instance[BANK_DEFAULT].lock = rte_mutex_lock;
     mem_mutex_instance[BANK_DEFAULT].unlock = rte_mutex_unlock;
@@ -214,17 +164,20 @@ void rte_init(void)
     memory_pool(BANK_FB, NULL, fb_buffer, sizeof(fb_buffer));
     memory_pool(BANK_MATH, NULL, math_buffer, sizeof(math_buffer));
     memory_pool(BANK_JPEG, NULL, jpeg_buffer, sizeof(jpeg_buffer));
-    rte_allocator_instance.malloc = rte_malloc;
-    rte_allocator_instance.calloc = rte_calloc;
-    rte_allocator_instance.realloc = rte_realloc;
-    rte_allocator_instance.free = rte_free;
-    log_mutex_instance.mutex = (void *)osMutexNew(NULL);
+    osMutexAttr_t log_mutex_attr = {
+        "log",
+        osMutexPrioInherit | osMutexRecursive,
+        NULL,
+        0U
+    };  
+    log_mutex_instance.mutex = (void *)osMutexNew(&log_mutex_attr);
     log_mutex_instance.lock = rte_mutex_lock;
     log_mutex_instance.unlock = rte_mutex_unlock;
     log_mutex_instance.trylock = NULL;
-    log_init(&log_mutex_instance, NULL, rte_get_tick);
+    log_init(&log_mutex_instance, NULL, rte_get_tick_ms);
     timer_init(4, true);
     timer_create_group(&rte_timer_group, NULL);
+    shell_init();
 }
 
 /**
@@ -239,15 +192,6 @@ rte_error_t rte_deinit(void)
     osMutexDelete(log_mutex_instance.mutex);
     timer_deinit();
     return RTE_SUCCESS;
-}
-/**
- * @brief Get the general rte allocator.
- *
- * @return rte_allocator_t*
- */
-rte_allocator_t *rte_get_general_allocator(void)
-{
-    return &rte_allocator_instance;
 }
 /**
  * @brief Get the main timer group.

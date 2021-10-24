@@ -44,6 +44,7 @@
   RTE\Device\STM32H743VITx\STCubeGenerated\Inc\stm32h7xx_it.h \
   ..\..\hal\inc\hal_include.h ..\..\hal\inc\hal_com.h \
   RTE\_Target_1\RTE_Components.h ..\..\hal\inc\hal.h \
+  C:\UserProfession\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdio.h \
   ..\..\rte\inc\rte_include.h ..\..\rte\inc\middle_layer\rte.h \
   C:\UserProfession\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdarg.h \
   C:\UserProfession\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdlib.h \
@@ -56,6 +57,7 @@
   ..\..\rte\inc\middle_layer\rte_memory.h \
   ..\..\rte\inc\middle_layer\rte_atomic.h \
   ..\..\rte\inc\middle_layer\rte_timer.h \
+  ..\..\rte\inc\middle_layer\rte_shell.h \
   ..\..\rte\inc\data_structure\ds_vector.h \
   ..\..\rte\inc\data_structure\..\middle_layer\rte.h \
   ..\..\rte\inc\data_structure\ds_ringbuffer.h \
@@ -64,7 +66,6 @@
   ..\..\rte\inc\image_process\image_process.h \
   C:\UserProfession\Keil_v5\Packs\ARM\CMSIS\5.8.0\CMSIS\Core\Include\cmsis_compiler.h \
   ..\..\rte\inc\image_process\..\middle_layer\rte.h \
-  ..\..\hal\inc\hal_gpio.h ..\..\hal\inc\hal_key.h \
-  ..\..\hal\inc\hal_spi.h \
   C:\UserProfession\Keil_v5\Packs\ARM\CMSIS\5.8.0\CMSIS\RTOS2\Include\cmsis_os2.h \
-  ..\..\hal\inc\hal_qspi.h
+  ..\..\hal\inc\hal_gpio.h ..\..\hal\inc\hal_key.h \
+  ..\..\hal\inc\hal_spi.h ..\..\hal\inc\hal_qspi.h

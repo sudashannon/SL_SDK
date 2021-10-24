@@ -18,7 +18,7 @@ typedef struct {
     uint8_t if_reload:1;
     uint8_t if_run_immediately:1;
     uint8_t reserved:6;
-    uint32_t repeat_period_tick;
+    uint32_t repeat_period_ms;
     rte_callback_f timer_callback;
     void *parameter;
 } timer_configuration_t;
@@ -26,10 +26,12 @@ typedef struct {
 #define TIMER_CONFIG_INITIALIZER {                         \
     .if_reload = 1,                                        \
     .if_run_immediately = 1,                               \
-    .repeat_period_tick = 100,                             \
+    .repeat_period_ms = 100,                               \
     .timer_callback = NULL,                                \
     .parameter = NULL,                                     \
 }
+
+#define TIME_MAX_DELAY_MS                                  0xFFFFFFFFUL
 
 /**
  * @brief Init the timer module with excepted group count and os configration.
@@ -98,26 +100,26 @@ extern rte_error_t timer_resume(uint8_t group_id, uint8_t timer_id);
  *        or in the timer thread when with OS.
  *
  */
-extern void timer_tick_handle(uint32_t tick);
+extern void timer_tick_handle(uint32_t delta_ms);
 /**
  * @brief Return current time in milliseconds
  *
  * @return uint32_t
  */
-extern uint32_t rte_get_tick(void);
+extern uint32_t rte_get_tick_ms(void);
 /**
  * @brief Calculate time diff.
  *
- * @param prev_tick
+ * @param prev_time_ms
  * @return uint32_t
  */
-extern uint32_t rte_tick_consume(uint32_t prev_tick);
+extern uint32_t rte_time_consume(uint32_t prev_time_ms);
 /**
  * @brief Block CPU for the running thread in some certain time.
  *
- * @param delay
+ * @param delay_ms
  */
-extern void rte_delay_ms(uint32_t delay);
+extern void rte_delay_ms(uint32_t delay_ms);
 /**
  * @brief Yield the CPU for the running thread.
  *

@@ -1,7 +1,8 @@
-./objects/ds_hashmap.o: ..\..\rte\src\data_structure\ds_hashmap.c \
+./objects/rte_shell.o: ..\..\rte\src\middleware\rte_shell.c \
   RTE\_Target_1\Pre_Include_Global.h \
-  ..\..\rte\src\data_structure\..\..\inc\data_structure\ds_hashmap.h \
-  ..\..\rte\src\data_structure\..\..\inc\data_structure\..\middle_layer\rte.h \
+  ..\..\rte\src\middleware\..\..\inc\middle_layer\rte_shell.h \
+  ..\..\rte\src\middleware\..\..\inc\middle_layer\rte_log.h \
+  ..\..\rte\src\middleware\..\..\inc\middle_layer\rte.h \
   C:\UserProfession\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdarg.h \
   C:\UserProfession\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdint.h \
   C:\UserProfession\Keil_v5\ARM\ARMCLANG\Bin\..\include\stddef.h \
@@ -12,8 +13,4 @@
   C:\UserProfession\Keil_v5\ARM\ARMCLANG\Bin\..\include\math.h \
   C:\UserProfession\Keil_v5\ARM\ARMCLANG\Bin\..\include\float.h \
   C:\UserProfession\Keil_v5\ARM\ARMCLANG\Bin\..\include\limits.h \
-  ..\..\rte\src\data_structure\..\..\inc\data_structure\ds_vector.h \
-  ..\..\rte\src\data_structure\..\..\inc\middle_layer\rte_atomic.h \
-  ..\..\rte\src\data_structure\..\..\inc\middle_layer\rte_log.h \
-  ..\..\rte\src\data_structure\..\..\inc\middle_layer\rte_timer.h \
-  ..\..\rte\src\data_structure\..\..\inc\middle_layer\rte_memory.h
+  ..\..\rte\src\middleware\..\..\inc\middle_layer\rte_timer.h

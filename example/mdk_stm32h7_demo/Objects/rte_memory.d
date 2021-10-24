@@ -13,5 +13,6 @@
   C:\UserProfession\Keil_v5\ARM\ARMCLANG\Bin\..\include\float.h \
   C:\UserProfession\Keil_v5\ARM\ARMCLANG\Bin\..\include\limits.h \
   ..\..\rte\src\middleware\..\..\inc\middle_layer\rte_log.h \
+  ..\..\rte\src\middleware\..\..\inc\middle_layer\rte_shell.h \
   C:\UserProfession\Keil_v5\Packs\ARM\CMSIS\5.8.0\CMSIS\Core\Include\cmsis_compiler.h \
   C:\UserProfession\Keil_v5\Packs\ARM\CMSIS\5.8.0\CMSIS\Core\Include\cmsis_armclang.h

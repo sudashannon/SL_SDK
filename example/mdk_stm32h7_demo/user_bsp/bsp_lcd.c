@@ -9,16 +9,13 @@
  *
  */
 #include "cmsis_os2.h"
-#include "spi.h"
 #include "bsp_lcd.h"
-
-static hal_device_t *spi_lcd = NULL;
 
 static void bsp_lcd_write_data(uint8_t data)
 {
     gpio_set_low(LCD_CS);
     gpio_set_high(LCD_DC);
-    hal_device_write_sync(spi_lcd, &data, 1, HAL_MAX_DELAY);
+    hal_device_write_sync("spi_0", &data, 1, HAL_MAX_DELAY);
     gpio_set_high(LCD_CS);
 }
 
@@ -26,7 +23,7 @@ static void bsp_lcd_write_ndata(uint8_t *data, uint16_t size)
 {
     gpio_set_low(LCD_CS);
     gpio_set_high(LCD_DC);
-    hal_device_write_sync(spi_lcd, data, size, HAL_MAX_DELAY);
+    hal_device_write_sync("spi_0", data, size, HAL_MAX_DELAY);
     gpio_set_high(LCD_CS);
 }
 
@@ -34,7 +31,7 @@ static void bsp_lcd_write_command(uint8_t command)
 {
     gpio_set_low(LCD_CS);
     gpio_set_low(LCD_DC);
-    hal_device_write_sync(spi_lcd, &command, 1, HAL_MAX_DELAY);
+    hal_device_write_sync("spi_0", &command, 1, HAL_MAX_DELAY);
     gpio_set_high(LCD_CS);
 }
 static void bsp_lcd_set_cursor(uint16_t x1, uint16_t x2, uint16_t y1, uint16_t y2)
@@ -58,7 +55,7 @@ void bsp_lcd_put_pixel(uint16_t x, uint16_t y, uint16_t color)
 	color = __REV16(color);
     gpio_set_low(LCD_CS);
     gpio_set_high(LCD_DC);
-    hal_device_write_sync(spi_lcd, (uint8_t *)&color, 2, HAL_MAX_DELAY);
+    hal_device_write_sync("spi_0", (uint8_t *)&color, 2, HAL_MAX_DELAY);
     gpio_set_high(LCD_CS);
 }
 void bsp_lcd_fill_color_slow(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16_t color)
@@ -69,7 +66,7 @@ void bsp_lcd_fill_color_slow(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1,
     gpio_set_low(LCD_CS);
     gpio_set_high(LCD_DC);
     for (uint32_t i = 0; i < (x1 - x0 + 1) *(y1 - y0 + 1); i++)
-        hal_device_write_sync(spi_lcd, (uint8_t *)&color, 2, HAL_MAX_DELAY);
+        hal_device_write_sync("spi_0", (uint8_t *)&color, 2, HAL_MAX_DELAY);
     gpio_set_high(LCD_CS);
 }
 void bsp_lcd_fill_color_normal(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16_t color)
@@ -87,7 +84,7 @@ void bsp_lcd_fill_color_normal(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y
 		line_buffer[i] = __REV16(color);
     HAL_RAM_CLEAN_PRE_SEND(line_buffer, send_count);
     for(i = 0; i < row; i++) {
-        hal_device_write_async(spi_lcd, (uint8_t *)line_buffer, send_count, osWaitForever);
+        hal_device_write_async("spi_0", (uint8_t *)line_buffer, send_count, osWaitForever);
 	}
 	// SPI2 CS HIGH
 	gpio_set_high(LCD_CS);
@@ -103,7 +100,7 @@ void bsp_lcd_fill_frame(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint
 	for(uint32_t i = 0; i < size;) {
         uint16_t send_count = (uint16_t) (size > UINT16_MAX ? UINT16_MAX : size);
         HAL_RAM_CLEAN_PRE_SEND(color_map, send_count);
-        rte_error_t result = hal_device_write_async(spi_lcd, (uint8_t*)color_map, send_count, osWaitForever);
+        rte_error_t result = hal_device_write_async("spi_0", (uint8_t*)color_map, send_count, osWaitForever);
         if (result == RTE_SUCCESS) {
             color_map += send_count;
             i += send_count;
@@ -116,12 +113,6 @@ void bsp_lcd_fill_frame(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint
 }
 void bsp_lcd_init(void)
 {
-    spi_configuration_t spi_lcd_config = {0};
-    spi_lcd_config.spi_handle = &hspi2;
-    spi_lcd_config.tx_dma_handle = &hdma_spi2_tx;
-    spi_lcd_config.rx_dma_handle = NULL;
-    spi_create(spi_1, &spi_lcd_config, &spi_lcd);
-
     bsp_lcd_write_command(0x01);
     rte_delay_ms(50);
 
@@ -201,9 +192,9 @@ void bsp_lcd_init(void)
     rte_delay_ms(100);
 	bsp_lcd_write_command(0x29);
     gpio_set_high(LCD_BLK);
-    uint32_t start_tick = rte_get_tick();
+    uint32_t start_tick = rte_get_tick_ms();
     bsp_lcd_fill_color_normal(0, 0, 239, 320, 0x1234);
-    uint32_t end_tick = rte_get_tick();
+    uint32_t end_tick = rte_get_tick_ms();
     RTE_LOGI("lcd fill time %d ms", end_tick - start_tick);
     uint16_t *image = memory_alloc_align(BANK_DMA, 32, 50 * 50 * sizeof(uint16_t));
     memset(image, 0x5678, 50 * 50 * sizeof(uint16_t));

@@ -47,7 +47,8 @@ void memory_pool(mem_bank_t bank, rte_mutex_t *mutex, void *mem_pool, size_t mem
  * @param size
  * @return void*
  */
-void* memory_alloc(mem_bank_t bank, size_t size);
+void *memory_alloc_impl(mem_bank_t bank, size_t size, const char *func, uint32_t line);
+#define memory_alloc(bank, size)                memory_alloc_impl(bank, size, __func__, __LINE__)
 /**
  * @brief Alloc a size of memory stack and set it to zero.
  *
@@ -55,7 +56,8 @@ void* memory_alloc(mem_bank_t bank, size_t size);
  * @param size
  * @return void*
  */
-void *memory_calloc(mem_bank_t bank, size_t size);
+void *memory_calloc_impl(mem_bank_t bank, size_t size, const char *func, uint32_t line);
+#define memory_calloc(bank, size)               memory_calloc_impl(bank, size, __func__, __LINE__)
 /**
  * @brief Alloc a size of aligned memory stack.
  *
@@ -64,7 +66,8 @@ void *memory_calloc(mem_bank_t bank, size_t size);
  * @param size
  * @return void*
  */
-void* memory_alloc_align(mem_bank_t bank, size_t align, size_t size);
+void  *memory_alloc_align_impl(mem_bank_t bank, size_t align, size_t size, const char *func, uint32_t line);
+#define memory_alloc_align(bank, align, size)   memory_alloc_align_impl(bank, align, size, __func__, __LINE__)
 /**
  * @brief Free a allocated memory stack.
  *
@@ -80,7 +83,8 @@ void memory_free(mem_bank_t bank,void* ptr);
  * @param size
  * @return void*
  */
-void* memory_realloc(mem_bank_t bank, void* ptr, size_t size);
+void *memory_realloc_impl(mem_bank_t bank, void* ptr, size_t size, const char *func, uint32_t line);
+#define memory_realloc(bank, ptr, size)          memory_realloc_impl(bank, ptr, size, __func__, __LINE__)
 /**
  * @brief Get a malloced buffer's size.
  *
@@ -110,7 +114,8 @@ size_t memory_sizeof_max(mem_bank_t bank);
  * @param size
  * @return void*
  */
-void *memory_alloc_max(mem_bank_t bank,size_t *size);
+void *memory_alloc_max_impl(mem_bank_t bank, size_t *size, const char *func, uint32_t line);
+#define memory_alloc_max(bank, ptr, size)         memory_alloc_max_impl(bank, ptr, size, __func__, __LINE__)
 /**
  * @brief Demon a bank of memory stack.
  *
@@ -118,6 +123,11 @@ void *memory_alloc_max(mem_bank_t bank,size_t *size);
  * @return size_t
  */
 void memory_demon(mem_bank_t bank);
+
+#define rte_malloc(size)            memory_alloc(BANK_DEFAULT, size)
+#define rte_calloc(size)            memory_calloc(BANK_DEFAULT, size)
+#define rte_realloc(ptr, size)      memory_realloc(BANK_DEFAULT, ptr, size)
+#define rte_free(ptr)               memory_free(BANK_DEFAULT, ptr)
 
 /* For include header in CPP code */
 #ifdef __cplusplus

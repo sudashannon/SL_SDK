@@ -52,6 +52,7 @@
   ..\..\rte\inc\middle_layer\rte_memory.h \
   ..\..\rte\inc\middle_layer\rte_atomic.h \
   ..\..\rte\inc\middle_layer\rte_timer.h \
+  ..\..\rte\inc\middle_layer\rte_shell.h \
   ..\..\rte\inc\data_structure\ds_vector.h \
   ..\..\rte\inc\data_structure\..\middle_layer\rte.h \
   ..\..\rte\inc\data_structure\ds_ringbuffer.h \
@@ -61,10 +62,11 @@
   C:\UserProfession\Keil_v5\Packs\ARM\CMSIS\5.8.0\CMSIS\Core\Include\cmsis_compiler.h \
   ..\..\rte\inc\image_process\..\middle_layer\rte.h \
   ..\..\hal\inc\hal_include.h ..\..\hal\inc\hal_com.h \
-  ..\..\hal\inc\hal.h ..\..\hal\inc\hal_gpio.h ..\..\hal\inc\hal_key.h \
-  ..\..\hal\inc\hal_spi.h \
+  ..\..\hal\inc\hal.h \
+  C:\UserProfession\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdio.h \
   C:\UserProfession\Keil_v5\Packs\ARM\CMSIS\5.8.0\CMSIS\RTOS2\Include\cmsis_os2.h \
-  ..\..\hal\inc\hal_qspi.h user_bsp\ov2640.h user_bsp\ov7725.h \
-  RTE\Device\STM32H743VITx\STCubeGenerated\Inc\i2c.h \
+  ..\..\hal\inc\hal_gpio.h ..\..\hal\inc\hal_key.h \
+  ..\..\hal\inc\hal_spi.h ..\..\hal\inc\hal_qspi.h user_bsp\ov2640.h \
+  user_bsp\ov7725.h RTE\Device\STM32H743VITx\STCubeGenerated\Inc\i2c.h \
   RTE\Device\STM32H743VITx\STCubeGenerated\Inc\main.h \
   RTE\Device\STM32H743VITx\STCubeGenerated\Inc\dcmi.h

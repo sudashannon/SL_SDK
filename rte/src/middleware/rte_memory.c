@@ -11,6 +11,7 @@
  */
 #include "../../inc/middle_layer/rte_memory.h"
 #include "../../inc/middle_layer/rte_log.h"
+#include "../../inc/middle_layer/rte_shell.h"
 
 #define THIS_MODULE LOG_STR(MEMORY)
 #define MEM_LOGF(...) LOG_FATAL(THIS_MODULE, __VA_ARGS__)
@@ -22,6 +23,24 @@
 #define MEM_ASSERT(v) LOG_ASSERT(THIS_MODULE, v)
 #define MEM_LOCK(bank)   RTE_LOCK(mem_handle[bank].mutex)
 #define MEM_UNLOCK(bank) RTE_UNLOCK(mem_handle[bank].mutex)
+
+#if RTE_MEMPOOL_ENABLE_DEBUG == 1
+typedef struct {
+    const char *function;
+    uint32_t line;
+} mem_debug_info_t;
+#define DEBUG_RESIZE(size) (size += sizeof(mem_debug_info_t))
+#define DEBUG_FILL_INFO(ptr, block_size, func, line)                        \
+                            mem_debug_info_t *debug_info =                  \
+                            (mem_debug_info_t *)((uint8_t *)ptr +           \
+                            block_size - sizeof(mem_debug_info_t));         \
+                            debug_info->function = func;                    \
+                            debug_info->line = line
+
+#else
+#define DEBUG_RESIZE(size)
+#define DEBUG_FILL_INFO(ptr, block, func, line)
+#endif
 
 #if RTE_USE_SIMPLY_MEMPOOL == 0
 /*
@@ -748,15 +767,17 @@ void memory_pool(mem_bank_t bank, rte_mutex_t *mutex, void *mem_pool, size_t mem
  * @param size
  * @return void*
  */
-void* memory_alloc(mem_bank_t bank, size_t size)
+void *memory_alloc_impl(mem_bank_t bank, size_t size, const char *func, uint32_t line)
 {
     void *p = NULL;
     MEM_LOCK(bank);
     if(size) {
+        DEBUG_RESIZE(size);
         control_t* control = mem_cast(control_t*, mem_handle[bank].mem);
         const size_t adjust = adjust_request_size(size, ALIGN_SIZE);
         block_header_t* block = block_locate_free(control, adjust);
         p = block_prepare_used(control, block, adjust);
+        DEBUG_FILL_INFO(p, block_size(block), func, line);
     }
     MEM_UNLOCK(bank);
     return p;
@@ -768,12 +789,12 @@ void* memory_alloc(mem_bank_t bank, size_t size)
  * @param size
  * @return void*
  */
-void *memory_calloc(mem_bank_t bank, size_t size)
+void *memory_calloc_impl(mem_bank_t bank, size_t size, const char *func, uint32_t line)
 {
     void *ret = 0;
-    ret = memory_alloc(bank,size);
+    ret = memory_alloc_impl(bank, size, func, line);
     if(ret && size)
-        memset(ret,0,size);
+        memset(ret, 0, size);
     return ret;
 }
 /**
@@ -784,11 +805,12 @@ void *memory_calloc(mem_bank_t bank, size_t size)
  * @param size
  * @return void*
  */
-void* memory_alloc_align(mem_bank_t bank, size_t align, size_t size)
+void* memory_alloc_align_impl(mem_bank_t bank, size_t align, size_t size, const char *func, uint32_t line)
 {
     MEM_LOCK(bank);
     void *retval = NULL;
     if(size) {
+        DEBUG_RESIZE(size);
         control_t* control = mem_cast(control_t*, mem_handle[bank].mem);
         const size_t adjust = adjust_request_size(size, ALIGN_SIZE);
         /*
@@ -829,6 +851,7 @@ void* memory_alloc_align(mem_bank_t bank, size_t align, size_t size)
             }
         }
         retval = block_prepare_used(control, block, adjust);
+        DEBUG_FILL_INFO(retval, block_size(block), func, line);
     }
     MEM_UNLOCK(bank);
     return retval;
@@ -871,7 +894,7 @@ void memory_free(mem_bank_t bank,void* ptr)
 ** - an extended buffer size will leave the newly-allocated area with
 **   contents undefined
 */
-void* memory_realloc(mem_bank_t bank, void* ptr, size_t size)
+void *memory_realloc_impl(mem_bank_t bank, void* ptr, size_t size, const char *func, uint32_t line)
 {
     /* Protect the critical section... */
     void* p = NULL;
@@ -879,7 +902,7 @@ void* memory_realloc(mem_bank_t bank, void* ptr, size_t size)
     if (ptr && size == 0) {
         memory_free(bank, ptr);
     } else if (!ptr) { /* Requests with NULL pointers are treated as malloc. */
-        p = memory_alloc(bank, size);
+        p = memory_alloc_impl(bank, size, func, line);
     } else {
         MEM_LOCK(bank);
 
@@ -898,7 +921,7 @@ void* memory_realloc(mem_bank_t bank, void* ptr, size_t size)
         ** block, does not offer enough space, we must reallocate and copy.
         */
         if (adjust > cursize && (!block_is_free(next) || adjust > combined)) {
-            p = memory_alloc(bank, size);
+            p = memory_alloc_impl(bank, size, func, line);
             if (p) {
                 const size_t minsize = RTE_MIN(cursize, size);
                 memcpy(p, ptr, minsize);
@@ -914,13 +937,23 @@ void* memory_realloc(mem_bank_t bank, void* ptr, size_t size)
             block_trim_used(control, block, adjust);
             p = ptr;
         }
+        DEBUG_FILL_INFO(p, block_size(block), func, line);
         MEM_UNLOCK(bank);
     }
     return p;
 }
 static void print_block(void* ptr, size_t size, int used)
 {
-    MEM_LOGI("%p %s size: %d (%p)", ptr, used ? "used" : "free", (unsigned int)size, block_from_ptr(ptr));
+#if RTE_MEMPOOL_ENABLE_DEBUG == 1
+    mem_debug_info_t *debug_info =  (mem_debug_info_t *)((uint8_t *)ptr + size - sizeof(mem_debug_info_t));
+    shell_printf("user_ptr: 0x%08p [%s] real_size: %d (block_header: 0x%08p) owned by %s %d\r\n",
+                    ptr, used ? "used" : "free", (unsigned int)size, block_from_ptr(ptr),
+                    used ? debug_info->function : "N/A",
+                    used ? debug_info->line : 0);
+#else
+    shell_printf("user_ptr: 0x%08p [%s] real_size: %d (block_header: 0x%08p)\r\n",
+                    ptr, used ? "used" : "free", (unsigned int)size, block_from_ptr(ptr));
+#endif
 }
 /**
  * @brief Demon a bank of memory stack.
@@ -933,11 +966,11 @@ void memory_demon(mem_bank_t bank)
     if(bank >= BANK_CNT)
         return;
     MEM_LOCK(bank);
-    block_header_t* block =
+    block_header_t *block =
         offset_to_block(mem_handle[bank].pool, -(int)block_header_overhead);
-    MEM_LOGI("--------------------------------------------------");
-    MEM_LOGI("BANK%d start at %p",bank, mem_handle[bank].pool);
-    MEM_LOGI("--------------------------------------------------");
+    shell_puts("--------------------------------------------------\r\n");
+    shell_printf("BANK%d start at 0x%016p\r\n",bank, mem_handle[bank].pool);
+    shell_puts("--------------------------------------------------\r\n");
     while (block && !block_is_last(block)) {
         print_block(block_to_ptr(block), block_size(block), !block_is_free(block));
         block = block_next(block);
@@ -1008,7 +1041,7 @@ size_t memory_sizeof_max(mem_bank_t bank)
  * @param size
  * @return void*
  */
-void *memory_alloc_max(mem_bank_t bank,size_t *size)
+void *memory_alloc_max_impl(mem_bank_t bank, size_t *size, const char *func, uint32_t line)
 {
     MEM_LOCK(bank);
     void *p_retval = NULL;
@@ -1025,11 +1058,14 @@ void *memory_alloc_max(mem_bank_t bank,size_t *size)
         }
         block = block_next(block);
     }
-    *size = maxsize;
+#if RTE_MEMPOOL_ENABLE_DEBUG == 1
+    *size = maxsize - sizeof(mem_debug_info_t);
+#endif
     if(maxsize > 0) {
         block_mark_as_used(retval);
         p_retval = (void *)block_to_ptr(retval);
     }
+    DEBUG_FILL_INFO(p_retval, block_size(retval), func, line);
     /* Release the critical section... */
     MEM_UNLOCK(bank);
     return p_retval;
@@ -1098,11 +1134,12 @@ void memory_pool(mem_bank_t bank, rte_mutex_t *mutex, void *mem_pool, size_t mem
  * @param size
  * @return void*
  */
-void* memory_alloc(mem_bank_t bank, size_t size)
+void *memory_alloc_impl(mem_bank_t bank, size_t size, const char *func, uint32_t line)
 {
     void *p = NULL;
     if(size) {
         MEM_LOCK(bank);
+        DEBUG_RESIZE(size);
 #if RTE_MEMPOOL_USE_64BIT
         /*Round the size up to 8*/
         if(size & 0x7) {
@@ -1127,6 +1164,7 @@ void* memory_alloc(mem_bank_t bank, size_t size)
             }
             //End if there is not next entry OR the alloc. is successful
         } while(e != NULL && p == NULL);
+        DEBUG_FILL_INFO(p, e->header.d_size, func, line);
         MEM_UNLOCK(bank);
     }
     return p;
@@ -1138,10 +1176,10 @@ void* memory_alloc(mem_bank_t bank, size_t size)
  * @param size
  * @return void*
  */
-void *memory_calloc(mem_bank_t bank, size_t size)
+void *memory_calloc_impl(mem_bank_t bank, size_t size, const char *func, uint32_t line)
 {
     void *ret = 0;
-    ret = memory_alloc(bank,size);
+    ret = memory_alloc_impl(bank, size, func, line);
     if(ret&&size)
         memset(ret,0,size);
     return ret;
@@ -1183,7 +1221,7 @@ void memory_free(mem_bank_t bank, void* ptr)
  * @param size
  * @return void*
  */
-void* memory_realloc(mem_bank_t bank, void* ptr, size_t size)
+void* memory_realloc_impl(mem_bank_t bank, void* ptr, size_t size, const char *func, uint32_t line)
 {
     void *p = NULL;
     MEM_LOCK(bank);
@@ -1197,8 +1235,9 @@ void* memory_realloc(mem_bank_t bank, void* ptr, size_t size)
     if (ptr && size == 0) {
         memory_free(bank, ptr);
     } else if (!ptr) {  /* Requests with NULL pointers are treated as malloc. */
-        p = memory_alloc(bank, size);
+        p = memory_alloc_impl(bank, size, func, line);
     } else {
+        DEBUG_RESIZE(size);
 #if RTE_MEMPOOL_USE_64BIT
         /*Round the size up to 8*/
         if(size & 0x7) {
@@ -1221,6 +1260,7 @@ void* memory_realloc(mem_bank_t bank, void* ptr, size_t size)
             mem_entry_t * e = (mem_entry_t *)((uint8_t *) ptr - sizeof(mem_header_t));
             ent_trunc(e, size);
             p = &e->first_data;
+            DEBUG_FILL_INFO(p, e->header.d_size, func, line);
         } else {
             mem_entry_t * e = NULL;
             //Search for a appropriate entry
@@ -1238,6 +1278,7 @@ void* memory_realloc(mem_bank_t bank, void* ptr, size_t size)
                 memcpy(p, ptr, old_size);
                 memory_free(bank, ptr);
             }
+            DEBUG_FILL_INFO(p, e->header.d_size, func, line);
         }
     }
     MEM_UNLOCK(bank);
@@ -1313,7 +1354,7 @@ size_t memory_sizeof_max(mem_bank_t bank)
  * @param size
  * @return void*
  */
-void *memory_alloc_max(mem_bank_t bank,size_t *size)
+void *memory_alloc_max_impl(mem_bank_t bank, size_t *size, const char *func, uint32_t line)
 {
     MEM_LOCK(bank);
     size_t nowsize = 0;
@@ -1338,9 +1379,12 @@ void *memory_alloc_max(mem_bank_t bank,size_t *size)
         //End if there is not next entry OR the alloc. is successful
     } while(e != NULL);
     if (max_p != NULL && maxsize > 0) {
-        *size = maxsize;
+#if RTE_MEMPOOL_ENABLE_DEBUG == 1
+        *size = maxsize - sizeof(mem_debug_info_t);
+#endif
         max_e->header.used = 1;
         retval = max_p;
+        DEBUG_FILL_INFO(retval, max_e->header.d_size, func, line);
     }
     MEM_UNLOCK(bank);
     return retval;
@@ -1356,16 +1400,26 @@ void memory_demon(mem_bank_t bank)
     MEM_LOCK(bank);
     mem_entry_t *e = NULL;
     mem_entry_t *full = (mem_entry_t *)mem_handle[bank].work_mem;
-    MEM_LOGI("--------------------------------------------------");
-    MEM_LOGI("BANK%d start at %p",bank, &full->first_data);
-    MEM_LOGI("--------------------------------------------------");
+    shell_puts("--------------------------------------------------\r\n");
+    shell_printf("BANK%d start at 0x%016p\r\n",bank, &full->first_data);
+    shell_puts("--------------------------------------------------\r\n");
     //Search for a appropriate entry
     do {
         //Get the next entry
         e = ent_get_next(bank,e);
         /*If there is next entry then try to allocate there*/
         if(e != NULL) {
-            MEM_LOGI("%p %s size: %d (%p)", &e->first_data, e->header.used ? "used" : "free", (unsigned int)e->header.d_size, e);
+#if RTE_MEMPOOL_ENABLE_DEBUG == 1
+            mem_debug_info_t *debug_info =  (mem_debug_info_t *)((uint8_t *)&e->first_data +
+                                            (unsigned int)e->header.d_size - sizeof(mem_debug_info_t));
+            shell_printf("user_ptr: 0x%08p [%s] real_size: %d (block_header: 0x%08p) owned by %s %d\r\n",
+                            &e->first_data, e->header.used ? "used" : "free", (unsigned int)e->header.d_size, e,
+                            e->header.used ? debug_info->function : "N/A",
+                            e->header.used ? debug_info->line : 0);
+#else
+            shell_printf("user_ptr: 0x%08p [%s] real_size: %d (block_header: 0x%08p)\r\n",
+                            &e->first_data, e->header.used ? "used" : "free", (unsigned int)e->header.d_size, e);
+#endif
         }
         //End if there is not next entry OR the alloc. is successful
     } while(e != NULL);
@@ -1431,3 +1485,17 @@ static void ent_trunc(mem_entry_t * e, uint32_t size)
 }
 
 #endif
+
+int shell_cmd_mem(const shell_cmd_t *pcmd, int argc, char *const argv[])
+{
+    if (argc == 2) {
+        mem_bank_t bank = atoi(argv[1]);
+        memory_demon(bank);
+        return 0;
+    } else {
+        return -1;
+    }
+}
+
+SHELL_ADD_CMD(mem, shell_cmd_mem,
+                    "show selected handled memory bank info.","\r\n");

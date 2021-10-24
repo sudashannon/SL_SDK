@@ -12,7 +12,10 @@
 #ifndef __HAL_H
 #define __HAL_H
 
+#include <stdio.h>
 #include "rte_include.h"
+#include <cmsis_os2.h>
+
 #if __DCACHE_PRESENT
 /*
     the SCB_CleanDCache_by_Addr() requires a 32-Byte aligned address
@@ -50,64 +53,138 @@ typedef rte_error_t (*device_read_f)(struct __hal_device *device, uint8_t *dest_
 
 typedef rte_error_t (*device_write_f)(struct __hal_device *device, uint8_t *src_buf, uint32_t buf_size, uint32_t timeout_ms);
 
+typedef void (*hal_device_constructor_t)(void);
+typedef void (*hal_device_destructor_t)(void);
+
+#define HAL_INIT_HIGHEST_PRIORITY 0
+#define HAL_INIT_DEFAULT_PRIORITY 5000
+#define HAL_INIT_LOWEST_PRIORITY  9999
+
+/*! @def HAL_CONSTRUCTOR
+ * @brief Define a Metal constructor
+ *
+ * Functions defined with HAL_CONSTRUCTOR will be added to the list of
+ * Metal constructors. By default, these functions are called before main by
+ * the metal_init() function.
+ */
+#if defined (__IAR_SYSTEMS_ICC__)
+#define HAL_CONSTRUCTOR(function_name)                                       \
+    void function_name(void);                                                \
+    __root @("hal_constructors")                                             \
+        const hal_device_constructor_t hal_constructors_##function_name##_ptr = &function_name;    \
+    void function_name(void)
+#else
+#define HAL_CONSTRUCTOR(function_name)                                       \
+    void function_name(void);                                                \
+    __attribute__((used)) __attribute__((section("hal_constructors")))       \
+        const hal_device_constructor_t hal_constructors_##function_name##_ptr = &function_name;    \
+    void function_name(void)
+
+#endif
+
+/*! @def HAL_DESTRUCTOR
+ * @brief Define a Metal destructor
+ *
+ * Functions defined with HAL_DESTRUCTOR will be added to the list of
+ * Metal destructors. By default, these functions are called on exit by
+ * the metal_fini() function.
+ */
+#if defined (__IAR_SYSTEMS_ICC__)
+#define HAL_DESTRUCTOR(function_name)                                        \
+    void function_name(void);                                                \
+    __root @("hal_constructors")                                             \
+    __attribute__((used)) __attribute__((section("hal_destructors")))        \
+        const hal_device_destructor_t hal_destructors_##function_name##_ptr = &function_name;     \
+    void function_name(void)
+#else
+#define HAL_DESTRUCTOR(function_name)                                        \
+    void function_name(void);                                                \
+    __attribute__((used)) __attribute__((section("hal_destructors")))        \
+        const hal_device_destructor_t hal_destructors_##function_name##_ptr = &function_name;     \
+    void function_name(void)
+#endif
 typedef struct __hal_device {
     hal_device_id_t device_id;
+    rte_mutex_t mutex;
     device_read_f read;
     device_read_f read_async;
     device_write_f write;
     device_write_f write_async;
-    rte_mutex_t *mutex;
+    osSemaphoreId_t rx_sema;
+    osSemaphoreId_t tx_sema;
     void *fd;
-    void *user_arg;
     hal_device_op_callback_f op_callback;
+    void *user_arg;
 } hal_device_t;
 
-rte_error_t hal_device_read_sync(hal_device_t *device, uint8_t *dest_buf,
+void *hal_get_device_table(void);
+
+hal_device_t *hal_get_device(const char *device_name);
+
+rte_error_t hal_device_read_sync(char *device_name, uint8_t *dest_buf,
                                 uint32_t *buf_size, uint32_t timeout_ms);
 
-rte_error_t hal_device_write_sync(hal_device_t *device, uint8_t *src_buf,
+rte_error_t hal_device_write_sync(char *device_name, uint8_t *src_buf,
                                 uint32_t buf_size, uint32_t timeout_ms);
 
-rte_error_t hal_device_read_async(hal_device_t *device, uint8_t *dest_buf,
+rte_error_t hal_device_read_async(char *device_name, uint8_t *dest_buf,
                                 uint32_t *buf_size, uint32_t timeout_ms);
 
-rte_error_t hal_device_write_async(hal_device_t *device, uint8_t *src_buf,
+rte_error_t hal_device_write_async(char *device_name, uint8_t *src_buf,
                                 uint32_t buf_size, uint32_t timeout_ms);
 
-#define HAL_DEVICE_DEFINE(device_type)                                              \
-    rte_mutex_t mutex;                                                              \
-    osSemaphoreId_t rx_sema;                                                        \
-    osSemaphoreId_t tx_sema;                                                        \
-    void * device_type##_hal_obj;                                                   \
-    hal_device_t device
 
-#define HAL_DEVICE_OP_COMPLET_HANDLE(device_type, op, hal_obj)                      \
+#define HAL_DEVICE_OP_COMPLET_HANDLE(device_type, op, driver_handle)                \
     for(device_type##_name_t name = 0; name < device_type##_N; name++) {            \
-        if (device_type##_control_handle[name].device_type##_hal_obj == hal_obj) {  \
-            osSemaphoreRelease(device_type##_control_handle[name].op##_sema);       \
+        if (device_type##_control_handle[name].device.fd == driver_handle) {        \
+            osSemaphoreRelease(device_type##_control_handle[name].device.op##_sema);\
         }                                                                           \
     }                                                                               \
 
 #define HAL_DEVICE_INIT_GENERAL(device_type, name,                                  \
                                 read_f, write_f,                                    \
                                 read_async_f, write_async_f, fd_handle)             \
-    device_type##_control_handle[name].mutex.mutex = osMutexNew(NULL);              \
-    RTE_ASSERT(device_type##_control_handle[name].mutex.mutex);                     \
-    device_type##_control_handle[name].mutex.lock = rte_mutex_lock;                 \
-    device_type##_control_handle[name].mutex.unlock = rte_mutex_unlock;             \
-    device_type##_control_handle[name].mutex.trylock = rte_mutex_trylock;           \
-    device_type##_control_handle[name].rx_sema = osSemaphoreNew(1, 0, NULL);        \
-    RTE_ASSERT(device_type##_control_handle[name].rx_sema);                         \
-    device_type##_control_handle[name].tx_sema = osSemaphoreNew(1, 0, NULL);        \
-    RTE_ASSERT(device_type##_control_handle[name].tx_sema);                         \
+    osMutexAttr_t mutex_attr = {                                                    \
+        LOG_STR(name),                                                              \
+        osMutexPrioInherit | osMutexRecursive,                                      \
+        NULL,                                                                       \
+        0U                                                                          \
+    };                                                                              \
+    device_type##_control_handle[name].device.mutex.mutex = osMutexNew(&mutex_attr);\
+    RTE_ASSERT(device_type##_control_handle[name].device.mutex.mutex);              \
+    device_type##_control_handle[name].device.mutex.lock = rte_mutex_lock;          \
+    device_type##_control_handle[name].device.mutex.unlock = rte_mutex_unlock;      \
+    device_type##_control_handle[name].device.mutex.trylock = rte_mutex_trylock;    \
     device_type##_control_handle[name].device.device_id = name;                     \
     device_type##_control_handle[name].device.read = read_f;                        \
     device_type##_control_handle[name].device.write = write_f;                      \
     device_type##_control_handle[name].device.read_async = read_async_f;            \
     device_type##_control_handle[name].device.write_async = write_async_f;          \
+    device_type##_control_handle[name].device.rx_sema = osSemaphoreNew(1, 0, NULL); \
+    RTE_ASSERT(device_type##_control_handle[name].device.rx_sema);                  \
+    device_type##_control_handle[name].device.tx_sema = osSemaphoreNew(1, 0, NULL); \
+    RTE_ASSERT(device_type##_control_handle[name].device.tx_sema);                  \
     device_type##_control_handle[name].device.fd = fd_handle;                       \
     device_type##_control_handle[name].device.op_callback = NULL;                   \
     device_type##_control_handle[name].device.user_arg = NULL;                      \
-    *device = &device_type##_control_handle[name].device;
+    *device = &device_type##_control_handle[name].device
+
+
+#define HAL_DEVICE_REGIST(device_type, user_prefix)                                 \
+    for (device_type##_name_t i = 0; i < device_type##_N; i++) {                    \
+        char device_name[64] = {0};                                                 \
+        hal_device_t *device = NULL;                                                \
+        snprintf(device_name, sizeof(device_name), "%s_%d",                         \
+                    user_prefix ? user_prefix : LOG_STR(device_type), i);           \
+        device_type##_create(i, &device);                                           \
+        ht_set_if_not_exists(hal_get_device_table(), device_name,                   \
+                                strlen(device_name), device,                        \
+                                sizeof(hal_device_t *));                            \
+    }
+
+#define HAL_DEVICE_UNREGIST(device_type)                                            \
+    for (device_type##_name_t i = 0; i < device_type##_N; i++) {                    \
+        device_type##_destroy(i);                                                   \
+    }
 
 #endif

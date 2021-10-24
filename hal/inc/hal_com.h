@@ -18,33 +18,8 @@
  *
  */
 typedef enum {
-    com_1 = 0,
+    com_debug = 0,
     com_N,
 } com_name_t;
-
-typedef struct {
-    uint32_t boundrate;
-    void *huart;
-    void *htx_dma;
-    void *hrx_dma;
-} com_configuration_t;
-
-/**
- * @brief Create a selected com device.
- *
- * @param com_name
- * @param config
- * @param device
- * @return rte_error_t
- */
-extern rte_error_t com_create(com_name_t com_name, com_configuration_t *config, hal_device_t **device);
-/**
- * @brief Destroy a selected com device.
- *
- * @param com_name
- * @param device
- * @return rte_error_t
- */
-extern rte_error_t com_destroy(com_name_t com_name, hal_device_t *device);
 
 #endif
