@@ -56,10 +56,6 @@ typedef rte_error_t (*device_write_f)(struct __hal_device *device, uint8_t *src_
 typedef void (*hal_device_constructor_t)(void);
 typedef void (*hal_device_destructor_t)(void);
 
-#define HAL_INIT_HIGHEST_PRIORITY 0
-#define HAL_INIT_DEFAULT_PRIORITY 5000
-#define HAL_INIT_LOWEST_PRIORITY  9999
-
 /*! @def HAL_CONSTRUCTOR
  * @brief Define a Metal constructor
  *
@@ -112,7 +108,6 @@ typedef struct __hal_device {
     device_write_f write_async;
     osSemaphoreId_t rx_sema;
     osSemaphoreId_t tx_sema;
-    void *fd;
     hal_device_op_callback_f op_callback;
     void *user_arg;
 } hal_device_t;
@@ -133,13 +128,6 @@ rte_error_t hal_device_read_async(char *device_name, uint8_t *dest_buf,
 rte_error_t hal_device_write_async(char *device_name, uint8_t *src_buf,
                                 uint32_t buf_size, uint32_t timeout_ms);
 
-
-#define HAL_DEVICE_OP_COMPLET_HANDLE(device_type, op, driver_handle)                \
-    for(device_type##_name_t name = 0; name < device_type##_N; name++) {            \
-        if (device_type##_control_handle[name].device.fd == driver_handle) {        \
-            osSemaphoreRelease(device_type##_control_handle[name].device.op##_sema);\
-        }                                                                           \
-    }                                                                               \
 
 #define HAL_DEVICE_INIT_GENERAL(device_type, name,                                  \
                                 read_f, write_f,                                    \
@@ -164,27 +152,27 @@ rte_error_t hal_device_write_async(char *device_name, uint8_t *src_buf,
     RTE_ASSERT(device_type##_control_handle[name].device.rx_sema);                  \
     device_type##_control_handle[name].device.tx_sema = osSemaphoreNew(1, 0, NULL); \
     RTE_ASSERT(device_type##_control_handle[name].device.tx_sema);                  \
-    device_type##_control_handle[name].device.fd = fd_handle;                       \
     device_type##_control_handle[name].device.op_callback = NULL;                   \
     device_type##_control_handle[name].device.user_arg = NULL;                      \
     *device = &device_type##_control_handle[name].device
 
+#define HAL_DEVICE_POLL(device_type)    for (device_type##_name_t this_device = 0; this_device < device_type##_N; this_device++)
 
 #define HAL_DEVICE_REGIST(device_type, user_prefix)                                 \
-    for (device_type##_name_t i = 0; i < device_type##_N; i++) {                    \
+    HAL_DEVICE_POLL(device_type) {                                                  \
         char device_name[64] = {0};                                                 \
         hal_device_t *device = NULL;                                                \
         snprintf(device_name, sizeof(device_name), "%s_%d",                         \
-                    user_prefix ? user_prefix : LOG_STR(device_type), i);           \
-        device_type##_create(i, &device);                                           \
+                    user_prefix ? user_prefix : LOG_STR(device_type), this_device); \
+        device_type##_create(this_device, &device);                                 \
         ht_set_if_not_exists(hal_get_device_table(), device_name,                   \
                                 strlen(device_name), device,                        \
                                 sizeof(hal_device_t *));                            \
     }
 
 #define HAL_DEVICE_UNREGIST(device_type)                                            \
-    for (device_type##_name_t i = 0; i < device_type##_N; i++) {                    \
-        device_type##_destroy(i);                                                   \
+    HAL_DEVICE_POLL(device_type) {                                                  \
+        device_type##_destroy(this_device);                                         \
     }
 
 #endif

@@ -66,8 +66,8 @@ void Error_Handler(void);
 #define CAM_POWER_GPIO_Port GPIOA
 #define CAM_RESET_Pin GPIO_PIN_4
 #define CAM_RESET_GPIO_Port GPIOC
-#define LCD_BLK_Pin GPIO_PIN_0
-#define LCD_BLK_GPIO_Port GPIOB
+#define LCD_BLK_Pin GPIO_PIN_1
+#define LCD_BLK_GPIO_Port GPIOD
 #define LCD_SPI_DC_Pin GPIO_PIN_1
 #define LCD_SPI_DC_GPIO_Port GPIOB
 #define LCD_SPI_CS_Pin GPIO_PIN_12

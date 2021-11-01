@@ -10,6 +10,7 @@
         "rte_include.h": "c",
         "rte_log.h": "c",
         "ds_hashmap.h": "c",
-        "rte.h": "c"
+        "rte.h": "c",
+        "rsis_pmp.h": "c"
     }
 }

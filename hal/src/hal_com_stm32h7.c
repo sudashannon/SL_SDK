@@ -13,8 +13,6 @@
 #include "usart.h"
 
 typedef struct {
-    // General resource section.
-    hal_device_t device;
     // Configuration section.
     uint16_t capacity;
     uint16_t recv_length;
@@ -24,6 +22,8 @@ typedef struct {
     bool if_recv_enable_fifo;
     uint8_t *buffer;
     void *driver_handle;
+    // General resource section.
+    hal_device_t device;
 } com_device_t;
 
 static com_device_t com_control_handle[com_N] = {
@@ -43,7 +43,7 @@ static rte_error_t com_send(hal_device_t *device, uint8_t *data, uint32_t size, 
     if (size == 0)
         return RTE_SUCCESS;
     result = HAL_UART_Transmit(
-                com_control_handle[device->device_id].device.fd,
+                com_control_handle[device->device_id].driver_handle,
                 data, size, timeout_ms);
     if (result == HAL_OK)
         return RTE_SUCCESS;
@@ -58,7 +58,7 @@ static rte_error_t com_recv(hal_device_t *device, uint8_t *buffer, uint32_t *siz
     HAL_StatusTypeDef result = HAL_ERROR;
     com_name_t com_name = device->device_id;
     result = HAL_UART_Receive(
-                com_control_handle[com_name].device.fd, buffer,
+                com_control_handle[com_name].driver_handle, buffer,
                 *size, timeout_ms);
     if (result == HAL_OK) {
         return RTE_SUCCESS;
@@ -80,22 +80,22 @@ static rte_error_t com_send_async(hal_device_t *device, uint8_t *data, uint32_t 
             return RTE_ERR_NO_RSRC;
         memcpy(tx_buffer, data, size);
         HAL_RAM_CLEAN_PRE_SEND(tx_buffer, size);
-        HAL_UART_Transmit_DMA(com_control_handle[com_name].device.fd,
+        HAL_UART_Transmit_DMA(com_control_handle[com_name].driver_handle,
                             tx_buffer,
                             size);
         if (osSemaphoreAcquire(com_control_handle[com_name].device.tx_sema, timeout_ms) == osOK) {
             memory_free(BANK_DMA, tx_buffer);
             return RTE_SUCCESS;
         }
-        HAL_UART_AbortTransmit_IT(com_control_handle[com_name].device.fd);
+        HAL_UART_AbortTransmit_IT(com_control_handle[com_name].driver_handle);
         memory_free(BANK_DMA, tx_buffer);
         return RTE_ERR_TIMEOUT;
     } else {
-        HAL_UART_Transmit_IT(com_control_handle[com_name].device.fd, data, size);
+        HAL_UART_Transmit_IT(com_control_handle[com_name].driver_handle, data, size);
         if (osSemaphoreAcquire(com_control_handle[com_name].device.tx_sema, timeout_ms) == osOK) {
             return RTE_SUCCESS;
         }
-        HAL_UART_AbortTransmit_IT(com_control_handle[com_name].device.fd);
+        HAL_UART_AbortTransmit_IT(com_control_handle[com_name].driver_handle);
         return RTE_ERR_TIMEOUT;
     }
 }
@@ -104,7 +104,7 @@ static rte_error_t com_recv_async(hal_device_t *device, uint8_t *buffer, uint32_
 {
     com_name_t com_name = device->device_id;
     if (com_control_handle[com_name].if_recv_enable_dma) {
-        HAL_UARTEx_ReceiveToIdle_DMA(com_control_handle[com_name].device.fd,
+        HAL_UARTEx_ReceiveToIdle_DMA(com_control_handle[com_name].driver_handle,
                             com_control_handle[com_name].buffer,
                             com_control_handle[com_name].capacity);
         if (osSemaphoreAcquire(com_control_handle[com_name].device.rx_sema, timeout_ms) == osOK) {
@@ -114,16 +114,16 @@ static rte_error_t com_recv_async(hal_device_t *device, uint8_t *buffer, uint32_
             return RTE_SUCCESS;
         }
         *size = 0;
-        HAL_UART_AbortReceive_IT(com_control_handle[com_name].device.fd);
+        HAL_UART_AbortReceive_IT(com_control_handle[com_name].driver_handle);
         return RTE_ERR_TIMEOUT;
     } else {
-        HAL_UARTEx_ReceiveToIdle_IT(com_control_handle[com_name].device.fd, buffer, *size);
+        HAL_UARTEx_ReceiveToIdle_IT(com_control_handle[com_name].driver_handle, buffer, *size);
         if (osSemaphoreAcquire(com_control_handle[com_name].device.rx_sema, timeout_ms) == osOK) {
             *size = com_control_handle[com_name].recv_length;
             return RTE_SUCCESS;
         }
         *size = 0;
-        HAL_UART_AbortReceive_IT(com_control_handle[com_name].device.fd);
+        HAL_UART_AbortReceive_IT(com_control_handle[com_name].driver_handle);
         return RTE_ERR_TIMEOUT;
     }
 }
@@ -166,16 +166,19 @@ HAL_DESTRUCTOR(com_unregist)
  */
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t size)
 {
-    for(com_name_t com_name = 0; com_name < com_N; com_name++) {
-        if (com_control_handle[com_name].device.fd == huart &&
-            huart->ReceptionType == HAL_UART_RECEPTION_STANDARD) {
-            com_control_handle[com_name].recv_length = size;
-            osSemaphoreRelease(com_control_handle[com_name].device.rx_sema);
+    HAL_DEVICE_POLL(com) {
+        if (com_control_handle[this_device].driver_handle == huart) {
+            com_control_handle[this_device].recv_length = size;
+            osSemaphoreRelease(com_control_handle[this_device].device.rx_sema);
         }
     }
 }
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 {
-    HAL_DEVICE_OP_COMPLET_HANDLE(com, tx, huart);
+    HAL_DEVICE_POLL(com) {
+        if (com_control_handle[this_device].driver_handle == huart) {
+            osSemaphoreRelease(com_control_handle[this_device].device.tx_sema);
+        }
+    }
 }

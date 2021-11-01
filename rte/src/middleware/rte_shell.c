@@ -32,8 +32,6 @@
 static const char _erase_seq[] = "\b \b";
 
 typedef struct {
-    // console input buffer
-    char line_buffer[CONFIG_SHELL_INPUT_BUFFSIZE + 1];
     // non-zero means readline completed.
     int done;
     /**
@@ -49,8 +47,10 @@ typedef struct {
     /* uesed by @file{key_seq.c} to recognize key sequences */
     int key_seq_len;
     int home;
-    shell_cmd_t *command_table_base;
     uint16_t command_num;
+    shell_cmd_t *command_table_base;
+    // console input buffer
+    char line_buffer[CONFIG_SHELL_INPUT_BUFFSIZE + 1];
 } shell_handle_def_t;
 
 static shell_handle_def_t shell_handle = {0};

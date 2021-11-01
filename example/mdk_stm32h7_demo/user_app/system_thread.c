@@ -19,7 +19,7 @@ int shell_getc(char *ch)
 
 size_t rte_data_out(uint8_t *data, size_t length)
 {
-    hal_device_write_sync("com_0", data, length, TIME_MAX_DELAY_MS);
+    HAL_UART_Transmit(&huart1, data, length, HAL_MAX_DELAY);
     return length;
 }
 
@@ -33,11 +33,11 @@ __NO_RETURN void system_thread(void *argument)
     (void)argument;
     /* Init the rte */
     rte_init();
-    /* Init all hal devices */
-    hal_init();
     log_level_t log_level = LOG_LEVEL_INFO;
     log_control(LOG_CMD_SET_LEVEL, &log_level);
     log_control(LOG_CMD_SET_OUTPUT, rte_data_out);
+    /* Init all hal devices */
+    hal_init();
 
     RTE_LOGI("Boot at clk: %d", SystemCoreClock);
     timer_configuration_t config = TIMER_CONFIG_INITIALIZER;
@@ -50,6 +50,9 @@ __NO_RETURN void system_thread(void *argument)
         .stack_size = 10240,
     };
     osThreadId_t shell_tid = osThreadNew(shell_task, NULL, &shell_tconfig);
+    extern __NO_RETURN void gui_thread(void *param);
+    extern osThreadId_t gui_tid;
+    gui_tid = osThreadNew(gui_thread, NULL, NULL);
     for (;;) {
         timer_tick_handle(10);
         osDelay(10);

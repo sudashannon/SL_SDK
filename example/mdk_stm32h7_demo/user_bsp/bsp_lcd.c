@@ -37,8 +37,8 @@ static void bsp_lcd_write_command(uint8_t command)
 static void bsp_lcd_set_cursor(uint16_t x1, uint16_t x2, uint16_t y1, uint16_t y2)
 {
 	bsp_lcd_write_command(0x2A);
-    x1 = __REV16(x1);
-    x2 = __REV16(x2);
+    x1 = __REV16(x1 + 20);
+    x2 = __REV16(x2 + 20);
     y1 = __REV16(y1);
     y2 = __REV16(y2);
     bsp_lcd_write_ndata((uint8_t *)&x1, 2);
@@ -116,8 +116,11 @@ void bsp_lcd_init(void)
     bsp_lcd_write_command(0x01);
     rte_delay_ms(50);
 
+    bsp_lcd_write_command(0x11);
+    rte_delay_ms(100);
+
     bsp_lcd_write_command(0x36);
-    bsp_lcd_write_data((1<<7)|(0<<6)|(1<<5));
+    bsp_lcd_write_data(0xA0);
 
     bsp_lcd_write_command(0x3A);
     bsp_lcd_write_data(0x05);
@@ -133,7 +136,7 @@ void bsp_lcd_init(void)
     bsp_lcd_write_data(0x35);
 
     bsp_lcd_write_command(0xBB);    //VCOM Setting
-    bsp_lcd_write_data(0x19);
+    bsp_lcd_write_data(0x32);
 
     bsp_lcd_write_command(0xC0);    //LCM Control
     bsp_lcd_write_data(0x2C);
@@ -142,7 +145,7 @@ void bsp_lcd_init(void)
     bsp_lcd_write_data(0x01);
 
     bsp_lcd_write_command(0xC3);  //VRH Set
-    bsp_lcd_write_data(0x12);
+    bsp_lcd_write_data(0x15);
 
     bsp_lcd_write_command(0xC4);  //VDV Set
     bsp_lcd_write_data(0x20);
@@ -187,9 +190,6 @@ void bsp_lcd_init(void)
     bsp_lcd_write_data(0x23);
 
     bsp_lcd_write_command(0x21);
-    bsp_lcd_write_command(0x11);
-
-    rte_delay_ms(100);
 	bsp_lcd_write_command(0x29);
     gpio_set_high(LCD_BLK);
     uint32_t start_tick = rte_get_tick_ms();

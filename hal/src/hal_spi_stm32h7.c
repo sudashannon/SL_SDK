@@ -13,11 +13,11 @@
 #include "spi.h"
 
 typedef struct {
-    // General resource section.
-    hal_device_t device;
     // Configuration section.
     // Resource section.
     void *driver_handle;
+    // General resource section.
+    hal_device_t device;
 } spi_device_t;
 
 spi_device_t spi_control_handle[spi_N] = {
@@ -32,7 +32,7 @@ static rte_error_t spi_send(hal_device_t *device, uint8_t *data, uint32_t size, 
     if (size == 0)
         return RTE_SUCCESS;
     result = HAL_SPI_Transmit(
-                spi_control_handle[device->device_id].device.fd,
+                spi_control_handle[device->device_id].driver_handle,
                 data, size, timeout_ms);
     if (result == HAL_OK)
         return RTE_SUCCESS;
@@ -48,7 +48,7 @@ static rte_error_t spi_recv(hal_device_t *device, uint8_t *buffer, uint32_t *siz
     if (*size == 0)
         return RTE_SUCCESS;
     result = HAL_SPI_Receive(
-                spi_control_handle[device->device_id].device.fd,
+                spi_control_handle[device->device_id].driver_handle,
                 buffer, *size, timeout_ms);
     if (result == HAL_OK)
         return RTE_SUCCESS;
@@ -64,7 +64,7 @@ static rte_error_t spi_send_async(hal_device_t *device, uint8_t *data, uint32_t 
     if (size == 0)
         return RTE_SUCCESS;
     result = HAL_SPI_Transmit_DMA(
-                spi_control_handle[device->device_id].device.fd,
+                spi_control_handle[device->device_id].driver_handle,
                 data, size);
     if (result == HAL_OK) {
         osSemaphoreAcquire(spi_control_handle[device->device_id].device.tx_sema, timeout_ms);
@@ -76,7 +76,7 @@ static rte_error_t spi_send_async(hal_device_t *device, uint8_t *data, uint32_t 
         return RTE_ERR_UNDEFINE;
 }
 
-rte_error_t spi_create(spi_name_t spi_name, hal_device_t **device)
+static rte_error_t spi_create(spi_name_t spi_name, hal_device_t **device)
 {
     if (RTE_UNLIKELY(device == NULL))
         return RTE_ERR_PARAM;
@@ -85,7 +85,26 @@ rte_error_t spi_create(spi_name_t spi_name, hal_device_t **device)
     return RTE_SUCCESS;
 }
 
+static rte_error_t spi_destroy(spi_name_t com_name)
+{
+    return RTE_SUCCESS;
+}
+
+HAL_CONSTRUCTOR(spi_regist)
+{
+    HAL_DEVICE_REGIST(spi, "spi");
+}
+
+HAL_DESTRUCTOR(spi_unregist)
+{
+    HAL_DEVICE_UNREGIST(spi);
+}
+
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
 {
-    HAL_DEVICE_OP_COMPLET_HANDLE(spi, tx, hspi);
+    HAL_DEVICE_POLL(spi) {
+        if (spi_control_handle[this_device].driver_handle == hspi) {
+            osSemaphoreRelease(spi_control_handle[this_device].device.tx_sema);
+        }
+    }
 }
