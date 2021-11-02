@@ -10,8 +10,7 @@
  */
 #ifndef __HAL_QSPI_H
 #define __HAL_QSPI_H
-#include "RTE_Components.h"
-#include CMSIS_device_header
+#include "stm32h7xx.h"
 #include "hal.h"
 /**
  * @brief List all provided qspi instance's name.

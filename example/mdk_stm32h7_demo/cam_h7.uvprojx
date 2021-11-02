@@ -176,7 +176,7 @@
             <GenPPlst>0</GenPPlst>
             <AdsCpuType>"Cortex-M7"</AdsCpuType>
             <RvctDeviceName></RvctDeviceName>
-            <mOS>1</mOS>
+            <mOS>0</mOS>
             <uocRom>0</uocRom>
             <uocRam>0</uocRam>
             <hadIROM>1</hadIROM>
@@ -337,9 +337,9 @@
             <v6Rtti>0</v6Rtti>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>STM32H743xx, RTE_MEMPOOL_SIZE=256*1024, RTE_MEMPOOL_USE_64BIT=0,LV_CONF_INCLUDE_SIMPLE=1, LV_LVGL_H_INCLUDE_SIMPLE=1</Define>
+              <Define>USE_HAL_DRIVER, STM32H743xx, RTE_MEMPOOL_SIZE=256*1024, RTE_MEMPOOL_USE_64BIT=0,LV_CONF_INCLUDE_SIMPLE=1, LV_LVGL_H_INCLUDE_SIMPLE=1</Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\rte\inc;..\..\hal\inc;.\user_app;.\user_bsp;..\stm32_h7_full_demo</IncludePath>
+              <IncludePath>..\..\rte\inc;..\..\hal\inc;.\user_app;.\user_bsp;..\stm32_h7_full_demo;..\..\sis\cmsis\drivers\stm32h7\inc;.\cubemx_bsp;..\..\sis\cmsis\core\inc;..\..\osal\inc\rtx;..\..\osal\inc</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -380,6 +380,21 @@
         </TargetArmAds>
       </TargetOption>
       <Groups>
+        <Group>
+          <GroupName>main</GroupName>
+          <Files>
+            <File>
+              <FileName>stm32h7xx_it.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\cubemx_bsp\stm32h7xx_it.c</FilePath>
+            </File>
+            <File>
+              <FileName>main.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\cubemx_bsp\main.c</FilePath>
+            </File>
+          </Files>
+        </Group>
         <Group>
           <GroupName>user_apps</GroupName>
           <Files>
@@ -487,72 +502,57 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>STM32CubeMX:BSP Sources</GroupName>
+          <GroupName>cubemx_bsps</GroupName>
           <Files>
             <File>
-              <FileName>gpio.c</FileName>
+              <FileName>dcmi.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\RTE\Device\STM32H743VITx\STCubeGenerated\Src\gpio.c</FilePath>
-            </File>
-            <File>
-              <FileName>usart.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\RTE\Device\STM32H743VITx\STCubeGenerated\Src\usart.c</FilePath>
+              <FilePath>.\cubemx_bsp\dcmi.c</FilePath>
             </File>
             <File>
               <FileName>dma.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\RTE\Device\STM32H743VITx\STCubeGenerated\Src\dma.c</FilePath>
+              <FilePath>.\cubemx_bsp\dma.c</FilePath>
             </File>
             <File>
-              <FileName>spi.c</FileName>
+              <FileName>gpio.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\RTE\Device\STM32H743VITx\STCubeGenerated\Src\spi.c</FilePath>
+              <FilePath>.\cubemx_bsp\gpio.c</FilePath>
             </File>
             <File>
               <FileName>i2c.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\RTE\Device\STM32H743VITx\STCubeGenerated\Src\i2c.c</FilePath>
-            </File>
-            <File>
-              <FileName>dcmi.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\RTE\Device\STM32H743VITx\STCubeGenerated\Src\dcmi.c</FilePath>
-            </File>
-            <File>
-              <FileName>quadspi.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\RTE\Device\STM32H743VITx\STCubeGenerated\Src\quadspi.c</FilePath>
+              <FilePath>.\cubemx_bsp\i2c.c</FilePath>
             </File>
             <File>
               <FileName>jpeg.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\RTE\Device\STM32H743VITx\STCubeGenerated\Src\jpeg.c</FilePath>
+              <FilePath>.\cubemx_bsp\jpeg.c</FilePath>
             </File>
             <File>
               <FileName>mdma.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\RTE\Device\STM32H743VITx\STCubeGenerated\Src\mdma.c</FilePath>
+              <FilePath>.\cubemx_bsp\mdma.c</FilePath>
             </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>:STM32CubeMX:Common Sources</GroupName>
-          <Files>
             <File>
-              <FileName>main.c</FileName>
+              <FileName>quadspi.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\RTE\Device\STM32H743VITx\STCubeGenerated\Src\main.c</FilePath>
+              <FilePath>.\cubemx_bsp\quadspi.c</FilePath>
             </File>
             <File>
-              <FileName>stm32h7xx_it.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\RTE\Device\STM32H743VITx\STCubeGenerated\Inc\stm32h7xx_it.h</FilePath>
-            </File>
-            <File>
-              <FileName>stm32h7xx_it.c</FileName>
+              <FileName>spi.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\RTE\Device\STM32H743VITx\STCubeGenerated\Src\stm32h7xx_it.c</FilePath>
+              <FilePath>.\cubemx_bsp\spi.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_msp.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\cubemx_bsp\stm32h7xx_hal_msp.c</FilePath>
+            </File>
+            <File>
+              <FileName>usart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\cubemx_bsp\usart.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -682,169 +682,558 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>::CMSIS</GroupName>
+          <GroupName>devices</GroupName>
+          <Files>
+            <File>
+              <FileName>system_stm32h7xx.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\device\stm32h7\src\system_stm32h7xx.c</FilePath>
+            </File>
+            <File>
+              <FileName>startup_stm32h743xx.s</FileName>
+              <FileType>2</FileType>
+              <FilePath>..\..\sis\cmsis\device\stm32h7\src\arm\startup_stm32h743xx.s</FilePath>
+            </File>
+          </Files>
         </Group>
         <Group>
-          <GroupName>::Device</GroupName>
+          <GroupName>drivers</GroupName>
+          <Files>
+            <File>
+              <FileName>stm32h7xx_hal.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_adc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_adc.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_adc_ex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_adc_ex.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_cec.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_cec.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_comp.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_comp.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_cordic.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_cordic.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_cortex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_cortex.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_crc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_crc.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_crc_ex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_crc_ex.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_cryp.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_cryp.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_cryp_ex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_cryp_ex.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_dac.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_dac.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_dac_ex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_dac_ex.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_dcmi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_dcmi.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_dfsdm.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_dfsdm.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_dfsdm_ex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_dfsdm_ex.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_dma.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_dma.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_dma_ex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_dma_ex.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_dma2d.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_dma2d.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_dsi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_dsi.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_dts.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_dts.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_eth.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_eth.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_eth_ex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_eth_ex.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_exti.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_exti.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_fdcan.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_fdcan.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_flash.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_flash.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_flash_ex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_flash_ex.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_fmac.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_fmac.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_gfxmmu.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_gfxmmu.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_gpio.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_gpio.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_hash.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_hash.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_hash_ex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_hash_ex.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_hcd.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_hcd.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_hrtim.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_hrtim.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_hsem.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_hsem.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_i2c.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_i2c.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_i2c_ex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_i2c_ex.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_i2s.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_i2s.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_i2s_ex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_i2s_ex.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_irda.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_irda.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_iwdg.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_iwdg.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_jpeg.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_jpeg.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_lptim.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_lptim.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_ltdc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_ltdc.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_ltdc_ex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_ltdc_ex.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_mdios.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_mdios.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_mdma.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_mdma.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_mmc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_mmc.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_mmc_ex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_mmc_ex.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_nand.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_nand.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_nor.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_nor.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_opamp.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_opamp.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_opamp_ex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_opamp_ex.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_ospi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_ospi.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_otfdec.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_otfdec.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_pcd.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_pcd.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_pcd_ex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_pcd_ex.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_pssi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_pssi.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_pwr.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_pwr.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_pwr_ex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_pwr_ex.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_qspi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_qspi.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_ramecc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_ramecc.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_rcc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_rcc.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_rcc_ex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_rcc_ex.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_rng.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_rng.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_rng_ex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_rng_ex.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_rtc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_rtc.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_rtc_ex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_rtc_ex.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_sai.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_sai.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_sai_ex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_sai_ex.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_sd.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_sd.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_sd_ex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_sd_ex.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_sdram.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_sdram.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_smartcard.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_smartcard.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_smartcard_ex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_smartcard_ex.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_smbus.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_smbus.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_spdifrx.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_spdifrx.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_spi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_spi.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_spi_ex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_spi_ex.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_sram.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_sram.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_swpmi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_swpmi.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_tim.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_tim.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_tim_ex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_tim_ex.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_uart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_uart.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_uart_ex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_uart_ex.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_usart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_usart.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_usart_ex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_usart_ex.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_wwdg.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_wwdg.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>rtx/kernel</GroupName>
+          <Files>
+            <File>
+              <FileName>rtx_delay.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\osal\src\rtx\rtx_delay.c</FilePath>
+            </File>
+            <File>
+              <FileName>rtx_evflags.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\osal\src\rtx\rtx_evflags.c</FilePath>
+            </File>
+            <File>
+              <FileName>rtx_evr.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\osal\src\rtx\rtx_evr.c</FilePath>
+            </File>
+            <File>
+              <FileName>rtx_kernel.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\osal\src\rtx\rtx_kernel.c</FilePath>
+            </File>
+            <File>
+              <FileName>rtx_lib.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\osal\src\rtx\rtx_lib.c</FilePath>
+            </File>
+            <File>
+              <FileName>rtx_memory.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\osal\src\rtx\rtx_memory.c</FilePath>
+            </File>
+            <File>
+              <FileName>rtx_mempool.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\osal\src\rtx\rtx_mempool.c</FilePath>
+            </File>
+            <File>
+              <FileName>rtx_msgqueue.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\osal\src\rtx\rtx_msgqueue.c</FilePath>
+            </File>
+            <File>
+              <FileName>rtx_mutex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\osal\src\rtx\rtx_mutex.c</FilePath>
+            </File>
+            <File>
+              <FileName>rtx_semaphore.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\osal\src\rtx\rtx_semaphore.c</FilePath>
+            </File>
+            <File>
+              <FileName>rtx_system.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\osal\src\rtx\rtx_system.c</FilePath>
+            </File>
+            <File>
+              <FileName>rtx_thread.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\osal\src\rtx\rtx_thread.c</FilePath>
+            </File>
+            <File>
+              <FileName>rtx_timer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\osal\src\rtx\rtx_timer.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>rtx/port</GroupName>
+          <Files>
+            <File>
+              <FileName>irq_armv7m.s</FileName>
+              <FileType>2</FileType>
+              <FilePath>..\..\osal\src\rtx\ARM\irq_armv7m.s</FilePath>
+            </File>
+            <File>
+              <FileName>adapter_rtx.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\osal\src\adapter_rtx.c</FilePath>
+            </File>
+          </Files>
         </Group>
       </Groups>
     </Target>
   </Targets>
 
   <RTE>
-    <gpdscs>
-      <gpdsc name="RTE\Device\STM32H743VITx\FrameworkCubeMX.gpdsc">
-        <targetInfos>
-          <targetInfo name="Target 1"/>
-        </targetInfos>
-      </gpdsc>
-    </gpdscs>
-    <apis>
-      <api Capiversion="2.1.3" Cclass="CMSIS" Cgroup="RTOS2" exclusive="1">
-        <package name="CMSIS" schemaVersion="1.3" url="http://www.keil.com/pack/" vendor="ARM" version="5.8.0"/>
-        <targetInfos>
-          <targetInfo name="Target 1"/>
-        </targetInfos>
-      </api>
-      <api Capiversion="1.1.0" Cclass="Device" Cgroup="STM32Cube Framework" condition="STM32H7" exclusive="1">
-        <package name="STM32H7xx_DFP" schemaVersion="1.6.3" url="http://www.keil.com/pack/" vendor="Keil" version="2.7.0"/>
-        <targetInfos>
-          <targetInfo name="Target 1"/>
-        </targetInfos>
-      </api>
-    </apis>
-    <components>
-      <component Cclass="CMSIS" Cgroup="CORE" Cvendor="ARM" Cversion="5.5.0" condition="ARMv6_7_8-M Device">
-        <package name="CMSIS" schemaVersion="1.3" url="http://www.keil.com/pack/" vendor="ARM" version="5.8.0"/>
-        <targetInfos>
-          <targetInfo name="Target 1"/>
-        </targetInfos>
-      </component>
-      <component Capiversion="2.1.3" Cclass="CMSIS" Cgroup="RTOS2" Csub="Keil RTX5" Cvariant="Source" Cvendor="ARM" Cversion="5.5.3" condition="RTOS2 RTX5">
-        <package name="CMSIS" schemaVersion="1.3" url="http://www.keil.com/pack/" vendor="ARM" version="5.8.0"/>
-        <targetInfos>
-          <targetInfo name="Target 1"/>
-        </targetInfos>
-      </component>
-      <component Cclass="Device" Cgroup="STM32Cube HAL" Csub="Common" Cvendor="Keil" Cversion="1.9.0" condition="STM32H7 HAL Common">
-        <package name="STM32H7xx_DFP" schemaVersion="1.7.2" url="http://www.keil.com/pack/" vendor="Keil" version="2.8.0"/>
-        <targetInfos>
-          <targetInfo name="Target 1"/>
-        </targetInfos>
-      </component>
-      <component Cclass="Device" Cgroup="STM32Cube HAL" Csub="Cortex" Cvendor="Keil" Cversion="1.9.0" condition="STM32H7 HAL">
-        <package name="STM32H7xx_DFP" schemaVersion="1.7.2" url="http://www.keil.com/pack/" vendor="Keil" version="2.8.0"/>
-        <targetInfos>
-          <targetInfo name="Target 1"/>
-        </targetInfos>
-      </component>
-      <component Cclass="Device" Cgroup="STM32Cube HAL" Csub="DCMI" Cvendor="Keil" Cversion="1.9.0" condition="STM32H7 HAL DMA">
-        <package name="STM32H7xx_DFP" schemaVersion="1.7.2" url="http://www.keil.com/pack/" vendor="Keil" version="2.8.0"/>
-        <targetInfos>
-          <targetInfo name="Target 1"/>
-        </targetInfos>
-      </component>
-      <component Cclass="Device" Cgroup="STM32Cube HAL" Csub="DMA" Cvendor="Keil" Cversion="1.9.0" condition="STM32H7 HAL">
-        <package name="STM32H7xx_DFP" schemaVersion="1.7.2" url="http://www.keil.com/pack/" vendor="Keil" version="2.8.0"/>
-        <targetInfos>
-          <targetInfo name="Target 1"/>
-        </targetInfos>
-      </component>
-      <component Cclass="Device" Cgroup="STM32Cube HAL" Csub="GPIO" Cvendor="Keil" Cversion="1.9.0" condition="STM32H7 HAL">
-        <package name="STM32H7xx_DFP" schemaVersion="1.7.2" url="http://www.keil.com/pack/" vendor="Keil" version="2.8.0"/>
-        <targetInfos>
-          <targetInfo name="Target 1"/>
-        </targetInfos>
-      </component>
-      <component Cclass="Device" Cgroup="STM32Cube HAL" Csub="I2C" Cvendor="Keil" Cversion="1.9.0" condition="STM32H7 HAL DMA">
-        <package name="STM32H7xx_DFP" schemaVersion="1.7.2" url="http://www.keil.com/pack/" vendor="Keil" version="2.8.0"/>
-        <targetInfos>
-          <targetInfo name="Target 1"/>
-        </targetInfos>
-      </component>
-      <component Cclass="Device" Cgroup="STM32Cube HAL" Csub="JPEG" Cvendor="Keil" Cversion="1.9.0" condition="STM32H7 HAL MDMA">
-        <package name="STM32H7xx_DFP" schemaVersion="1.7.2" url="http://www.keil.com/pack/" vendor="Keil" version="2.8.0"/>
-        <targetInfos>
-          <targetInfo name="Target 1"/>
-        </targetInfos>
-      </component>
-      <component Cclass="Device" Cgroup="STM32Cube HAL" Csub="MDMA" Cvendor="Keil" Cversion="1.9.0" condition="STM32H7 HAL">
-        <package name="STM32H7xx_DFP" schemaVersion="1.7.2" url="http://www.keil.com/pack/" vendor="Keil" version="2.8.0"/>
-        <targetInfos>
-          <targetInfo name="Target 1"/>
-        </targetInfos>
-      </component>
-      <component Cclass="Device" Cgroup="STM32Cube HAL" Csub="PWR" Cvendor="Keil" Cversion="1.9.0" condition="STM32H7 HAL">
-        <package name="STM32H7xx_DFP" schemaVersion="1.7.2" url="http://www.keil.com/pack/" vendor="Keil" version="2.8.0"/>
-        <targetInfos>
-          <targetInfo name="Target 1"/>
-        </targetInfos>
-      </component>
-      <component Cclass="Device" Cgroup="STM32Cube HAL" Csub="QSPI" Cvendor="Keil" Cversion="1.9.0" condition="STM32H7 HAL MDMA">
-        <package name="STM32H7xx_DFP" schemaVersion="1.7.2" url="http://www.keil.com/pack/" vendor="Keil" version="2.8.0"/>
-        <targetInfos>
-          <targetInfo name="Target 1"/>
-        </targetInfos>
-      </component>
-      <component Cclass="Device" Cgroup="STM32Cube HAL" Csub="RCC" Cvendor="Keil" Cversion="1.9.0" condition="STM32H7 HAL GPIO">
-        <package name="STM32H7xx_DFP" schemaVersion="1.7.2" url="http://www.keil.com/pack/" vendor="Keil" version="2.8.0"/>
-        <targetInfos>
-          <targetInfo name="Target 1"/>
-        </targetInfos>
-      </component>
-      <component Cclass="Device" Cgroup="STM32Cube HAL" Csub="SPI" Cvendor="Keil" Cversion="1.9.0" condition="STM32H7 HAL DMA">
-        <package name="STM32H7xx_DFP" schemaVersion="1.7.2" url="http://www.keil.com/pack/" vendor="Keil" version="2.8.0"/>
-        <targetInfos>
-          <targetInfo name="Target 1"/>
-        </targetInfos>
-      </component>
-      <component Cclass="Device" Cgroup="STM32Cube HAL" Csub="UART" Cvendor="Keil" Cversion="1.9.0" condition="STM32H7 HAL DMA">
-        <package name="STM32H7xx_DFP" schemaVersion="1.7.2" url="http://www.keil.com/pack/" vendor="Keil" version="2.8.0"/>
-        <targetInfos>
-          <targetInfo name="Target 1"/>
-        </targetInfos>
-      </component>
-      <component Cclass="Device" Cgroup="Startup" Cvendor="Keil" Cversion="1.9.0" condition="STM32H7 CMSIS">
-        <package name="STM32H7xx_DFP" schemaVersion="1.7.2" url="http://www.keil.com/pack/" vendor="Keil" version="2.8.0"/>
-        <targetInfos>
-          <targetInfo name="Target 1"/>
-        </targetInfos>
-      </component>
-    </components>
-    <files>
-      <file attr="config" category="source" name="CMSIS\RTOS2\RTX\Config\RTX_Config.c" version="5.1.1">
-        <instance index="0">RTE\CMSIS\RTX_Config.c</instance>
-        <component Capiversion="2.1.3" Cclass="CMSIS" Cgroup="RTOS2" Csub="Keil RTX5" Cvariant="Source" Cvendor="ARM" Cversion="5.5.3" condition="RTOS2 RTX5"/>
-        <package name="CMSIS" schemaVersion="1.3" url="http://www.keil.com/pack/" vendor="ARM" version="5.8.0"/>
-        <targetInfos>
-          <targetInfo name="Target 1"/>
-        </targetInfos>
-      </file>
-      <file attr="config" category="header" name="CMSIS\RTOS2\RTX\Config\RTX_Config.h" version="5.5.2">
-        <instance index="0">RTE\CMSIS\RTX_Config.h</instance>
-        <component Capiversion="2.1.3" Cclass="CMSIS" Cgroup="RTOS2" Csub="Keil RTX5" Cvariant="Source" Cvendor="ARM" Cversion="5.5.3" condition="RTOS2 RTX5"/>
-        <package name="CMSIS" schemaVersion="1.3" url="http://www.keil.com/pack/" vendor="ARM" version="5.8.0"/>
-        <targetInfos>
-          <targetInfo name="Target 1"/>
-        </targetInfos>
-      </file>
-      <file attr="config" category="source" condition="STM32H743_ARMCC" name="Drivers\CMSIS\Device\ST\STM32H7xx\Source\Templates\arm\startup_stm32h743xx.s" version="1.9.0">
-        <instance index="0">RTE\Device\STM32H743VITx\startup_stm32h743xx.s</instance>
-        <component Cclass="Device" Cgroup="Startup" Cvendor="Keil" Cversion="1.9.0" condition="STM32H7 CMSIS"/>
-        <package name="STM32H7xx_DFP" schemaVersion="1.7.2" url="http://www.keil.com/pack/" vendor="Keil" version="2.8.0"/>
-        <targetInfos>
-          <targetInfo name="Target 1"/>
-        </targetInfos>
-      </file>
-      <file attr="config" category="source" name="Drivers\CMSIS\Device\ST\STM32H7xx\Source\Templates\system_stm32h7xx.c" version="1.9.0">
-        <instance index="0">RTE\Device\STM32H743VITx\system_stm32h7xx.c</instance>
-        <component Cclass="Device" Cgroup="Startup" Cvendor="Keil" Cversion="1.9.0" condition="STM32H7 CMSIS"/>
-        <package name="STM32H7xx_DFP" schemaVersion="1.7.2" url="http://www.keil.com/pack/" vendor="Keil" version="2.8.0"/>
-        <targetInfos>
-          <targetInfo name="Target 1"/>
-        </targetInfos>
-      </file>
-    </files>
+    <apis/>
+    <components/>
+    <files/>
   </RTE>
 
   <LayerInfo>

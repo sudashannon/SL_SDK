@@ -14,9 +14,6 @@
 #ifndef RTX_DEF_H_
 #define RTX_DEF_H_
 
-#ifdef   _RTE_
-#include "RTE_Components.h"
-#endif
 #include "RTX_Config.h"
 
 #if (defined(OS_OBJ_MEM_USAGE) && (OS_OBJ_MEM_USAGE != 0))

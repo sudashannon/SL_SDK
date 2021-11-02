@@ -13,8 +13,6 @@
 #include "../../inc/middle_layer/rte_memory.h"
 #include "../../inc/middle_layer/rte_log.h"
 #include "../../inc/data_structure/ds_vector.h"
-#include "RTE_Components.h"
-#include CMSIS_device_header
 
 #define THIS_MODULE LOG_STR(TIMER)
 #define TIMER_LOGF(...) LOG_FATAL(THIS_MODULE, __VA_ARGS__)
@@ -339,5 +337,5 @@ __attribute__((weak)) void rte_delay_ms(uint32_t delay_ms)
  */
 __attribute__((weak)) void rte_yield(void)
 {
-    __NOP();
+
 }

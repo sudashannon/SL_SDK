@@ -11,6 +11,7 @@
         "rte_log.h": "c",
         "ds_hashmap.h": "c",
         "rte.h": "c",
-        "rsis_pmp.h": "c"
+        "rsis_pmp.h": "c",
+        "rtx_config.h": "c"
     }
 }

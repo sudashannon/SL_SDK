@@ -10,8 +10,6 @@
  */
 #ifndef __HAL_SPI_H
 #define __HAL_SPI_H
-#include "RTE_Components.h"
-#include CMSIS_device_header
 #include "hal.h"
 #include "cmsis_os2.h"
 

@@ -10,8 +10,7 @@
  */
 
 #include "../inc/rte_include.h"
-#include "RTE_Components.h"
-#include CMSIS_device_header
+#include "stm32h7xx.h"
 #include "cmsis_os2.h"
 
 /**
@@ -169,7 +168,7 @@ void rte_init(void)
         osMutexPrioInherit | osMutexRecursive,
         NULL,
         0U
-    };  
+    };
     log_mutex_instance.mutex = (void *)osMutexNew(&log_mutex_attr);
     log_mutex_instance.lock = rte_mutex_lock;
     log_mutex_instance.unlock = rte_mutex_unlock;
