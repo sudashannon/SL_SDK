@@ -22,7 +22,7 @@
  * limitations under the License.
  */
 
-#include "adapter_rtx.h"
+#include "os_tick.h"
 #include "rtx_lib.h"
 
 //lint -emacro((923,9078),SCB,SysTick) "cast from unsigned long to pointer"

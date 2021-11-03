@@ -1215,14 +1215,14 @@
           <GroupName>rtx/port</GroupName>
           <Files>
             <File>
-              <FileName>irq_armv7m.s</FileName>
-              <FileType>2</FileType>
-              <FilePath>..\..\osal\src\rtx\ARM\irq_armv7m.s</FilePath>
+              <FileName>os_tick.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\osal\src\rtx\os_tick.c</FilePath>
             </File>
             <File>
-              <FileName>adapter_rtx.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\osal\src\adapter_rtx.c</FilePath>
+              <FileName>irq_armv7m.s</FileName>
+              <FileType>2</FileType>
+              <FilePath>..\..\osal\src\rtx\port\ARM\ARMCC\irq_armv7m.s</FilePath>
             </File>
           </Files>
         </Group>

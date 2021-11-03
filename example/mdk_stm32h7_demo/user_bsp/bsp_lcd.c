@@ -113,6 +113,10 @@ void bsp_lcd_fill_frame(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint
 }
 void bsp_lcd_init(void)
 {
+    gpio_set_low(LCD_RST);
+	rte_delay_ms(100);
+    gpio_set_high(LCD_RST);
+    rte_delay_ms(100);
     bsp_lcd_write_command(0x01);
     rte_delay_ms(50);
 
