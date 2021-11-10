@@ -5,7 +5,28 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "(gdb) 启动",
+            "name": "(gdb for riscv) 启动",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/example/riscvgcc_sifiveu54_demo/build/cross/none/debug/riscvgcc_sifiveu54_demo",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${fileDirname}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerPath": "C:/UserProfession/riscv64-unknown-elf-toolchain-10.2.0-2020.12.8-x86_64-w64-mingw32/bin/riscv64-unknown-elf-gdb.exe",
+            "miDebuggerServerAddress": "localhost:1234",
+            "setupCommands": [
+                {
+                    "description": "为 gdb 启用整齐打印",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb for arm) 启动",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/example/armgcc_stm32h7_demo/build/cross/none/debug/stm32h7_demo",
@@ -15,7 +36,7 @@
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
-            "miDebuggerPath": "C:/Program Files (x86)/GNU Arm Embedded Toolchain/10 2021.07/bin/arm-none-eabi-gdb.exe",
+            "miDebuggerPath": "C:/UserProfession/GNU Arm Embedded Toolchain/10 2021.10/bin/arm-none-eabi-gdb.exe",
             "miDebuggerServerAddress": "localhost:2331",
             "setupCommands": [
                 {

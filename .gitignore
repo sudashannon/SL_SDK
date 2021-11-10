@@ -1,3 +1,8 @@
+# Xmake cache
+example/riscvgcc_sifiveu54_demo/.xmake/
+example/riscvgcc_sifiveu54_demo/build/
+example/armgcc_stm32h7_demo/.xmake/
+example/armgcc_stm32h7_demo/build/
 example/mingw_sdl2_demo/obj/
 example/mingw_sdl2_demo/bin/Debug/example.exe
 example/mdk_stm32h7_demo/Objects/*.o
@@ -6,3 +11,5 @@ example/mdk_stm32h7_demo/Objects/*.iex
 example/mdk_stm32h7_demo/Objects/*.__i
 example/mdk_stm32h7_demo/Objects/*.build_log.htm
 example/mdk_stm32h7_demo/Objects/*.lnp
+
+.vscode/settings.json

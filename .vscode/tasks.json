@@ -4,6 +4,11 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "cross_init",
+            "type": "shell",
+            "command": "xmake f -p cross -m debug"
+        },
+        {
             "label": "openocd",
             "type": "shell",
             "command": "openocd",
@@ -14,9 +19,17 @@
             ]
         },
         {
-            "label": "init",
+            "label": "riscv_simulator",
             "type": "shell",
-            "command": "xmake f -p cross"
+            "command": "qemu-system-riscv64",
+            "args": [
+                "-nographic",
+                "-cpu", "sifive-u54",
+                "-bios", "none",
+                "-kernel", "${workspaceFolder}/example/riscvgcc_sifiveu54_demo/build/cross/none/debug/riscvgcc_sifiveu54_demo",
+                "-s",
+                "-S"
+            ]
         }
     ]
 }

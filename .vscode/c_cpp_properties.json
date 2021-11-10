@@ -3,7 +3,7 @@
         {
             "name": "arm",
             "includePath": [
-                "C:/Program Files (x86)/GNU Arm Embedded Toolchain/10 2021.07/arm-none-eabi/include",
+                "C:/UserProfession/GNU Arm Embedded Toolchain/10 2021.10/arm-none-eabi/include",
                 "${workspaceFolder}/sis/cmsis/core/inc",
                 "${workspaceFolder}/sis/cmsis/device/stm32h7/inc",
                 "${workspaceFolder}/sis/cmsis/drivers/stm32h7/inc",
@@ -19,6 +19,24 @@
             "cStandard": "gnu99",
             "cppStandard": "gnu++11",
             "intelliSenseMode": "linux-gcc-arm"
+        },
+        {
+            "name": "riscv",
+            "includePath": [
+                "C:/UserProfession/riscv64-unknown-elf-toolchain-10.2.0-2020.12.8-x86_64-w64-mingw32/riscv64-unknown-elf/include",
+                "${workspaceFolder}/sis/rsis/core/inc",
+                "${workspaceFolder}/rte/inc",
+                "${workspaceFolder}/hal/inc",
+                "${workspaceFolder}/osal/inc"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ],
+            "cStandard": "gnu99",
+            "cppStandard": "gnu++11",
+            "intelliSenseMode": "linux-gcc-riscv"
         }
     ],
     "version": 4
