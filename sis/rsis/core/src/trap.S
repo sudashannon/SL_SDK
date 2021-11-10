@@ -1,4 +1,4 @@
-#include "../Include/rsis_csr_address.h"
+#include "../inc/rsis_csr_address.h"
 
 /**
  * \brief  Exception/NMI Entry

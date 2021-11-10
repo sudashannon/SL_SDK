@@ -32,16 +32,14 @@ __STATIC_FORCEINLINE void __set_mirq_handle(mirq_mode_t mode,
 {
     uintptr_t trap_entry = (uintptr_t)handle;
     switch (mode) {
-    case IRQ_DIRECT_MODE: {
-        assert_param(vec_table % 4 == 0);
-        csr_write(CSR_MTVEC_BASE, (trap_entry) | CSR_MTVEC_EXCEPTION_DIRECT);
-        break;
-    }
-    case IRQ_VECTOR_MODE: {
-        assert_param(vec_table % 256 == 0);
-        csr_write(CSR_MTVEC_BASE, (trap_entry) | CSR_MTVEC_EXCEPTION_VECTORED);
-        break;
-    }
+        case IRQ_DIRECT_MODE: {
+            csr_write(CSR_MTVEC_BASE, (trap_entry) | CSR_MTVEC_EXCEPTION_DIRECT);
+            break;
+        }
+        case IRQ_VECTOR_MODE: {
+            csr_write(CSR_MTVEC_BASE, (trap_entry) | CSR_MTVEC_EXCEPTION_VECTORED);
+            break;
+        }
     }
 }
 

@@ -1,4 +1,4 @@
-#include "../inc/rsis_include.h"
+#include "../inc/rsis_trap.h"
 #include "rte_include.h"
 
 typedef struct {

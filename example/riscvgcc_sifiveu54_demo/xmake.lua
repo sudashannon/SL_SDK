@@ -9,13 +9,20 @@ add_rules("mode.debug", "mode.release")
 target("riscvgcc_sifiveu54_demo")
     set_toolchains("riscvgcc")
     set_kind("binary")
-    add_files("hello.s")
+    add_files("*.c")
+    add_files("../../sis/rsis/core/src/*.S", "../../sis/rsis/core/src/*.c")
+    add_files("../../sis/rsis/device/sifiveu/src/system_sifiveu.c")
+    -- Include path
+    add_includedirs("../../hal/inc");
+    add_includedirs("../../rte/inc");
+    add_includedirs("../../osal/inc");
+    -- Configuration
     set_warnings("all", "error")
     add_cxflags("-march=rv64gc", "-mabi=lp64d", "-mcmodel=medany",
                 "-ffunction-sections", "-fdata-sections" ,"-fno-common")
     add_asflags("-march=rv64gc", "-mabi=lp64d", "-mcmodel=medany",
                 "-ffunction-sections", "-fdata-sections" ,"-fno-common")
-    add_ldflags("-Thello.ld",
+    add_ldflags("-Tsifiveu54.lds",
                 "-Wl,-Map,$(buildir)/r64_memory.map",
                 "-Wl,--gc-sections",
                 "-Wl,--check-sections", "-nostartfiles",
