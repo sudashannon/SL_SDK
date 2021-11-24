@@ -20,6 +20,7 @@
 #ifndef RTE_MEMPOOL_SIZE
 #define RTE_MEMPOOL_SIZE            64 * 1024 * 1024
 #endif
+#define RTE_MEMPOOL_ENABLE_DEBUG    0
 /*
 ** Detect whether or not we are building for a 32- or 64-bit (LP/LLP)
 ** architecture. There is no reliable portable method at compile-time.
@@ -32,6 +33,8 @@
 #endif
 
 #define RTE_TIMER_GROUP_CAPACITY    8
+
+#define RTE_SHELL_ENABLE            0
 
 /**
  * @brief General include.
@@ -200,13 +203,6 @@ typedef struct {
     uint8_t *buf;
     uint16_t size;
 } rte_buffer_t;
-
-typedef struct {
-    void* (*malloc)(uint32_t size);
-    void* (*calloc)(uint32_t size);
-    void* (*realloc)(void *ptr, uint32_t size);
-    void (*free)(void *ptr);
-} rte_allocator_t;
 
 typedef struct {
     uint8_t source_id;

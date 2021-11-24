@@ -5,7 +5,6 @@
 #include "rte_include.h"
 #define SDL_MAIN_HANDLED
 #include "SDL.h"
-#include "shell.h"
 
 extern void test_log(void);
 extern void test_mempool(int thread_num, int max_malloc_size, int count, int loop, bool if_verbose);
@@ -24,21 +23,18 @@ void end_main_loop(void)
 
 static int main_thread(void *param)
 {
-    // test_log();
-    // test_vector();
-    // test_ringbuffer();
     rte_init();
     memory_demon(BANK_DEFAULT);
+    test_log();
+    test_vector();
+    test_ringbuffer();
     test_hashmap();
     test_linklist();
     memory_demon(BANK_DEFAULT);
-    // memory_demon(BANK_DEFAULT);
-    // test_mempool(10, 1024 * 1024, 100, 10, true);
-    // memory_demon(BANK_DEFAULT);
     RTE_LOGI("Hello world!");
-    //SDL_Thread *gui_thread_handle = SDL_CreateThread(gui_thread, "gui_thread", NULL);
+    SDL_Thread *gui_thread_handle = SDL_CreateThread(gui_thread, "gui_thread", NULL);
     while(running_flag) {
-        timer_tick_handle();
+        timer_tick_handle(1);
         SDL_Delay(1);
     }
     rte_deinit();

@@ -3,7 +3,6 @@
 #include "SDL.h"
 
 static int membench(void *arg);
-static double diff_in_second(struct timespec t1, struct timespec t2);
 
 typedef struct {
     int alloc_size;
@@ -26,24 +25,18 @@ void test_mempool(int thread_num, int max_malloc_size, int count, int loop, bool
     thread_args.verbose = if_verbose;
 
     SDL_Thread *p[thread_num];
-    struct timespec start, end;
 
     RTE_LOGI("Number of threads : %d", thread_num);
     RTE_LOGI("Malloc size : %d KB", thread_args.alloc_size / (1024));
     RTE_LOGI("Number of councurrent malloc per thread: %d", thread_args.count);
     RTE_LOGI("Number of loops per thread : %d", thread_args.loop);
 
-    clock_gettime(CLOCK_REALTIME, &start);
-
     for (int i = 0; i < thread_num; i++)
         p[i] = SDL_CreateThread(membench, NULL, &thread_args);
 
     for (int i = 0; i < thread_num; i++)
         SDL_WaitThread(p[i], NULL);
-
-    clock_gettime(CLOCK_REALTIME, &end);
-
-    printf("%lf sec\n", diff_in_second(start, end));
+    RTE_LOGI("Test over!");
 }
 
 /* memory benchmark */
@@ -102,15 +95,3 @@ static int membench(void *arg)
     return 0;
 }
 
-static double diff_in_second(struct timespec t1, struct timespec t2)
-{
-    struct timespec diff;
-    if (t2.tv_nsec - t1.tv_nsec < 0) {
-        diff.tv_sec  = t2.tv_sec - t1.tv_sec - 1;
-        diff.tv_nsec = t2.tv_nsec - t1.tv_nsec + 1000000000;
-    } else {
-        diff.tv_sec  = t2.tv_sec - t1.tv_sec;
-        diff.tv_nsec = t2.tv_nsec - t1.tv_nsec;
-    }
-    return (diff.tv_sec + diff.tv_nsec / 1000000000.0);
-}

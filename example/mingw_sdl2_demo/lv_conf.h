@@ -45,9 +45,9 @@
 #  define LV_MEM_ADR          (memory_alloc(BANK_DEFAULT, LV_MEM_SIZE))     /*0: unused*/
 #else       /*LV_MEM_CUSTOM*/
 #  define LV_MEM_CUSTOM_INCLUDE   "rte_include.h"   /*Header for the dynamic memory function*/
-#  define LV_MEM_CUSTOM_ALLOC     rte_get_general_allocator()->malloc
-#  define LV_MEM_CUSTOM_FREE      rte_get_general_allocator()->free
-#  define LV_MEM_CUSTOM_REALLOC   rte_get_general_allocator()->realloc
+#  define LV_MEM_CUSTOM_ALLOC     rte_malloc
+#  define LV_MEM_CUSTOM_FREE      rte_free
+#  define LV_MEM_CUSTOM_REALLOC   rte_realloc
 #endif     /*LV_MEM_CUSTOM*/
 
 /*Use the standard `memcpy` and `memset` instead of LVGL's own functions. (Might or might not be faster).*/
@@ -68,7 +68,7 @@
 #define LV_TICK_CUSTOM     1
 #if LV_TICK_CUSTOM
 #define LV_TICK_CUSTOM_INCLUDE  "middle_layer/rte_timer.h"         /*Header for the system time function*/
-#define LV_TICK_CUSTOM_SYS_TIME_EXPR (rte_get_tick())     /*Expression evaluating to current system time in ms*/
+#define LV_TICK_CUSTOM_SYS_TIME_EXPR (rte_get_tick_ms())     /*Expression evaluating to current system time in ms*/
 #endif   /*LV_TICK_CUSTOM*/
 
 /*Default Dot Per Inch. Used to initialize default sizes such as widgets sized, style paddings.

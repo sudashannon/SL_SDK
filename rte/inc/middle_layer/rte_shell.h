@@ -1,6 +1,10 @@
 #ifndef __RTE_SHELL_H
 #define __RTE_SHELL_H
 
+#include "rte.h"
+
+#if RTE_SHELL_ENABLE == 1
+
 /******************************* readline configuration ****************************/
 
 /* command line input buffer size(byte) */
@@ -216,5 +220,7 @@ extern int shell_run_subcmd_implem(const shell_cmd_t* pCmdt,
                 const shell_cmd_t* subcommands, unsigned int  subcommands_count);
 
 extern void shell_init(void);
+
+#endif
 
 #endif

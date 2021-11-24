@@ -82,7 +82,7 @@ rte_error_t ds_ringbuffer_destroy(ds_ringbuffer_t handle)
        rte_free(buffer->data);
     // Record this mutex cause its owner will be released in the free api.
     rte_mutex_t *buffer_mutex = buffer->mutex;
-   rte_free(buffer);
+    rte_free(buffer);
     RTE_UNLOCK(buffer_mutex);
     return RTE_SUCCESS;
 }

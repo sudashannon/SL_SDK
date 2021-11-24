@@ -17,9 +17,9 @@ void test_ringbuffer(void)
         uint32_t head;
         uint32_t tail;
         rte_mutex_t *mutex;
-        rte_allocator_t *allocator;
     } test_buffer_t;
     test_buffer_t *test_buffer = (test_buffer_t *)buffer;
+
     retval = ds_ringbuffer_write(buffer, data, 10);
     RTE_LOGI("test_buffer write result %d", retval);
     RTE_LOGI("test_buffer head %d tail %d", test_buffer->head, test_buffer->tail);
@@ -54,4 +54,6 @@ void test_ringbuffer(void)
     }
     RTE_LOGI("test_buffer read data %s",output);
     RTE_LOGI("test_buffer head %d tail %d", test_buffer->head, test_buffer->tail);
+    retval = ds_ringbuffer_destroy(buffer);
+    RTE_LOGI("test_buffer destroy result %d",retval);
 }

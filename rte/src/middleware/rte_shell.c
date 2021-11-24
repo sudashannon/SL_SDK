@@ -13,6 +13,8 @@
 #include "../../inc/middle_layer/rte_log.h"
 #include "../../inc/middle_layer/rte_timer.h"
 
+#if RTE_SHELL_ENABLE == 1
+
 #include <stdint.h>
 #include <string.h>
 #include <stdarg.h>
@@ -434,7 +436,6 @@ static void shell_dispatch(char ch)
             shell_end_input();
             break;
 
-        case 255:
         case 127:
         case 8:  // backspace, CTL_CH('H')
             shell_rubout();
@@ -615,6 +616,11 @@ static int shell_parse_line(char *input, char *argv[], const int maxArgc)
 #endif /* __weak */
 #endif /* __GNUC__ */
 
+__weak int shell_getc(char *ch)
+{
+    return 1;
+}
+
 void shell_printf(const char * restrict format, ...)
 {
     va_list arg;
@@ -774,3 +780,5 @@ void shell_init(void)
     shell_handle.command_table_base = start;
     SHELL_LOGI("command num %d start %p end %p", shell_handle.command_num, start, end);
 }
+
+#endif

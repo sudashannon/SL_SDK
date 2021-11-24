@@ -12,19 +12,12 @@
 #include "../inc/rte_include.h"
 #include <stdio.h>
 #include "SDL.h"
-#include "shell.h"
 /**
  * @brief Ram buffer and allocator used for memory pool.
  *
  */
 MEM_ALIGN_NBYTES (static uint8_t mempool_buffer[RTE_MEMPOOL_SIZE], MEM_BLOCK_ALIGN) = {0};
 MEM_ALIGN_NBYTES (static uint8_t dma_buffer[10 * 1024], MEM_BLOCK_ALIGN) = {0};
-static rte_allocator_t rte_allocator_instance = {
-    .malloc = NULL,
-    .calloc = NULL,
-    .realloc = NULL,
-    .free = NULL,
-};
 /**
  * @brief Used for main timer group internal.
  *
@@ -65,13 +58,9 @@ rte_error_t rte_mutex_unlock(void *mutex)
  *
  * @return uint32_t
  */
-uint32_t rte_get_tick(void)
+uint32_t rte_get_tick_ms(void)
 {
     return SDL_GetTicks();
-}
-unsigned int userGetTick()
-{
-    return rte_get_tick();
 }
 /**
  * @brief Wrapper for system yield.
@@ -80,46 +69,6 @@ unsigned int userGetTick()
 void rte_yield(void)
 {
     SDL_Delay(0);
-}
-/**
- * @brief Wrapper for memory malloc, which is adapted for internal memory pool.
- *
- * @param size
- * @return void*
- */
-static void *rte_malloc(uint32_t size)
-{
-    return memory_alloc(BANK_DEFAULT, size);
-}
-/**
- * @brief Wrapper for memory calloc, which is adapted for internal memory pool.
- *
- * @param size
- * @return void*
- */
-static void *rte_calloc(uint32_t size)
-{
-    return memory_calloc(BANK_DEFAULT, size);
-}
-/**
- * @brief Wrapper for memory realloc, which is adapted for internal memory pool.
- *
- * @param ptr
- * @param size
- * @return void*
- */
-static void *rte_realloc(void *ptr, uint32_t size)
-{
-    return memory_realloc(BANK_DEFAULT, ptr, size);
-}
-/**
- * @brief Wrapper for memory free, which is adapted for internal memory pool.
- *
- * @param ptr
- */
-static void rte_free(void *ptr)
-{
-    memory_free(BANK_DEFAULT, ptr);
 }
 /**
  * @brief Wrapper for log output.
@@ -148,15 +97,11 @@ void rte_init(void)
     mem_mutex_instance[BANK_DMA].unlock = rte_mutex_unlock;
     mem_mutex_instance[BANK_DMA].trylock = NULL;
     memory_pool(BANK_DMA, &mem_mutex_instance[BANK_DMA], dma_buffer, sizeof(dma_buffer));
-    rte_allocator_instance.malloc = rte_malloc;
-    rte_allocator_instance.calloc = rte_calloc;
-    rte_allocator_instance.realloc = rte_realloc;
-    rte_allocator_instance.free = rte_free;
     log_mutex_instance.mutex = SDL_CreateMutex();
     log_mutex_instance.lock = rte_mutex_lock;
     log_mutex_instance.unlock = rte_mutex_unlock;
     log_mutex_instance.trylock = NULL;
-    log_init(NULL, rte_log_output, rte_get_tick);
+    log_init(NULL, rte_log_output, rte_get_tick_ms);
     timer_init(4, true);
     timer_create_group(&rte_timer_group, NULL);
 }
@@ -173,15 +118,6 @@ rte_error_t rte_deinit(void)
     SDL_DestroyMutex(log_mutex_instance.mutex);
     timer_deinit();
     return RTE_SUCCESS;
-}
-/**
- * @brief Get the general rte allocator.
- *
- * @return rte_allocator_t*
- */
-rte_allocator_t *rte_get_general_allocator(void)
-{
-    return &rte_allocator_instance;
 }
 /**
  * @brief Get the main timer group.

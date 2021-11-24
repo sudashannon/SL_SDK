@@ -24,6 +24,12 @@
 #define MEM_LOCK(bank)   RTE_LOCK(mem_handle[bank].mutex)
 #define MEM_UNLOCK(bank) RTE_UNLOCK(mem_handle[bank].mutex)
 
+#if RTE_SHELL_ENABLE == 1
+    #define print_wapper print_wapper
+#else
+    #define print_wapper MEM_LOGI
+#endif
+
 #if RTE_MEMPOOL_ENABLE_DEBUG == 1
 typedef struct {
     const char *function;
@@ -946,12 +952,12 @@ static void print_block(void* ptr, size_t size, int used)
 {
 #if RTE_MEMPOOL_ENABLE_DEBUG == 1
     mem_debug_info_t *debug_info =  (mem_debug_info_t *)((uint8_t *)ptr + size - sizeof(mem_debug_info_t));
-    shell_printf("user_ptr: 0x%08p [%s] real_size: %d (block_header: 0x%08p) owned by %s %d\r\n",
+    print_wapper("user_ptr: 0x%08p [%s] real_size: %d (block_header: 0x%08p) owned by %s %d\r\n",
                     ptr, used ? "used" : "free", (unsigned int)size, block_from_ptr(ptr),
                     used ? debug_info->function : "N/A",
                     used ? debug_info->line : 0);
 #else
-    shell_printf("user_ptr: 0x%08p [%s] real_size: %d (block_header: 0x%08p)\r\n",
+    print_wapper("user_ptr: 0x%08p [%s] real_size: %d (block_header: 0x%08p)\r\n",
                     ptr, used ? "used" : "free", (unsigned int)size, block_from_ptr(ptr));
 #endif
 }
@@ -968,9 +974,9 @@ void memory_demon(mem_bank_t bank)
     MEM_LOCK(bank);
     block_header_t *block =
         offset_to_block(mem_handle[bank].pool, -(int)block_header_overhead);
-    shell_puts("--------------------------------------------------\r\n");
-    shell_printf("BANK%d start at 0x%016p\r\n",bank, mem_handle[bank].pool);
-    shell_puts("--------------------------------------------------\r\n");
+    print_wapper("--------------------------------------------------\r\n");
+    print_wapper("BANK%d start at 0x%016p\r\n",bank, mem_handle[bank].pool);
+    print_wapper("--------------------------------------------------\r\n");
     while (block && !block_is_last(block)) {
         print_block(block_to_ptr(block), block_size(block), !block_is_free(block));
         block = block_next(block);
@@ -1400,9 +1406,9 @@ void memory_demon(mem_bank_t bank)
     MEM_LOCK(bank);
     mem_entry_t *e = NULL;
     mem_entry_t *full = (mem_entry_t *)mem_handle[bank].work_mem;
-    shell_puts("--------------------------------------------------\r\n");
-    shell_printf("BANK%d start at 0x%016p\r\n",bank, &full->first_data);
-    shell_puts("--------------------------------------------------\r\n");
+    print_wapper("--------------------------------------------------\r\n");
+    print_wapper("BANK%d start at 0x%016p\r\n",bank, &full->first_data);
+    print_wapper("--------------------------------------------------\r\n");
     //Search for a appropriate entry
     do {
         //Get the next entry
@@ -1412,12 +1418,12 @@ void memory_demon(mem_bank_t bank)
 #if RTE_MEMPOOL_ENABLE_DEBUG == 1
             mem_debug_info_t *debug_info =  (mem_debug_info_t *)((uint8_t *)&e->first_data +
                                             (unsigned int)e->header.d_size - sizeof(mem_debug_info_t));
-            shell_printf("user_ptr: 0x%08p [%s] real_size: %d (block_header: 0x%08p) owned by %s %d\r\n",
+            print_wapper("user_ptr: 0x%08p [%s] real_size: %d (block_header: 0x%08p) owned by %s %d\r\n",
                             &e->first_data, e->header.used ? "used" : "free", (unsigned int)e->header.d_size, e,
                             e->header.used ? debug_info->function : "N/A",
                             e->header.used ? debug_info->line : 0);
 #else
-            shell_printf("user_ptr: 0x%08p [%s] real_size: %d (block_header: 0x%08p)\r\n",
+            print_wapper("user_ptr: 0x%08p [%s] real_size: %d (block_header: 0x%08p)\r\n",
                             &e->first_data, e->header.used ? "used" : "free", (unsigned int)e->header.d_size, e);
 #endif
         }
@@ -1486,6 +1492,8 @@ static void ent_trunc(mem_entry_t * e, uint32_t size)
 
 #endif
 
+#if RTE_SHELL_ENABLE == 1
+
 int shell_cmd_mem(const shell_cmd_t *pcmd, int argc, char *const argv[])
 {
     if (argc == 2) {
@@ -1499,3 +1507,4 @@ int shell_cmd_mem(const shell_cmd_t *pcmd, int argc, char *const argv[])
 
 SHELL_ADD_CMD(mem, shell_cmd_mem,
                     "show selected handled memory bank info.","\r\n");
+#endif
