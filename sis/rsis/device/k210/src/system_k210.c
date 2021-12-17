@@ -39,8 +39,7 @@ void __attribute__((weak)) initialize_kendryte_ide_hook(void) {}
 
 void thread_entry(int core_id)
 {
-    while(!atomic_read(&g_wake_up[core_id]))
-        ;
+    while(!atomic_read(&g_wake_up[core_id]));
 }
 
 void core_enable(int core_id)
@@ -71,8 +70,7 @@ void _init_bsp(int core_id, int number_of_cores)
     extern void __libc_init_array(void);
     extern void __libc_fini_array(void);
 
-    if(core_id == 0)
-    {
+    if(core_id == 0) {
         /* Initialize bss data to 0 */
         init_bss();
         /* Init UART */
@@ -102,8 +100,7 @@ void _init_bsp(int core_id, int number_of_cores)
         core1_instance.callback = NULL;
         core1_instance.ctx = NULL;
         ret = os_entry(core_id, number_of_cores, main);
-    } else
-    {
+    } else {
         plic_init();
         sysctl_enable_irq();
         thread_entry(core_id);
@@ -115,7 +112,22 @@ void _init_bsp(int core_id, int number_of_cores)
     exit(ret);
 }
 
-int pthread_setcancelstate(int __state, int *__oldstate)
+/**
+ * @brief      Dummy function for __libc_init_array called
+ */
+void __attribute__((weak)) _init(void)
 {
-    return 0;
+    /**
+     * These don't have to do anything since we use init_array/fini_array.
+     */
+}
+
+/**
+ * @brief      Dummy function for __libc_fini_array called
+ */
+void __attribute__((weak)) _fini(void)
+{
+    /**
+     * These don't have to do anything since we use init_array/fini_array.
+     */
 }

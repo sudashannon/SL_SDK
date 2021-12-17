@@ -9,13 +9,15 @@ add_rules("mode.debug", "mode.release")
 target("xdemo_riscv64")
 set_toolchains("riscvgcc")
     set_kind("binary")
+    add_files("../../sis/rsis/core/src/*.S")
+    add_files("../../sis/rsis/core/src/*.c")
     add_files("../../sis/rsis/device/k210/src/*.c")
-    add_files("../../sis/rsis/device/k210/src/*.S")
     add_files("../../sis/rsis/drivers/k210/src/*.c")
     -- User files
     add_files("*.c")
     -- Include path
     add_includedirs(".")
+    add_includedirs("../../sis/rsis/core/inc");
     add_includedirs("../../sis/rsis/device/k210/inc");
     add_includedirs("../../sis/rsis/drivers/k210/inc");
 
