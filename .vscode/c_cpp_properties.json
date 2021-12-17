@@ -25,6 +25,8 @@
             "includePath": [
                 "C:/UserProfession/riscv64-unknown-elf-toolchain-10.2.0-2020.12.8-x86_64-w64-mingw32/riscv64-unknown-elf/include",
                 "${workspaceFolder}/sis/rsis/core/inc",
+                "${workspaceFolder}/sis/rsis/device/k210/inc",
+                "${workspaceFolder}/sis/rsis/drivers/k210/inc",
                 "${workspaceFolder}/rte/inc",
                 "${workspaceFolder}/hal/inc",
                 "${workspaceFolder}/osal/inc"
@@ -36,7 +38,7 @@
             ],
             "cStandard": "gnu99",
             "cppStandard": "gnu++11",
-            "intelliSenseMode": "linux-gcc-riscv"
+            "intelliSenseMode": "${default}"
         }
     ],
     "version": 4

@@ -9,6 +9,21 @@
             "command": "xmake f -p cross -m debug"
         },
         {
+            "label": "rebuild project",
+            "type": "shell",
+            "command": "xmake --rebuild -v ",
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "k210 generate bin",
+            "type": "shell",
+            "command": "riscv64-unknown-elf-objcopy -O binary ${workspaceFolder}\\example\\riscvgcc_k210_demo\\build\\cross\\none\\debug\\xdemo_riscv64 ${workspaceFolder}\\example\\riscvgcc_k210_demo\\kendryte.bin"
+        },
+        {
             "label": "openocd",
             "type": "shell",
             "command": "openocd",

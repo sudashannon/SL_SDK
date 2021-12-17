@@ -1,6 +1,9 @@
 # Xmake cache
 example/riscvgcc_sifiveu54_demo/.xmake/
 example/riscvgcc_sifiveu54_demo/build/
+example/riscvgcc_k210_demo/.xmake/
+example/riscvgcc_k210_demo/build/
+example/riscvgcc_k210_demo/*.bin
 example/armgcc_stm32h7_demo/.xmake/
 example/armgcc_stm32h7_demo/build/
 example/mingw_sdl2_demo/obj/
