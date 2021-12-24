@@ -20,6 +20,26 @@ typedef enum{
     IRQ_VECTOR_MODE = CSR_MTVEC_EXCEPTION_VECTORED,
 } mirq_mode_t;
 
+typedef enum {
+    /* =======================================  RISC-V Specific Exception Code  ======================================== */
+    EXC_INS_ADD_UNALIGNED          =   0,                   /*!<  Instruction address misaligned */
+    EXC_INS_ACCESS_FAULT           =   1,                   /*!<  Instruction access fault */
+    EXC_INS_ILLEGAL                =   2,                   /*!<  Illegal instruction */
+    EXC_BREAKPOINT                 =   3,                   /*!<  Beakpoint */
+    EXC_LOAD_ADD_UNALIGNED         =   4,                   /*!<  Load address misaligned */
+    EXC_LOAD_ACCESS_FAULT          =   5,                   /*!<  Load access fault */
+    EXC_STORE_ADD_UNALIGNED        =   6,                   /*!<  Store or AMO address misaligned */
+    EXC_STORE_ACCESS_FAULT         =   7,                   /*!<  Store or AMO access fault */
+    EXC_ENVRIONMENT_CALL_0         =   8,                   /*!<  Environment call from User mode */
+    EXC_ENVRIONMENT_CALL_1         =   9,                   /*!<  Environment call from User mode */
+    EXC_ENVRIONMENT_CALL_2         =   10,                  /*!<  Environment call from User mode */
+    EXC_ENVRIONMENT_CALL_3         =   11,                  /*!<  Environment call from User mode */
+    EXC_INS_PAGE_FAULT             =   12,                  /*!<  Instruction page fault */
+    EXC_LOAD_PAGE_FAULT            =   13,                  /*!<  Load page fault */
+    EXC_STORE_PAGE_FAULT           =   15,                  /*!<  Store or AMO page fault */
+    EXC_CNT                        =   16,
+} exception_num_t;
+
 __STATIC_FORCEINLINE mirq_mode_t __get_mirq_mode(void)
 {
     uintptr_t val = csr_read(CSR_MTVEC_BASE);

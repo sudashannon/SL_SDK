@@ -4,10 +4,19 @@ toolchain("riscvgcc")
     set_sdkdir("C:\\UserProfession\\riscv64-unknown-elf-toolchain-10.2.0-2020.12.8-x86_64-w64-mingw32")
 toolchain_end()
 
+toolchain("riscvgcc_ubuntu")
+    set_kind("standalone")
+    set_sdkdir("~/.local/bin/riscv_64bit_toolchain")
+toolchain_end()
+
 add_rules("mode.debug", "mode.release")
 -- Set target
 target("xdemo_riscv64")
-set_toolchains("riscvgcc")
+if is_host("windows") then
+    set_toolchains("riscvgcc")
+else
+    set_toolchains("riscvgcc_ubuntu")
+end
     set_kind("binary")
     add_files("../../sis/rsis/core/src/*.S")
     add_files("../../sis/rsis/core/src/*.c")
@@ -25,7 +34,8 @@ set_toolchains("riscvgcc")
     add_defines("CONFIG_LOG_LEVEL=LOG_VERBOSE",
                 "CONFIG_LOG_ENABLE",
                 "CONFIG_LOG_COLORS",
-                "LOG_KERNEL")
+                "LOG_KERNEL",
+                "DEBUG_ON_QEMU=0")
     add_cxflags("-march=rv64gc", "-mabi=lp64d", "-mcmodel=medany",
                 "-ffunction-sections", "-fdata-sections" ,"-fno-common",
                 "-fno-common", "-ffunction-sections", "-fdata-sections",

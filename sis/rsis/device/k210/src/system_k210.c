@@ -74,20 +74,24 @@ void _init_bsp(int core_id, int number_of_cores)
         /* Initialize bss data to 0 */
         init_bss();
         /* Init UART */
+#if DEBUG_ON_QEMU == 0
         fpioa_set_function(4, FUNC_UART3_RX);
         fpioa_set_function(5, FUNC_UART3_TX);
         uart_debug_init(UART_DEVICE_3);
         dmac_init();
         /* Init FPIOA */
         fpioa_init();
+#endif
         /* Register finalization function */
         atexit(__libc_fini_array);
         /* Init libc array for C++ */
         __libc_init_array();
+#if DEBUG_ON_QEMU == 0
         /* Get reset status */
         sysctl_get_reset_status();
         /* Init plic */
         plic_init();
+#endif
         /* Enable global interrupt */
         sysctl_enable_irq();
         /* Hook entry for kendryte IDE */
@@ -101,7 +105,9 @@ void _init_bsp(int core_id, int number_of_cores)
         core1_instance.ctx = NULL;
         ret = os_entry(core_id, number_of_cores, main);
     } else {
+#if DEBUG_ON_QEMU == 0
         plic_init();
+#endif
         sysctl_enable_irq();
         thread_entry(core_id);
         if(core1_instance.callback == NULL)

@@ -39,6 +39,26 @@
             "cStandard": "gnu99",
             "cppStandard": "gnu++11",
             "intelliSenseMode": "${default}"
+        },
+        {
+            "name": "riscv_ubuntu",
+            "includePath": [
+                "~/.local/bin/riscv_64bit_toolchain/riscv64-unknown-elf/include",
+                "${workspaceFolder}/sis/rsis/core/inc",
+                "${workspaceFolder}/sis/rsis/device/k210/inc",
+                "${workspaceFolder}/sis/rsis/drivers/k210/inc",
+                "${workspaceFolder}/rte/inc",
+                "${workspaceFolder}/hal/inc",
+                "${workspaceFolder}/osal/inc"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ],
+            "cStandard": "gnu99",
+            "cppStandard": "gnu++11",
+            "intelliSenseMode": "${default}"
         }
     ],
     "version": 4

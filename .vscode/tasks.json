@@ -21,7 +21,7 @@
         {
             "label": "k210 generate bin",
             "type": "shell",
-            "command": "riscv64-unknown-elf-objcopy -O binary ${workspaceFolder}\\example\\riscvgcc_k210_demo\\build\\cross\\none\\debug\\xdemo_riscv64 ${workspaceFolder}\\example\\riscvgcc_k210_demo\\kendryte.bin"
+            "command": "riscv64-unknown-elf-objcopy -O binary ${workspaceFolder}/example/riscvgcc_k210_demo/build/cross/none/debug/xdemo_riscv64 ${workspaceFolder}/example/riscvgcc_k210_demo/kendryte.bin"
         },
         {
             "label": "openocd",
@@ -34,14 +34,15 @@
             ]
         },
         {
-            "label": "riscv_simulator",
+            "label": "k210_simulator",
             "type": "shell",
             "command": "qemu-system-riscv64",
             "args": [
+                "-cpu", "rv64",
                 "-nographic",
-                "-cpu", "sifive-u54",
+                "-smp", "2",
                 "-bios", "none",
-                "-kernel", "${workspaceFolder}/example/riscvgcc_sifiveu54_demo/build/cross/none/debug/riscvgcc_sifiveu54_demo",
+                "-kernel", "${workspaceFolder}/example/riscvgcc_k210_demo/build/cross/none/debug/xdemo_riscv64",
                 "-s",
                 "-S"
             ]

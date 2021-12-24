@@ -16,6 +16,8 @@
 #ifndef _BSP_ATOMIC_H
 #define _BSP_ATOMIC_H
 
+#include "rsis_core.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -30,13 +32,6 @@ extern "C" {
         .lock = SPINLOCK_INIT, \
         .count = 0,            \
         .core = -1             \
-    }
-
-/* Defination of memory barrier macro */
-#define mb()                          \
-    {                                 \
-        asm volatile("fence" ::       \
-                         : "memory"); \
     }
 
 #define atomic_set(ptr, val) (*(volatile typeof(*(ptr)) *)(ptr) = val)
