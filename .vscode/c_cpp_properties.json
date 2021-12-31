@@ -1,9 +1,9 @@
 {
     "configurations": [
         {
-            "name": "arm",
+            "name": "arm_windows",
+            "compilerPath": "C:/UserProfession/GNU Arm Embedded Toolchain/10 2021.10/bin/arm-none-eabi-gcc.exe",
             "includePath": [
-                "C:/UserProfession/GNU Arm Embedded Toolchain/10 2021.10/arm-none-eabi/include",
                 "${workspaceFolder}/sis/cmsis/core/inc",
                 "${workspaceFolder}/sis/cmsis/device/stm32h7/inc",
                 "${workspaceFolder}/sis/cmsis/drivers/stm32h7/inc",
@@ -18,12 +18,12 @@
             ],
             "cStandard": "gnu99",
             "cppStandard": "gnu++11",
-            "intelliSenseMode": "linux-gcc-arm"
+            "intelliSenseMode": "${default}"
         },
         {
-            "name": "riscv",
+            "name": "riscv_windows",
+            "compilerPath": "C:/UserProfession/riscv64-unknown-elf-toolchain-10.2.0-2020.12.8-x86_64-w64-mingw32/bin/riscv64-unknown-elf-gcc.exe",
             "includePath": [
-                "C:/UserProfession/riscv64-unknown-elf-toolchain-10.2.0-2020.12.8-x86_64-w64-mingw32/riscv64-unknown-elf/include",
                 "${workspaceFolder}/sis/rsis/core/inc",
                 "${workspaceFolder}/sis/rsis/device/k210/inc",
                 "${workspaceFolder}/sis/rsis/drivers/k210/inc",
@@ -42,8 +42,8 @@
         },
         {
             "name": "riscv_ubuntu",
+            "compilerPath": "~/.local/bin/riscv_64bit_toolchain/bin/riscv64-unknown-elf-gcc",
             "includePath": [
-                "~/.local/bin/riscv_64bit_toolchain/riscv64-unknown-elf/include",
                 "${workspaceFolder}/sis/rsis/core/inc",
                 "${workspaceFolder}/sis/rsis/device/k210/inc",
                 "${workspaceFolder}/sis/rsis/drivers/k210/inc",
