@@ -1,164 +1,155 @@
-/* Copyright 2018 Canaan Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-#include <bsp.h>
-#include <sysctl.h>
-#include "fpioa.h"
-#include "gpio.h"
-#include "rsis_core.h"
-#include "rsis_trap.h"
+/**
+* @par  Copyright (C): 2016-2022, Shenzhen Yahboom Tech
+* @file         main.c
+* @author       Gengyue
+* @version      V1.0
+* @date         2020.05.27
+* @brief        摄像头显示当前画面
+* @details
+* @par History  见如下说明
+*
+* version:	V1.0: 摄像头采集当前画面，然后在LCD上显示。
+*/
+#include <stdio.h>
+#include "unistd.h"
+#include "gpiohs.h"
+#include "lcd.h"
+#include "st7789.h"
+#include "sysctl.h"
+#include "uarths.h"
+#include "iomem.h"
+#include "bsp_sensor.h"
+#include "pin_config.h"
 
-/*****************************HARDWARE-PIN*********************************/
-// 硬件IO口，与原理图对应
-#define PIN_LED_0             (0)
-#define PIN_LED_1             (17)
-
-/*****************************SOFTWARE-GPIO********************************/
-// 软件GPIO口，与程序对应
-#define LED0_GPIONUM          (0)
-#define LED1_GPIONUM          (1)
-
-/*****************************FUNC-GPIO************************************/
-// GPIO口的功能，绑定到硬件IO口
-#define FUNC_LED0             (FUNC_GPIO0 + LED0_GPIONUM)
-#define FUNC_LED1             (FUNC_GPIO0 + LED1_GPIONUM)
-
-typedef struct {
-    uint64_t ra;
-    uint64_t sp;
-    uint64_t t0;
-    uint64_t t1;
-    uint64_t t2;
-    uint64_t t3;
-    uint64_t t4;
-    uint64_t t5;
-    uint64_t t6;
-    uint64_t a0;
-    uint64_t a1;
-    uint64_t a2;
-    uint64_t a3;
-    uint64_t a4;
-    uint64_t a5;
-    uint64_t a6;
-    uint64_t a7;
-} arch_ctx_t;
-
-arch_ctx_t main_task = {0};
-arch_ctx_t next_task = {0};
-
-void arch_switch_to(arch_ctx_t *from, arch_ctx_t *to)
+extern const unsigned char gImage_logo[153608];
+uint32_t *display_buf = NULL;
+#define DISPLAY_WIDTH       160
+#define DISPLAY_HEIGHT      120
+/**
+* Function       io_set_power
+* @author        Gengyue
+* @date          2020.05.27
+* @brief         设置摄像头和显示器电源域电压值
+* @param[in]     void
+* @param[out]    void
+* @retval        void
+* @par History   无
+*/
+void io_set_power(void)
 {
-    asm volatile("sd ra, 0(a0)");
-    asm volatile("sd sp, 8(a0)");
-    asm volatile("sd t0, 16(a0)");
-    asm volatile("sd t1, 24(a0)");
-    asm volatile("sd t2, 32(a0)");
-    asm volatile("sd t3, 40(a0)");
-    asm volatile("sd t4, 48(a0)");
-    asm volatile("sd t5, 56(a0)");
-    asm volatile("sd t6, 64(a0)");
-    asm volatile("sd a0, 72(a0)");
-    asm volatile("sd a1, 80(a0)");
-    asm volatile("sd a2, 88(a0)");
-    asm volatile("sd a3, 96(a0)");
-    asm volatile("sd a4, 104(a0)");
-    asm volatile("sd a5, 112(a0)");
-    asm volatile("sd a6, 120(a0)");
-
-    asm volatile("ld ra, 0(a1)");
-    asm volatile("ld sp, 8(a1)");
-    asm volatile("ld t0, 16(a1)");
-    asm volatile("ld t1, 24(a1)");
-    asm volatile("ld t2, 32(a1)");
-    asm volatile("ld t3, 40(a1)");
-    asm volatile("ld t4, 48(a1)");
-    asm volatile("ld t5, 56(a1)");
-    asm volatile("ld t6, 64(a1)");
-    asm volatile("ld a0, 72(a1)");
-    asm volatile("ld a2, 88(a1)");
-    asm volatile("ld a3, 96(a1)");
-    asm volatile("ld a4, 104(a1)");
-    asm volatile("ld a5, 112(a1)");
-    asm volatile("ld a6, 120(a1)");
-    asm volatile("ld a1, 80(a1)");
+    sysctl_set_power_mode(SYSCTL_POWER_BANK6, SYSCTL_POWER_V18);
+    sysctl_set_power_mode(SYSCTL_POWER_BANK7, SYSCTL_POWER_V18);
 }
 
-int core1_function(void *ctx)
+/**
+* Function       hardware_init
+* @author        Gengyue
+* @date          2020.05.27
+* @brief         硬件初始化，绑定GPIO口
+* @param[in]     void
+* @param[out]    void
+* @retval        void
+* @par History   无
+*/
+void hardware_init(void)
 {
-    //uint64_t core = current_coreid();
-#if DEBUG_ON_QEMU == 0
-    //printf("This program is running on %ld core.\r\n", core);
-#else
-    core = core;
-#endif
-    while (1) {
-#if DEBUG_ON_QEMU == 0
-        sleep(1);
-        //printf("continue running on %ld...\r\n", core);
-#endif
+    /* lcd */
+    fpioa_set_function(PIN_LCD_CS,  FUNC_LCD_CS);
+    fpioa_set_function(PIN_LCD_RST, FUNC_LCD_RST);
+    fpioa_set_function(PIN_LCD_RS,  FUNC_LCD_RS);
+    fpioa_set_function(PIN_LCD_WR,  FUNC_LCD_WR);
+
+    /* DVP camera */
+    fpioa_set_function(PIN_DVP_RST,   FUNC_CMOS_RST);
+    fpioa_set_function(PIN_DVP_PWDN,  FUNC_CMOS_PWDN);
+    fpioa_set_function(PIN_DVP_XCLK,  FUNC_CMOS_XCLK);
+    fpioa_set_function(PIN_DVP_VSYNC, FUNC_CMOS_VSYNC);
+    fpioa_set_function(PIN_DVP_HSYNC, FUNC_CMOS_HREF);
+    fpioa_set_function(PIN_DVP_PCLK,  FUNC_CMOS_PCLK);
+    fpioa_set_function(PIN_DVP_SCL,   FUNC_SCCB_SCLK);
+    fpioa_set_function(PIN_DVP_SDA,   FUNC_SCCB_SDA);
+
+    /* 使能SPI0和DVP */
+    sysctl_set_spi0_dvp_data(1);
+}
+
+void refresh_disp_image(image_t *cap_image, void *disp_data)
+{
+    uint32_t w_ratio = ((uint32_t)cap_image->w << 16) / DISPLAY_WIDTH + 1;
+    uint32_t h_ratio = ((uint32_t)cap_image->h << 16) / DISPLAY_HEIGHT + 1;
+    uint16_t *dest_data = (uint16_t *)disp_data;
+    uint32_t srcy = 0;
+    for (uint16_t y = 0; y < DISPLAY_HEIGHT; y++) {
+        uint16_t *src_data = (uint16_t *)(cap_image->data + cap_image->w * cap_image->bpp * (srcy >> 16));
+        uint32_t srcx = 0;
+        for (uint16_t x = 0; x < DISPLAY_WIDTH; x++) {
+            // if (cap_image->bpp == IMAGE_BPP_GRAYSCALE) {
+            //     dest_data[x] = COLOR_GRAYSCALE_TO_RGB565(((uint8_t *)src_data)[srcx >> 16]);
+            // } else {
+                dest_data[x] =  src_data[srcx >> 16];
+            // }
+            srcx += w_ratio;
+        }
+        srcy += h_ratio;
+        dest_data += DISPLAY_WIDTH;
     }
 }
 
-uint64_t next_task_stack[1024 / sizeof(uint64_t)] = {0};
-
-void next_task_body(void *arg)
-{
-    printf("task %p call switch\r\n", &main_task);
-    printf("formal ra %016lx sp %016lx\r\n", main_task.ra, main_task.sp);
-    uint64_t core = current_coreid();
-#if DEBUG_ON_QEMU == 0
-    printf("task %p is running on %ld core.\r\n", &next_task, core);
-    printf("now ra %016lx sp %016lx\r\n", next_task.ra, next_task.sp);
-    gpio_pin_value_t *value = (gpio_pin_value_t *)arg;
-#else
-    core = core;
-#endif
-    while (1) {
-#if DEBUG_ON_QEMU == 0
-        gpio_set_pin(LED0_GPIONUM, *value = !*value);
-        sleep(1);
-#endif
-        arch_switch_to(&next_task, &main_task);
-    }
-}
-
+/**
+* Function       main
+* @author        Gengyue
+* @date          2020.05.27
+* @brief         主函数，程序的入口
+* @param[in]     void
+* @param[out]    void
+* @retval        0
+* @par History   无
+*/
 int main(void)
 {
-#if DEBUG_ON_QEMU == 0
-    sysctl_pll_set_freq(SYSCTL_PLL0, 800000000);
-    fpioa_set_function(PIN_LED_0, FUNC_LED0);
-    gpio_init();
-    gpio_set_drive_mode(LED0_GPIONUM, GPIO_DM_OUTPUT);
-    gpio_pin_value_t value = GPIO_PV_HIGH;
-#endif
-    uint64_t core = current_coreid();
-#if DEBUG_ON_QEMU == 0
-    printf("This program is running on %ld core.\r\n", core);
-#else
-    core = core;
-#endif
-    register_core1(core1_function, NULL);
-    next_task.sp = (uint64_t)(&next_task_stack[1024 / sizeof(uint64_t) - 1]);
-    next_task.ra = (uint64_t)next_task_body;
-    next_task.a0 = (uint64_t)&value;
-    while(1) {
-#if DEBUG_ON_QEMU == 0
-        printf("task %p continue running on %ld...\r\n", &main_task, core);
-        // gpio_set_pin(LED0_GPIONUM, value);
-        sleep(1);
-#endif
-        arch_switch_to(&main_task, &next_task);
+    /* 硬件引脚初始化 */
+    hardware_init();
+
+    /* 设置IO口电压 */
+    io_set_power();
+
+    /* 设置系统时钟和DVP时钟 */
+    sysctl_pll_set_freq(SYSCTL_PLL0, 800000000UL);
+    sysctl_pll_set_freq(SYSCTL_PLL1, 300000000UL);
+    sysctl_pll_set_freq(SYSCTL_PLL2, 45158400UL);
+    uarths_init();
+
+    /* 初始化LCD */
+    lcd_init();
+
+    /* LCD显示图片 */
+    uint16_t *img = (uint16_t *)&gImage_logo;
+    lcd_draw_picture_half(0, 0, 320, 240, img);
+    lcd_draw_string(16, 40, "Hello Yahboom!", RED);
+    lcd_draw_string(16, 60, "Nice to meet you!", BLUE);
+    sleep(1);
+    printf("unused memory %d\r\n", iomem_unused());
+    /* 初始化摄像头 */
+    int result = sensor_init();
+    printf("sensor_init result: %d\r\n", result);
+    result = sensor_reset();
+    printf("sensor_reset result: %d\r\n", result);
+    result = sensor_set_pixformat(PIXFORMAT_RGB565);
+    printf("sensor_set_pixformat result: %d\r\n", result);
+    result = sensor_set_framesize(FRAME_SIZE);
+    printf("sensor_set_framesize result: %d\r\n", result);
+    image_t sensor_cap_image = {
+        .w = resolution[FRAME_SIZE][0],
+        .h = resolution[FRAME_SIZE][1],
+        .bpp = IMAGE_BPP_RGB565,
+    };
+    display_buf =(uint32_t*)iomem_malloc(DISPLAY_WIDTH * DISPLAY_HEIGHT * 2);
+    while (1) {
+        sensor_snapshot(&sensor, &sensor_cap_image, 150);
+        refresh_disp_image(&sensor_cap_image, (void *)display_buf);
+        /* 显示画面 */
+        lcd_draw_picture(0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT, display_buf);
     }
+
     return 0;
 }

@@ -24,8 +24,11 @@ end
     add_files("../../sis/rsis/drivers/k210/src/*.c")
     -- User files
     add_files("*.c")
+    add_files("lcd/*.c")
     -- Include path
     add_includedirs(".")
+    add_includedirs("lcd")
+    add_includedirs("../../rte/inc");
     add_includedirs("../../sis/rsis/core/inc");
     add_includedirs("../../sis/rsis/device/k210/inc");
     add_includedirs("../../sis/rsis/drivers/k210/inc");
