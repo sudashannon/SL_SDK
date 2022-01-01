@@ -24,16 +24,6 @@
             "command": "riscv64-unknown-elf-objcopy -O binary ${workspaceFolder}/example/riscvgcc_k210_demo/build/cross/none/debug/xdemo_riscv64 ${workspaceFolder}/example/riscvgcc_k210_demo/kendryte.bin"
         },
         {
-            "label": "openocd",
-            "type": "shell",
-            "command": "openocd",
-            "args": [
-                "-f", "${workspaceFolder}/example/armgcc_stm32h7_demo/debug.cfg",
-                "-c", "init",
-                "-c", "reset halt"
-            ]
-        },
-        {
             "label": "k210_simulator",
             "type": "shell",
             "command": "qemu-system-riscv64",
@@ -46,6 +36,16 @@
                 "-s",
                 "-S"
             ]
-        }
+        },
+        {
+            "label": "connect stm32h7",
+            "type": "shell",
+            "command": "openocd",
+            "args": [
+                "-f", "${workspaceFolder}/example/armgcc_stm32h7_demo/debug.cfg",
+                "-c", "init",
+                "-c", "reset halt"
+            ]
+        },
     ]
 }

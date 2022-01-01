@@ -6,6 +6,7 @@ example/riscvgcc_k210_demo/build/
 example/riscvgcc_k210_demo/*.bin
 example/armgcc_stm32h7_demo/.xmake/
 example/armgcc_stm32h7_demo/build/
+example/armgcc_stm32h7_demo/*.bin
 example/mingw_sdl2_demo/obj/
 example/mingw_sdl2_demo/bin/Debug/example.exe
 example/mdk_stm32h7_demo/Objects/*.o

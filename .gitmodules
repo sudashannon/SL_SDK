@@ -1,3 +1,0 @@
-[submodule "rte/src/utils/lvgl"]
-	path = rte/src/utils/lvgl
-	url = https://github.com/littlevgl/lvgl

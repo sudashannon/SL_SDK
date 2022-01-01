@@ -1,7 +1,7 @@
 -- define toolchain
 toolchain("armgcc")
     set_kind("standalone")
-    set_sdkdir("C:\\UserProfession\\GNU Arm Embedded Toolchain\\10 2021.07")
+    set_sdkdir("C:\\UserProfession\\GNU Arm Embedded Toolchain\\10 2021.10")
 toolchain_end()
 
 target("stm32h7_demo")
