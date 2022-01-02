@@ -105,8 +105,7 @@ int shell_upgrade_cmd(const shell_cmd_t *pcmd, int argc, char *const argv[])
     return 0;
 }
 
-SHELL_ADD_CMD(upgrade, shell_upgrade_cmd,
-                    "upgrade device in provided way, support ymodem.","\r\n");
+SHELL_ADD_CMD(upgrade, shell_upgrade_cmd, "upgrade device in provided way, support ymodem.","\r\n");
 
 static void ota_start_application(void)
 {
@@ -118,11 +117,6 @@ __NO_RETURN void ota_thread(void *argument)
     RTE_LOGI("enter OTA mode success!");
     /* Wait for long press key to enter recovery mode */
 
-	/* Firmware partition verify */
-	if (fota_part_fw_verify(FOTA_FM_PART_NAME) != FOTA_NO_ERR) {
-        RTE_LOGI("Firmware receive partition check error!");
-        goto jump_user_app;
-    }
 	/* Check upgrade status */
 	if (fota_check_upgrade() == 0) {
         RTE_LOGI("The devices doesn't need to be upgraded!");

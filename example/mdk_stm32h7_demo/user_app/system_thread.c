@@ -9,8 +9,6 @@ static uint32_t boot_count = 0;
 static time_t boot_time[10] = {0, 1, 2, 3};
 /* default KV nodes */
 static struct fdb_default_kv_node default_kv_table[] = {
-        {"username", "armink", 0}, /* string KV */
-        {"password", "123456", 0}, /* string KV */
         {"boot_count", &boot_count, sizeof(boot_count)}, /* int type KV */
         {"boot_time", &boot_time, sizeof(boot_time)},    /* int array type KV */
 };
@@ -117,6 +115,38 @@ __NO_RETURN void system_thread(void *argument)
         }
     }
     if (if_upgrade_mode == true) {
+        char input_user_name[64];
+        char input_password[32];
+retry:
+        memset(input_user_name, 0, 64);
+        memset(input_password, 0, 32);
+        RTE_LOGI("plz input user name:");
+        for (uint8_t i = 0; ; ) {
+            uint32_t read_size = 1;
+            hal_device_read_sync("com_0", (uint8_t *)input_user_name + i, &read_size, HAL_MAX_DELAY);
+            i++;
+            if (i >= sizeof(input_user_name) ||
+                input_user_name[i - 1] == 0x0d) {
+                input_user_name[i - 1] = 0;
+                break;
+            }
+        }
+        RTE_LOGI("plz input password:");
+        for (uint8_t i = 0; ; ) {
+            uint32_t read_size = 1;
+            hal_device_read_sync("com_0", (uint8_t *)input_password + i, &read_size, HAL_MAX_DELAY);
+            i++;
+            if (i >= sizeof(input_password) ||
+                input_password[i - 1] == 0x0d) {
+                input_password[i - 1] = 0;
+                break;
+            }
+        }
+        if (strcmp("root", input_user_name) ||
+            strcmp("root", input_password)) {
+            RTE_LOGE("Sorry, we don't know you, you input %s %s", input_user_name, input_password);
+            goto retry;
+        }
         osThreadAttr_t shell_tconfig = {
             .name = "shell_task",
             .stack_size = 10240,
