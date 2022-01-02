@@ -12,24 +12,42 @@ target("stm32h7_demo")
     set_warnings("all", "error")
     -- set language: gnu99, gnu++11
     set_languages("gnu99", "gnu++11")
-    add_files("main.c")
+    add_files("./cubemx_driver/*.c")
     add_files("../../sis/cmsis/device/stm32h7/src/gcc/startup_stm32h750xx.s",
-                "../../sis/cmsis/device/stm32h7/src/system_stm32h7xx.c")
-    add_includedirs("../../sis/cmsis/core/inc",
-                    "../../sis/cmsis/device/stm32h7/inc")
-    add_cxflags("-DSTM32H743xx")
+                "../../sis/cmsis/device/stm32h7/src/system_stm32h7xx.c",
+                "../../sis/cmsis/drivers/stm32h7/src/stm32h7xx_hal.c",
+                "../../sis/cmsis/drivers/stm32h7/src/stm32h7xx_hal_dma.c",
+                "../../sis/cmsis/drivers/stm32h7/src/stm32h7xx_hal_dma_ex.c",
+                "../../sis/cmsis/drivers/stm32h7/src/stm32h7xx_hal_rcc.c",
+                "../../sis/cmsis/drivers/stm32h7/src/stm32h7xx_hal_rcc_ex.c",
+                "../../sis/cmsis/drivers/stm32h7/src/stm32h7xx_hal_pwr.c",
+                "../../sis/cmsis/drivers/stm32h7/src/stm32h7xx_hal_pwr_ex.c",
+                "../../sis/cmsis/drivers/stm32h7/src/stm32h7xx_hal_gpio.c",
+                "../../sis/cmsis/drivers/stm32h7/src/stm32h7xx_hal_mdma.c",
+                "../../sis/cmsis/drivers/stm32h7/src/stm32h7xx_hal_qspi.c",
+                "../../sis/cmsis/drivers/stm32h7/src/stm32h7xx_hal_uart.c",
+                "../../sis/cmsis/drivers/stm32h7/src/stm32h7xx_hal_uart_ex.c",
+                "../../sis/cmsis/drivers/stm32h7/src/stm32h7xx_hal_cortex.c")
+    add_includedirs("./user_config",
+                    "../../sis/cmsis/core/inc",
+                    "../../sis/cmsis/device/stm32h7/inc",
+                    "../../sis/cmsis/drivers/stm32h7/inc")
+    add_cxflags("-DSTM32H750xx", "-DUSE_HAL_DRIVER",
+                "-mcpu=cortex-m7", "-mthumb", "-mfpu=fpv5-d16",
+                "-Og",
+                "-Wall", "-fdata-sections", "-ffunction-sections")
+    add_asflags("-mcpu=cortex-m7", "-mthumb", "-mfpu=fpv5-d16",
+                "-Og",
+                "-Wall", "-fdata-sections", "-ffunction-sections")
     -- set ld configurations
-    add_ldflags("-Tdefault.ld",
+    add_ldflags("-mcpu=cortex-m7", "-mthumb", "-mfpu=fpv5-d16",
+                "-Tdefault.ld",
                 "-specs=nano.specs",
-                "-nostartfiles",
+                "-lc", "-lm", "-lnosys",
+                "-Wl,--cref",
                 "-Wl,--gc-sections",
                 "-Wl,-Map=build/stm32h7_demo.map",
                 {force = true})
-    -- output architecture configurations
-    add_cxflags("-mcpu=cortex-m7", "-mthumb", "-mfpu=fpv5-d16")
-    -- general define
-    add_cxflags("-fdata-sections", "-ffunction-sections", "-Warray-bounds")
-
     after_build(
         function(objdump)
             os.exec("arm-none-eabi-objcopy.exe -O binary .\\build\\cross\\none\\debug\\stm32h7_demo .\\stm32h7_demo.bin")
