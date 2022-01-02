@@ -52,7 +52,7 @@
           <OutputName>cam_h7</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
-          <CreateHexFile>0</CreateHexFile>
+          <CreateHexFile>1</CreateHexFile>
           <DebugInformation>1</DebugInformation>
           <BrowseInformation>1</BrowseInformation>
           <ListingPath>.\Listings\</ListingPath>
@@ -339,7 +339,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER, STM32H750xx</Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\rte\inc;..\..\hal\inc;.\user_app;.\user_bsp;..\stm32_h7_full_demo;..\..\sis\cmsis\drivers\stm32h7\inc;.\cubemx_bsp;..\..\sis\cmsis\core\inc;..\..\osal\inc\rtx;..\..\osal\inc;..\..\rte\utils\fal\inc;..\..\rte\utils\w25xxdriver;..\mdk_stm32h7_demo;..\..\rte\utils\flashdb\inc</IncludePath>
+              <IncludePath>..\mdk_stm32h7_demo;..\..\rte\inc;..\..\hal\inc;.\user_app;.\user_bsp;..\stm32_h7_full_demo;..\..\sis\cmsis\drivers\stm32h7\inc;.\cubemx_bsp;..\..\sis\cmsis\core\inc;..\..\osal\inc\rtx;..\..\osal\inc;..\..\rte\utils\fal\inc;..\..\rte\utils\w25xxdriver;..\..\rte\utils\flashdb\inc;..\..\rte\utils\ota;..\..\rte\utils\fastlz;..\..\rte\utils\tinycrypt</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -417,6 +417,11 @@
               <FileName>system_thread.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\user_app\system_thread.c</FilePath>
+            </File>
+            <File>
+              <FileName>ota_thread.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\user_app\ota_thread.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -705,6 +710,66 @@
               <FileName>driver_w25qxx.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\rte\utils\w25xxdriver\driver_w25qxx.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>utils/ota</GroupName>
+          <Files>
+            <File>
+              <FileName>fota_crc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\rte\utils\ota\fota_crc.c</FilePath>
+            </File>
+            <File>
+              <FileName>ymodem.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\rte\utils\ota\ymodem.c</FilePath>
+            </File>
+            <File>
+              <FileName>fota.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\rte\utils\ota\fota.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>utils/fastlz</GroupName>
+          <Files>
+            <File>
+              <FileName>fastlz.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\rte\utils\fastlz\fastlz.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>utils/tinycrypt</GroupName>
+          <Files>
+            <File>
+              <FileName>tiny_aes.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\rte\utils\tinycrypt\tiny_aes.c</FilePath>
+            </File>
+            <File>
+              <FileName>tiny_base64.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\rte\utils\tinycrypt\tiny_base64.c</FilePath>
+            </File>
+            <File>
+              <FileName>tiny_md5.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\rte\utils\tinycrypt\tiny_md5.c</FilePath>
+            </File>
+            <File>
+              <FileName>tiny_sha1.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\rte\utils\tinycrypt\tiny_sha1.c</FilePath>
+            </File>
+            <File>
+              <FileName>tiny_sha2.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\rte\utils\tinycrypt\tiny_sha2.c</FilePath>
             </File>
           </Files>
         </Group>

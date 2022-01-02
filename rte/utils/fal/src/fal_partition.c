@@ -101,8 +101,7 @@ void fal_show_part_table(void)
         }
     }
     fal_log_i("==================== FAL partition table ====================");
-    fal_log_i("| %-*.*s | %-*.*s |   offset   |    length  |", part_name_max, FAL_DEV_NAME_MAX, item1, flash_dev_name_max,
-            FAL_DEV_NAME_MAX, item2);
+    fal_log_i("| %s | %s |   offset   |    length  |", item1, item2);
     fal_log_i("-------------------------------------------------------------");
     for (i = 0; i < partition_table_len; i++)
     {
@@ -113,8 +112,7 @@ void fal_show_part_table(void)
         part = &partition_table[partition_table_len - i - 1];
 #endif
 
-        fal_log_i("| %-*.*s | %-*.*s | 0x%08lx | 0x%08x |", part_name_max, FAL_DEV_NAME_MAX, part->name, flash_dev_name_max,
-                FAL_DEV_NAME_MAX, part->flash_name, part->offset, part->len);
+        fal_log_i("| %s | %s | 0x%04x | 0x%04x |", part->name, part->flash_name, part->offset, part->len);
     }
     fal_log_i("=============================================================");
 }
@@ -287,9 +285,7 @@ int fal_partition_init(void)
 
 _exit:
 
-#if FAL_DEBUG
     fal_show_part_table();
-#endif
 
 #ifndef FAL_PART_HAS_TABLE_CFG
     if (new_part)

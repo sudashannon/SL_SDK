@@ -53,8 +53,10 @@ __NO_RETURN void system_thread(void *argument)
     shell_printf("\r\r\r");
     RTE_LOGI("System boots at clk: %d", SystemCoreClock);
     /* Init all util-librarys */
+    extern int fota_crc_init(void);
+    fota_crc_init();
 #ifdef FDB_USING_KVDB
-    {   
+    {
         fdb_err_t result;
         /* KVDB Sample */
         struct fdb_default_kv default_kv;
@@ -100,11 +102,30 @@ __NO_RETURN void system_thread(void *argument)
     config.repeat_period_ms = 100;
     config.timer_callback = running_timer;
     timer_create_new(rte_get_main_timergroup(), &config, &running_timer_id);
-    osThreadAttr_t shell_tconfig = {
-        .name = "shell_task",
-        .stack_size = 10240,
-    };
-    osThreadId_t shell_tid = osThreadNew(shell_task, NULL, &shell_tconfig);
+
+    bool if_upgrade_mode = false;
+    for(uint8_t i = 0; i < 3; i++) {
+        RTE_LOGI("press any key to go into OTA mode: %d", 3 - i);
+        uint8_t data = 0;
+        uint32_t read_size = 1;
+        rte_error_t result = hal_device_read_sync("com_0", (uint8_t *)&data, &read_size, 1000);
+        if (result == SUCCESS &&
+            read_size == 1 &&
+            data) {
+            if_upgrade_mode = true;
+            break;
+        }
+    }
+    if (if_upgrade_mode == true) {
+        osThreadAttr_t shell_tconfig = {
+            .name = "shell_task",
+            .stack_size = 10240,
+        };
+        osThreadId_t shell_tid = osThreadNew(shell_task, NULL, &shell_tconfig);
+    } else {
+        extern __NO_RETURN void ota_thread(void *argument);
+        osThreadId_t ota_tid = osThreadNew(ota_thread, NULL, NULL);
+    }
     for (;;) {
         timer_tick_handle(10);
         osDelay(10);

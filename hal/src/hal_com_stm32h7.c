@@ -14,7 +14,7 @@
 
 static com_device_t com_control_handle[com_N] = {
     {
-        .capacity = 128,
+        .capacity = 2048,
         .recv_length = 0,
         .driver_handle = &huart1,
         .if_trans_enable_dma = true,

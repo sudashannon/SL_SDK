@@ -58,7 +58,7 @@ static int open_db_file(fdb_db_t db, uint32_t addr, bool clean)
             /* clean the old file */
             fd = open(path, O_RDWR | O_CREAT | O_TRUNC, 0777);
             if (fd <= 0) {
-                FDB_INFO("Error: open (%s) file failed.\n", path);
+                FDB_INFO("Error: open (%s) file failed.", path);
             }
             else {
                 close(fd);
@@ -146,7 +146,7 @@ static FILE *open_db_file(fdb_db_t db, uint32_t addr, bool clean)
             /* clean the old file */
             db->cur_file = fopen(path, "wb+");
             if (db->cur_file == NULL) {
-                FDB_INFO("Error: open (%s) file failed.\n", path);
+                FDB_INFO("Error: open (%s) file failed.", path);
             } else {
                 fclose(db->cur_file);
             }
