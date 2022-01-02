@@ -58,12 +58,6 @@ uint16_t CRC16(unsigned char *q, int len)
 // device_t->user_data(it is used by the serial driver)...
 static struct rym_ctx *_rym_the_ctx;
 
-static rte_error_t _rym_rx_ind(void *dev, size_t size)
-{
-    return 0;
-//    return rt_sem_release(&_rym_the_ctx->sem);
-}
-
 /* SOH/STX + seq + payload + crc */
 #define _RYM_SOH_PKG_SZ (1+2+128+2)
 #define _RYM_STX_PKG_SZ (1+2+1024+2)

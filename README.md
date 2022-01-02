@@ -10,7 +10,7 @@ Till now, the SL_SDK is consist of following modules:
 * HAL: Provides united hardware devices instantiate and access api.
 * OSAL: Provides united OS api to make cross-platform easier.
 * SIS: Like CMSIS, try to provide united API to adapt different core like Cortex-M or RISC-V.
-* bootloader: Provide an realization which is adapt for rtt's OTA
+* bootloader: Provide an realization which is adapt for rtt's OTA firmware format.
 
 SL_SDK是一个用于嵌入式设备开发的软件框架，适配了包括Cortex-M、RISC-V等体系架构在内的MCU。SL_SDK提供了一系列体系架构适配和跨平台的代码以加速应用开发工作。
 

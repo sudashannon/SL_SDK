@@ -38,8 +38,6 @@
 #ifndef FOTA_CMPRS_BUFFER_SIZE
 #define FOTA_CMPRS_BUFFER_SIZE			4096
 #endif
-
-
 typedef struct {
 	char type[4];
 	uint16_t fota_algo;
@@ -54,9 +52,22 @@ typedef struct {
 	uint32_t head_crc;
 } fota_pahead_t;
 
-typedef void (*fota_app_func)(void);
-static fota_app_func app_func = NULL;
-static fota_pahead_t fota_pahead;
+static fota_pahead_t fota_pahead = {0};
+
+#define FNV_SEED  0x811c9dc5
+
+static uint32_t fnv1a_r(uint8_t oneByte, uint32_t hash)
+{
+    return ((oneByte ^ hash) * 0x1000193);
+}
+
+static uint32_t calc_fnv1a_r(uint8_t *data, uint32_t hash, uint32_t len)
+{
+    for (uint32_t i = 0; i < len; i++) {
+        hash = fnv1a_r(data[i], hash);
+    }
+    return hash;
+}
 
 int fota_part_fw_verify(const char *paname)
 {
@@ -378,6 +389,8 @@ int fota_upgrade(const char *paname)
 	uint8_t *dcprs_buff = NULL;
 	uint32_t padding_size = 0;
 
+	uint32_t hashvalue = FNV_SEED;
+
 	if (paname == NULL)
 	{
 		RTE_LOGE("Invaild paramenter input!");
@@ -476,7 +489,7 @@ int fota_upgrade(const char *paname)
 					goto __exit_upgrade;
 				}
 				fw_raw_pos += fw_raw_len;
-
+				hashvalue = calc_fnv1a_r(crypt_buf, hashvalue, fw_raw_len);
 				memcpy(block_hdr_buf, crypt_buf, FOTA_BLOCK_HEADER_SIZE);
 				block_size = block_hdr_buf[0] * (1 << 24) + block_hdr_buf[1] * (1 << 16) + block_hdr_buf[2] * (1 << 8) + block_hdr_buf[3];
 				memset(cmprs_buff, 0x0, FOTA_CMPRS_BUFFER_SIZE + padding_size);
@@ -509,7 +522,7 @@ int fota_upgrade(const char *paname)
 								goto __exit_upgrade;
 							}
 							fw_raw_pos += fw_raw_len;
-
+							hashvalue = calc_fnv1a_r(crypt_buf, hashvalue, fw_raw_len);
 							memcpy(&cmprs_buff[FOTA_ALGO_BUFF_SIZE - block_hdr_pos], &crypt_buf[0], (block_size +  block_hdr_pos) - FOTA_ALGO_BUFF_SIZE);
 							block_hdr_pos = (block_size +  block_hdr_pos) - FOTA_ALGO_BUFF_SIZE;
 						}
@@ -532,7 +545,7 @@ int fota_upgrade(const char *paname)
 						goto __exit_upgrade;
 					}
 					fw_raw_pos += fw_raw_len;
-
+					hashvalue = calc_fnv1a_r(crypt_buf, hashvalue, fw_raw_len);
 					block_hdr_pos = 0;
 					while (hdr_tmp_pos < FOTA_BLOCK_HEADER_SIZE)
 					{
@@ -580,7 +593,7 @@ int fota_upgrade(const char *paname)
 				goto __exit_upgrade;
 			}
 			fw_raw_pos += fw_raw_len;
-
+			hashvalue = calc_fnv1a_r(crypt_buf, hashvalue, fw_raw_len);
 			if (fota_write_app_part(total_copy_size, crypt_buf, fw_raw_len) < 0)
 			{
 				fota_err = FOTA_COPY_FAILED;
@@ -642,9 +655,7 @@ int fota_upgrade(const char *paname)
         }
 	}
     shell_printf("\r\n");
-
-	/* 有可能两个值不相等,因为AES需要填充16字节整数,但最后的解密解压值的代码数量必须是大于等于raw_size */
-	/* 比较好的方法是做一个校验,目前打包软件的HASH_CODE算法不知道 */
+	shell_printf("caculated hash value %x, expected %x", hashvalue, pahead->hash_val);
 	if (total_copy_size < pahead->raw_size)
 	{
 		RTE_LOGE("Decompress check failed.");

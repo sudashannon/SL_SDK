@@ -4,12 +4,15 @@
 #include "fal.h"
 #include "fota.h"
 #include "ymodem.h"
+#include "quadspi.h"
+#include "driver_w25qxx.h"
 
 #define DEFAULT_DOWNLOAD_PART FOTA_FM_PART_NAME
 
 static char* recv_partition = NULL;
 static size_t update_file_total_size, update_file_cur_size;
 static const struct fal_partition * dl_part = NULL;
+static struct rym_ctx rctx = {0};
 
 static enum rym_code ymodem_on_begin(struct rym_ctx *ctx, uint8_t *buf, size_t len)
 {
@@ -83,7 +86,6 @@ int shell_upgrade_cmd(const shell_cmd_t *pcmd, int argc, char *const argv[])
             }
         }
 
-        struct rym_ctx rctx;
         shell_printf("Warning: Ymodem has started! This operator will not recovery.\r\n");
         shell_printf("Please select the ota firmware file and use Ymodem to send.\r\n");
 
@@ -109,6 +111,57 @@ SHELL_ADD_CMD(upgrade, shell_upgrade_cmd, "upgrade device in provided way, suppo
 
 static void ota_start_application(void)
 {
+	const struct fal_partition *part;
+	uint32_t app_addr = 0;
+
+	part = fal_partition_find(FOTA_APP_PART_NAME);
+	if (part == NULL) {
+		RTE_LOGE("Partition[%s] not found.", FOTA_APP_PART_NAME);
+        return;
+	}
+
+    extern w25qxx_handle_t gs_handle;
+    w25qxx_exit_qspi_mode(&gs_handle);
+    app_addr = part->offset + 0x90000000;
+    RTE_LOGI("app_addr: %x", app_addr);
+    QSPI_CommandTypeDef s_command = {0};
+    QSPI_MemoryMappedTypeDef s_mem_mapped_cfg = {0};
+
+    s_command.InstructionMode          = QSPI_INSTRUCTION_1_LINE;
+    s_command.AddressSize              = QSPI_ADDRESS_24_BITS;
+    s_command.AlternateByteMode        = QSPI_ALTERNATE_BYTES_NONE;
+    s_command.DdrMode                  = QSPI_DDR_MODE_DISABLE;
+    s_command.DdrHoldHalfCycle         = QSPI_DDR_HHC_ANALOG_DELAY;
+    s_command.SIOOMode                 = QSPI_SIOO_INST_EVERY_CMD;
+
+    s_command.Instruction              = 0xEB;
+    s_command.AddressMode              = QSPI_ADDRESS_4_LINES;
+    s_command.DataMode                 = QSPI_DATA_4_LINES;
+    s_command.DummyCycles              = 6;
+
+    s_mem_mapped_cfg.TimeOutActivation = QSPI_TIMEOUT_COUNTER_DISABLE;
+    s_mem_mapped_cfg.TimeOutPeriod = 0;
+
+    if(HAL_QSPI_MemoryMapped(&hqspi, &s_command, &s_mem_mapped_cfg) != HAL_OK) {
+        RTE_LOGE("exe flash memory mapped failed!");
+        return;
+    }
+
+	void (*app_jump)(void);
+	__set_PRIMASK(1);
+	HAL_RCC_DeInit();
+    SysTick->CTRL = 0;
+    SysTick->LOAD = 0;
+    SysTick->VAL = 0;
+	for (uint8_t i = 0; i < 8; i++) {
+		NVIC->ICER[i]=0xFFFFFFFF;
+		NVIC->ICPR[i]=0xFFFFFFFF;
+	}
+	app_jump = (void (*)(void)) (*((uint32_t *) (app_addr + 4)));
+	__set_MSP(*(uint32_t *)app_addr);
+	__set_CONTROL(0);
+	__set_PRIMASK(0);
+	app_jump();
     osThreadExit();
 }
 
@@ -117,6 +170,10 @@ __NO_RETURN void ota_thread(void *argument)
     RTE_LOGI("enter OTA mode success!");
     /* Wait for long press key to enter recovery mode */
 
+
+	/* Firmware partition verify */
+	if (fota_part_fw_verify(FOTA_FM_PART_NAME) != FOTA_NO_ERR)
+		goto jump_user_app;
 	/* Check upgrade status */
 	if (fota_check_upgrade() == 0) {
         RTE_LOGI("The devices doesn't need to be upgraded!");
