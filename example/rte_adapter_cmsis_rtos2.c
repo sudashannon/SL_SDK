@@ -12,6 +12,7 @@
 #include "../inc/rte_include.h"
 #include "stm32h7xx.h"
 #include "cmsis_os2.h"
+#include "hal_com.h"
 
 /**
  * @brief Ram buffer used for memory pool.
@@ -19,9 +20,8 @@
  */
 MEM_ALIGN_NBYTES (__attribute__((section (".RAM_RTE"))) static uint8_t mempool_buffer[RTE_MEMPOOL_SIZE], MEM_BLOCK_ALIGN) = {0};
 MEM_ALIGN_NBYTES (__attribute__((section (".RAM_DMA"))) static uint8_t dma_buffer[32 * 1024], MEM_BLOCK_ALIGN) = {0};
-MEM_ALIGN_NBYTES (__attribute__((section (".RAM_FB"))) static uint8_t fb_buffer[512 * 1024], MEM_BLOCK_ALIGN) = {0};
 MEM_ALIGN_NBYTES (__attribute__((section (".RAM_MATH"))) static uint8_t math_buffer[128 * 1024], MEM_BLOCK_ALIGN) = {0};
-MEM_ALIGN_NBYTES (__attribute__((section (".RAM_BACKUP"))) static uint8_t jpeg_buffer[64 * 1024], MEM_BLOCK_ALIGN) = {0};
+static bool rte_ready = false;
 /**
  * @brief Used for main timer group internal.
  *
@@ -91,7 +91,8 @@ uint32_t rte_get_tick_ms(void)
             __NOP(); __NOP(); __NOP(); __NOP(); __NOP(); __NOP();
             __NOP(); __NOP(); __NOP(); __NOP(); __NOP(); __NOP();
         }
-        return ++ticks;
+        ticks++;
+        return ticks;
     }
 }
 /**
@@ -113,6 +114,19 @@ void rte_delay_ms(uint32_t ms)
     osDelay(ms);
 }
 /**
+ * @brief Wrapper for system delay, which is adapted for cortex-M.
+ *
+ * @return uint32_t
+ */
+void rte_delay_us(volatile uint32_t micros)
+{
+	uint32_t start = DWT->CYCCNT;
+	/* Go to number of cycles for system */
+	micros *= (SystemCoreClock / 1000000);
+	/* Delay till end */
+	while ((DWT->CYCCNT - start) < micros);
+}
+/**
  * @brief Wrapper for system yield.
  *
  */
@@ -126,6 +140,17 @@ void rte_yield(void)
  */
 void rte_init(void)
 {
+	/* Enable TRC */
+	CoreDebug->DEMCR &= ~0x01000000;
+	CoreDebug->DEMCR |=  0x01000000;
+	/* Enable counter */
+	DWT->CTRL &= ~0x00000001;
+	DWT->CTRL |=  0x00000001;
+	/* Reset counter */
+	DWT->CYCCNT = 0;	
+	/* 2 dummys */
+	__ASM volatile ("NOP");
+	__ASM volatile ("NOP");
     osMutexAttr_t mem_mutex_attr[BANK_CNT] = {
         {
             LOG_STR(BANK_DEFAULT),
@@ -135,12 +160,6 @@ void rte_init(void)
         },
         {
             LOG_STR(BANK_DMA),
-            osMutexPrioInherit | osMutexRecursive,
-            NULL,
-            0U
-        },
-        {
-            LOG_STR(BANK_FB),
             osMutexPrioInherit | osMutexRecursive,
             NULL,
             0U
@@ -156,13 +175,6 @@ void rte_init(void)
     mem_mutex_instance[BANK_DMA].unlock = rte_mutex_unlock;
     mem_mutex_instance[BANK_DMA].trylock = NULL;
     memory_pool(BANK_DMA, &mem_mutex_instance[BANK_DMA], dma_buffer, sizeof(dma_buffer));
-    mem_mutex_instance[BANK_FB].mutex = (void *)osMutexNew(&mem_mutex_attr[BANK_FB]);
-    mem_mutex_instance[BANK_FB].lock = rte_mutex_lock;
-    mem_mutex_instance[BANK_FB].unlock = rte_mutex_unlock;
-    mem_mutex_instance[BANK_FB].trylock = NULL;
-    memory_pool(BANK_FB, NULL, fb_buffer, sizeof(fb_buffer));
-    memory_pool(BANK_MATH, NULL, math_buffer, sizeof(math_buffer));
-    memory_pool(BANK_JPEG, NULL, jpeg_buffer, sizeof(jpeg_buffer));
     osMutexAttr_t log_mutex_attr = {
         "log",
         osMutexPrioInherit | osMutexRecursive,
@@ -177,6 +189,7 @@ void rte_init(void)
     timer_init(4, true);
     timer_create_group(&rte_timer_group, NULL);
     shell_init();
+    rte_ready = true;
 }
 
 /**
@@ -190,6 +203,7 @@ rte_error_t rte_deinit(void)
         osMutexDelete(mem_mutex_instance[i].mutex);
     osMutexDelete(log_mutex_instance.mutex);
     timer_deinit();
+    rte_ready = false;
     return RTE_SUCCESS;
 }
 /**

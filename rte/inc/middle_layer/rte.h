@@ -18,9 +18,9 @@
 // the mempool will use tlsf method */
 #define RTE_USE_SIMPLY_MEMPOOL      0
 #ifndef RTE_MEMPOOL_SIZE
-#define RTE_MEMPOOL_SIZE            64 * 1024 * 1024
+#define RTE_MEMPOOL_SIZE            256 * 1024
 #endif
-#define RTE_MEMPOOL_ENABLE_DEBUG    0
+#define RTE_MEMPOOL_ENABLE_DEBUG    1
 /*
 ** Detect whether or not we are building for a 32- or 64-bit (LP/LLP)
 ** architecture. There is no reliable portable method at compile-time.
@@ -30,11 +30,15 @@
 #ifndef RTE_MEMPOOL_USE_64BIT
 #define RTE_MEMPOOL_USE_64BIT       1
 #endif
+#else
+#ifndef RTE_MEMPOOL_USE_64BIT
+#define RTE_MEMPOOL_USE_64BIT       0
+#endif
 #endif
 
 #define RTE_TIMER_GROUP_CAPACITY    8
 
-#define RTE_SHELL_ENABLE            0
+#define RTE_SHELL_ENABLE            1
 
 /**
  * @brief General include.

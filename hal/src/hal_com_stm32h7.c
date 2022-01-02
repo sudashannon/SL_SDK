@@ -12,20 +12,6 @@
 #include "../inc/hal_com.h"
 #include "usart.h"
 
-typedef struct {
-    // Configuration section.
-    uint16_t capacity;
-    uint16_t recv_length;
-    // Resource section.
-    bool if_trans_enable_dma;
-    bool if_recv_enable_dma;
-    bool if_recv_enable_fifo;
-    uint8_t *buffer;
-    void *driver_handle;
-    // General resource section.
-    hal_device_t device;
-} com_device_t;
-
 static com_device_t com_control_handle[com_N] = {
     {
         .capacity = 128,
@@ -75,7 +61,7 @@ static rte_error_t com_send_async(hal_device_t *device, uint8_t *data, uint32_t 
 {
     com_name_t com_name = device->device_id;
     if (com_control_handle[com_name].if_trans_enable_dma) {
-        uint8_t *tx_buffer = memory_alloc_align(BANK_DMA, 32, size);
+        uint8_t *tx_buffer = memory_alloc_align(BANK_DMA, __SCB_DCACHE_LINE_SIZE, size);
         if (tx_buffer == NULL)
             return RTE_ERR_NO_RSRC;
         memcpy(tx_buffer, data, size);
@@ -134,7 +120,7 @@ static rte_error_t com_create(com_name_t com_name, hal_device_t **device)
         return RTE_ERR_PARAM;
     // Check if use rx dma
     if (com_control_handle[com_name].if_recv_enable_dma) {
-        com_control_handle[com_name].buffer = memory_alloc_align(BANK_DMA, 32, com_control_handle[com_name].capacity);
+        com_control_handle[com_name].buffer = memory_alloc_align(BANK_DMA, __SCB_DCACHE_LINE_SIZE, com_control_handle[com_name].capacity);
     }
     // Create general resources
     HAL_DEVICE_INIT_GENERAL(com, com_name,

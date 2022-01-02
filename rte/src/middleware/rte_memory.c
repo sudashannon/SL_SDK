@@ -25,7 +25,7 @@
 #define MEM_UNLOCK(bank) RTE_UNLOCK(mem_handle[bank].mutex)
 
 #if RTE_SHELL_ENABLE == 1
-    #define print_wapper print_wapper
+    #define print_wapper shell_printf
 #else
     #define print_wapper MEM_LOGI
 #endif
@@ -952,7 +952,7 @@ static void print_block(void* ptr, size_t size, int used)
 {
 #if RTE_MEMPOOL_ENABLE_DEBUG == 1
     mem_debug_info_t *debug_info =  (mem_debug_info_t *)((uint8_t *)ptr + size - sizeof(mem_debug_info_t));
-    print_wapper("user_ptr: 0x%08p [%s] real_size: %d (block_header: 0x%08p) owned by %s %d\r\n",
+    print_wapper("user_ptr: 0x%08p [%s] real_size: %d (block_header: 0x%08p) owned by func:%s line:%d\r\n",
                     ptr, used ? "used" : "free", (unsigned int)size, block_from_ptr(ptr),
                     used ? debug_info->function : "N/A",
                     used ? debug_info->line : 0);
@@ -1418,7 +1418,7 @@ void memory_demon(mem_bank_t bank)
 #if RTE_MEMPOOL_ENABLE_DEBUG == 1
             mem_debug_info_t *debug_info =  (mem_debug_info_t *)((uint8_t *)&e->first_data +
                                             (unsigned int)e->header.d_size - sizeof(mem_debug_info_t));
-            print_wapper("user_ptr: 0x%08p [%s] real_size: %d (block_header: 0x%08p) owned by %s %d\r\n",
+            print_wapper("user_ptr: 0x%08p [%s] real_size: %d (block_header: 0x%08p) owned by func:%s lind:%d\r\n",
                             &e->first_data, e->header.used ? "used" : "free", (unsigned int)e->header.d_size, e,
                             e->header.used ? debug_info->function : "N/A",
                             e->header.used ? debug_info->line : 0);
@@ -1498,6 +1498,8 @@ int shell_cmd_mem(const shell_cmd_t *pcmd, int argc, char *const argv[])
 {
     if (argc == 2) {
         mem_bank_t bank = atoi(argv[1]);
+        if (bank >= BANK_CNT)
+            return -1;
         memory_demon(bank);
         return 0;
     } else {

@@ -28,7 +28,7 @@
 #ifndef RTX_CONFIG_H_
 #define RTX_CONFIG_H_
 
-#define DEVICE_HEADER_H             "stm32h743xx.h"
+#define DEVICE_HEADER_H             "stm32h750xx.h"
 
 //-------- <<< Use Configuration Wizard in Context Menu >>> --------------------
 

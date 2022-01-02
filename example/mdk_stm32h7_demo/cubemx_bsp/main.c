@@ -19,13 +19,8 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "dcmi.h"
 #include "dma.h"
-#include "i2c.h"
-#include "jpeg.h"
-#include "mdma.h"
 #include "quadspi.h"
-#include "spi.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -92,7 +87,6 @@ int main(void)
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
-
   /* USER CODE BEGIN Init */
 
   /* USER CODE END Init */
@@ -108,12 +102,8 @@ int main(void)
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_USART1_UART_Init();
-  MX_SPI2_Init();
-  MX_I2C2_Init();
   MX_QUADSPI_Init();
-  MX_DCMI_Init();
-  MX_MDMA_Init();
-//  MX_JPEG_Init();
+
   /* USER CODE BEGIN 2 */
   osKernelInitialize();                 // Initialize CMSIS-RTOS
   system_thread_id = osThreadNew(system_thread, NULL, NULL);    // Create application main thread
@@ -123,8 +113,7 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  while (1)
-  {
+  while (1) {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -180,7 +169,6 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB1CLKDivider = RCC_APB1_DIV2;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_APB2_DIV2;
   RCC_ClkInitStruct.APB4CLKDivider = RCC_APB4_DIV2;
-
   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_4) != HAL_OK)
   {
     Error_Handler();
