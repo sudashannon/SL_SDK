@@ -13,8 +13,8 @@
 
 #include <inttypes.h>
 #include <string.h>
-#include <flashdb.h>
-#include <fdb_low_lvl.h>
+#include "flashdb.h"
+#include "fdb_low_lvl.h"
 
 #define FDB_LOG_TAG "[kv]"
 /* rewrite log prefix */
@@ -1624,7 +1624,7 @@ fdb_err_t fdb_kvdb_init(fdb_kvdb_t db, const char *name, const char *path, struc
         db->default_kvs.kvs = NULL;
     }
     /* there is at least one empty sector for GC. */
-    FDB_ASSERT((FDB_GC_EMPTY_SEC_THRESHOLD > 0 && FDB_GC_EMPTY_SEC_THRESHOLD < SECTOR_NUM))
+    FDB_ASSERT((FDB_GC_EMPTY_SEC_THRESHOLD > 0 && FDB_GC_EMPTY_SEC_THRESHOLD < SECTOR_NUM));
 
 #ifdef FDB_KV_USING_CACHE
     for (i = 0; i < FDB_SECTOR_CACHE_TABLE_SIZE; i++) {

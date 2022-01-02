@@ -23,7 +23,7 @@
 */
 #define HAL_RAM_CLEAN_PRE_SEND(p, size)    do{                                            \
                                                 RTE_ASSERT(((uint32_t)p % 32) == 0);      \
-                                                SCB_CleanDCache_by_Addr(p, size);         \
+                                                SCB_CleanDCache_by_Addr((uint32_t *)p, size);         \
                                             }while(0)
 /*
     the SCB_InvalidateDCache_by_Addr() requires a 32-Byte aligned address,
@@ -31,7 +31,7 @@
 */
 #define HAL_RAM_CLEAN_AFTER_REC(p, size)   do{                                           \
                                                 RTE_ASSERT(((uint32_t)p % 32) == 0);     \
-                                                SCB_InvalidateDCache_by_Addr(p, size);   \
+                                                SCB_InvalidateDCache_by_Addr((uint32_t *)p, size);   \
                                             }while(0)
 #else
 #define HAL_RAM_CLEAN_PRE_SEND(p, size)

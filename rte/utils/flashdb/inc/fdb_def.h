@@ -12,62 +12,11 @@
 #ifndef _FDB_DEF_H_
 #define _FDB_DEF_H_
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-/* software version number */
-#define FDB_SW_VERSION                 "1.1.1"
-#define FDB_SW_VERSION_NUM             0x10101
-
-/* the KV max name length must less then it */
-#ifndef FDB_KV_NAME_MAX
-#define FDB_KV_NAME_MAX                64
-#endif
-
-/* the KV cache table size, it will improve KV search speed when using cache */
-#ifndef FDB_KV_CACHE_TABLE_SIZE
-#define FDB_KV_CACHE_TABLE_SIZE        64
-#endif
-
-/* the sector cache table size, it will improve KV save speed when using cache */
-#ifndef FDB_SECTOR_CACHE_TABLE_SIZE
-#define FDB_SECTOR_CACHE_TABLE_SIZE    4
-#endif
-
-#if (FDB_KV_CACHE_TABLE_SIZE > 0) && (FDB_SECTOR_CACHE_TABLE_SIZE > 0)
-#define FDB_KV_USING_CACHE
-#endif
-
-#if defined(FDB_USING_FILE_LIBC_MODE) || defined(FDB_USING_FILE_POSIX_MODE)
-#define FDB_USING_FILE_MODE
-#endif
-
-#ifndef FDB_WRITE_GRAN
-#define FDB_WRITE_GRAN 1
-#endif
-
-/* log function. default FDB_PRINT macro is printf() */
-#ifndef FDB_PRINT
-#define FDB_PRINT(...)                 printf(__VA_ARGS__)
-#endif
-#define FDB_LOG_PREFIX1()              FDB_PRINT("[FlashDB]" FDB_LOG_TAG)
-#define FDB_LOG_PREFIX2()              FDB_PRINT(" ")
-#define FDB_LOG_PREFIX()               FDB_LOG_PREFIX1();FDB_LOG_PREFIX2()
-#ifdef FDB_DEBUG_ENABLE
-#define FDB_DEBUG(...)                 FDB_LOG_PREFIX();FDB_PRINT("(%s:%d) ", __FILE__, __LINE__);FDB_PRINT(__VA_ARGS__)
-#else
-#define FDB_DEBUG(...)
-#endif
-/* routine print function. Must be implement by user. */
-#define FDB_INFO(...)                  FDB_LOG_PREFIX();FDB_PRINT(__VA_ARGS__)
-/* assert for developer. */
-#define FDB_ASSERT(EXPR)                                                      \
-if (!(EXPR))                                                                  \
-{                                                                             \
-    FDB_DEBUG("(%s) has assert failed at %s.\n", #EXPR, __FUNCTION__);        \
-    while (1);                                                                \
-}
 
 #define FDB_KVDB_CTRL_SET_SEC_SIZE     0x00             /**< set sector size control command, this change MUST before database initialization */
 #define FDB_KVDB_CTRL_GET_SEC_SIZE     0x01             /**< get sector size control command */

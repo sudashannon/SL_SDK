@@ -12,8 +12,8 @@
 #ifndef _FDB_LOW_LVL_H_
 #define _FDB_LOW_LVL_H_
 
-#include <fdb_cfg.h>
-#include <fdb_def.h>
+#include "fdb_cfg.h"
+#include "fdb_def.h"
 
 #if (FDB_WRITE_GRAN == 1)
 #define FDB_STATUS_TABLE_SIZE(status_number)       ((status_number * FDB_WRITE_GRAN + 7)/8)

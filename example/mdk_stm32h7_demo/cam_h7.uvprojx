@@ -339,7 +339,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER, STM32H750xx</Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\rte\inc;..\..\hal\inc;.\user_app;.\user_bsp;..\stm32_h7_full_demo;..\..\sis\cmsis\drivers\stm32h7\inc;.\cubemx_bsp;..\..\sis\cmsis\core\inc;..\..\osal\inc\rtx;..\..\osal\inc;..\..\rte\utils\fal\inc;..\..\rte\utils\w25xxdriver;..\mdk_stm32h7_demo</IncludePath>
+              <IncludePath>..\..\rte\inc;..\..\hal\inc;.\user_app;.\user_bsp;..\stm32_h7_full_demo;..\..\sis\cmsis\drivers\stm32h7\inc;.\cubemx_bsp;..\..\sis\cmsis\core\inc;..\..\osal\inc\rtx;..\..\osal\inc;..\..\rte\utils\fal\inc;..\..\rte\utils\w25xxdriver;..\mdk_stm32h7_demo;..\..\rte\utils\flashdb\inc</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -645,6 +645,36 @@
               <FileName>stm32h7xx_hal_uart_ex.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\sis\cmsis\drivers\stm32h7\src\stm32h7xx_hal_uart_ex.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>utils/flashdb</GroupName>
+          <Files>
+            <File>
+              <FileName>fdb.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\rte\utils\flashdb\src\fdb.c</FilePath>
+            </File>
+            <File>
+              <FileName>fdb_file.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\rte\utils\flashdb\src\fdb_file.c</FilePath>
+            </File>
+            <File>
+              <FileName>fdb_kvdb.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\rte\utils\flashdb\src\fdb_kvdb.c</FilePath>
+            </File>
+            <File>
+              <FileName>fdb_tsdb.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\rte\utils\flashdb\src\fdb_tsdb.c</FilePath>
+            </File>
+            <File>
+              <FileName>fdb_utils.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\rte\utils\flashdb\src\fdb_utils.c</FilePath>
             </File>
           </Files>
         </Group>
