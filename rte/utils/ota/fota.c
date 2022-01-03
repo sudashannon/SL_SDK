@@ -193,6 +193,7 @@ int fota_check_upgrade(void)
 	int is_upgrade = 0;
 
 	if (strcmp(fota_pahead.download_version, fota_pahead.current_version) != 0) {
+        RTE_LOGI("Current version %s download version %s", fota_pahead.current_version, fota_pahead.download_version);
 		is_upgrade = 1;
 	}
 
@@ -651,7 +652,7 @@ int fota_upgrade(const char *paname)
         }
 	}
     shell_printf("\r\n");
-	shell_printf("caculated hash value %x, expected %x", hashvalue, pahead->hash_val);
+	RTE_LOGI("caculated hash value %x, expected %x", hashvalue, pahead->hash_val);
 	if (hashvalue != pahead->hash_val) {
 		RTE_LOGE("hash of image check failed.");
 		fota_err = FOTA_GENERAL_ERR;

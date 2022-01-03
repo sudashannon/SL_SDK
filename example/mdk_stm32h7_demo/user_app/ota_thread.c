@@ -94,6 +94,8 @@ int shell_upgrade_cmd(const shell_cmd_t *pcmd, int argc, char *const argv[])
             if (fota_part_fw_verify(recv_partition) >= 0) {
                 shell_printf("Download firmware verify........[OK]\r\n");
                 shell_printf("Reset system and apply new firmware.\r\n");
+                osDelay(1000);
+                SCB->AIRCR = 0x05FA0004;
             } else {
                 shell_printf("Download firmware verify........[FAILED]\r\n");
             }
