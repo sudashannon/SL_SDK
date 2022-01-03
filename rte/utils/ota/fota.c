@@ -489,7 +489,6 @@ int fota_upgrade(const char *paname)
 					goto __exit_upgrade;
 				}
 				fw_raw_pos += fw_raw_len;
-				hashvalue = calc_fnv1a_r(crypt_buf, hashvalue, fw_raw_len);
 				memcpy(block_hdr_buf, crypt_buf, FOTA_BLOCK_HEADER_SIZE);
 				block_size = block_hdr_buf[0] * (1 << 24) + block_hdr_buf[1] * (1 << 16) + block_hdr_buf[2] * (1 << 8) + block_hdr_buf[3];
 				memset(cmprs_buff, 0x0, FOTA_CMPRS_BUFFER_SIZE + padding_size);
@@ -522,7 +521,6 @@ int fota_upgrade(const char *paname)
 								goto __exit_upgrade;
 							}
 							fw_raw_pos += fw_raw_len;
-							hashvalue = calc_fnv1a_r(crypt_buf, hashvalue, fw_raw_len);
 							memcpy(&cmprs_buff[FOTA_ALGO_BUFF_SIZE - block_hdr_pos], &crypt_buf[0], (block_size +  block_hdr_pos) - FOTA_ALGO_BUFF_SIZE);
 							block_hdr_pos = (block_size +  block_hdr_pos) - FOTA_ALGO_BUFF_SIZE;
 						}
@@ -545,7 +543,6 @@ int fota_upgrade(const char *paname)
 						goto __exit_upgrade;
 					}
 					fw_raw_pos += fw_raw_len;
-					hashvalue = calc_fnv1a_r(crypt_buf, hashvalue, fw_raw_len);
 					block_hdr_pos = 0;
 					while (hdr_tmp_pos < FOTA_BLOCK_HEADER_SIZE)
 					{
@@ -578,7 +575,7 @@ int fota_upgrade(const char *paname)
 				fota_err = FOTA_COPY_FAILED;
 				goto __exit_upgrade;
 			}
-
+			hashvalue = calc_fnv1a_r(dcprs_buff, hashvalue, dcprs_size);
 			total_copy_size += dcprs_size;
 			shell_printf("#");
 		}
@@ -593,13 +590,12 @@ int fota_upgrade(const char *paname)
 				goto __exit_upgrade;
 			}
 			fw_raw_pos += fw_raw_len;
-			hashvalue = calc_fnv1a_r(crypt_buf, hashvalue, fw_raw_len);
 			if (fota_write_app_part(total_copy_size, crypt_buf, fw_raw_len) < 0)
 			{
 				fota_err = FOTA_COPY_FAILED;
 				goto __exit_upgrade;
 			}
-
+			hashvalue = calc_fnv1a_r(crypt_buf, hashvalue, fw_raw_len);
 			total_copy_size += fw_raw_len;
 			shell_printf("#");
 		}
@@ -639,7 +635,7 @@ int fota_upgrade(const char *paname)
                         fota_err = FOTA_COPY_FAILED;
                         goto __exit_upgrade;
                     }
-
+					hashvalue = calc_fnv1a_r(dcprs_buff, hashvalue, dcprs_size);
                     total_copy_size += dcprs_size;
                     shell_printf("#");
                 }
@@ -656,9 +652,8 @@ int fota_upgrade(const char *paname)
 	}
     shell_printf("\r\n");
 	shell_printf("caculated hash value %x, expected %x", hashvalue, pahead->hash_val);
-	if (total_copy_size < pahead->raw_size)
-	{
-		RTE_LOGE("Decompress check failed.");
+	if (hashvalue != pahead->hash_val) {
+		RTE_LOGE("hash of image check failed.");
 		fota_err = FOTA_GENERAL_ERR;
 	}
 
