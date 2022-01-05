@@ -15,6 +15,7 @@
 #include "tinycrypt.h"
 #include "fastlz.h"
 #include "fota.h"
+#include "flashdb.h"
 
 #ifndef FOTA_ALGO_BUFF_SIZE
 #define FOTA_ALGO_BUFF_SIZE				4096
@@ -38,21 +39,6 @@
 #ifndef FOTA_CMPRS_BUFFER_SIZE
 #define FOTA_CMPRS_BUFFER_SIZE			4096
 #endif
-typedef struct {
-	char type[4];
-	uint16_t fota_algo;
-	uint8_t fm_time[6];
-	char app_paname[16];
-	char download_version[24];
-	char current_version[24];
-	uint32_t code_crc;
-	uint32_t hash_val;
-	uint32_t raw_size;
-	uint32_t com_size;
-	uint32_t head_crc;
-} fota_pahead_t;
-
-static fota_pahead_t fota_pahead = {0};
 
 #define FNV_SEED  0x811c9dc5
 
@@ -69,7 +55,7 @@ static uint32_t calc_fnv1a_r(uint8_t *data, uint32_t hash, uint32_t len)
     return hash;
 }
 
-int fota_part_fw_verify(const char *paname)
+int fota_part_fw_verify(const char *paname, fota_pahead_t *pa_info)
 {
 #define FOTA_CRC_BUFF_SIZE		4096
 #define FOTA_CRC_INIT_VAL		0xffffffff
@@ -106,8 +92,7 @@ int fota_part_fw_verify(const char *paname)
 	RTE_LOGI("Partition[%s] type %s", part->name, pahead.type);
 	RTE_LOGI("Partition[%s] fm_time %s", part->name, pahead.fm_time);
 	RTE_LOGI("Partition[%s] app_paname %s", part->name, pahead.app_paname);
-	RTE_LOGI("Partition[%s] download_version %s", part->name, pahead.download_version);
-	RTE_LOGI("Partition[%s] current_version %s", part->name, pahead.current_version);
+	RTE_LOGI("Partition[%s] firmware_version %s", part->name, pahead.download_version);
 
 	extern uint32_t fota_crc(uint8_t *buf, uint32_t len);
 	hdr_crc = fota_crc((uint8_t *)&pahead, sizeof(fota_pahead_t) - 4);
@@ -173,12 +158,12 @@ int fota_part_fw_verify(const char *paname)
 __exit_partition_verify:
 	if (fota_res == FOTA_NO_ERR)
 	{
-		memcpy(&fota_pahead, &pahead, sizeof(fota_pahead_t));
+        if (pa_info)
+            memcpy(pa_info, &pahead, sizeof(fota_pahead_t));
 		RTE_LOGI("partition[%s] verify success!", part->name);
-	}
-	else
-	{
-		memset(&fota_pahead, 0x0, sizeof(fota_pahead_t));
+	} else {
+        if (pa_info)
+            memset(pa_info, 0x0, sizeof(fota_pahead_t));
 		RTE_LOGE("Partition[%s] verify failed!", part->name);
 	}
 
@@ -188,137 +173,109 @@ __exit_partition_verify:
 	return fota_res;
 }
 
-int fota_check_upgrade(void)
+static int fota_get_main_version(char *ver_str)
+{
+    char *main_ver_str = ver_str;
+    char *dot_pos = strstr(ver_str, ".");
+    if (dot_pos) {
+        *(dot_pos) = 0;
+        int retval = atoi(main_ver_str);
+        *(dot_pos) = '.';
+        return retval;
+    }
+    return 0;
+}
+
+static int fota_get_sub_version(char *ver_str)
+{
+    char *dot_pos = strstr(ver_str, ".");
+    if (dot_pos) {
+        int retval = atoi(dot_pos + 1);
+        return retval;
+    }
+    return 0;
+}
+
+int fota_check_upgrade(fota_pahead_t *cur_pa_info)
 {
 	int is_upgrade = 0;
-
-	if (strcmp(fota_pahead.download_version, fota_pahead.current_version) != 0) {
-        RTE_LOGI("Current version %s download version %s", fota_pahead.current_version, fota_pahead.download_version);
+	extern struct fdb_kvdb kvdb;
+	char *current_version = fdb_kv_get(&kvdb, "current_version");
+    RTE_LOGI("current version %s download version %s", current_version ? current_version : "N/A", cur_pa_info->download_version);
+	if (current_version == NULL) {
 		is_upgrade = 1;
-	}
+	} else {
+        int cur_main_ver = fota_get_main_version(current_version);
+        int cur_sub_ver = fota_get_sub_version(current_version);
+        int down_main_ver = fota_get_main_version(cur_pa_info->download_version);
+        int down_sub_ver = fota_get_sub_version(cur_pa_info->download_version);
+        if (cur_main_ver < down_main_ver ||
+            (cur_main_ver == down_main_ver &&
+             cur_sub_ver < down_sub_ver)) {
+            is_upgrade = 1;
+        }
+    }
 
 	return is_upgrade;
 }
 
-int fota_copy_version(const char *paname)
+int fota_update_current_version(fota_pahead_t *cur_pa_info)
 {
-#define THE_NOR_FLASH_GRANULARITY		4096
-
 	int fota_res = FOTA_NO_ERR;
-	const struct fal_partition *part;
-
-    fota_pahead_t *pahead = NULL;
-    uint8_t *cache_buf = NULL;
-
-	part = fal_partition_find(paname);
-	if (part == NULL)
-	{
-		RTE_LOGE("Find partition[%s] not found.", paname);
-		fota_res = FOTA_FW_VERIFY_FAILED;
-		goto __exit_copy_version;
+	extern struct fdb_kvdb kvdb;
+	if (fdb_kv_set(&kvdb, "current_version", cur_pa_info->download_version) != FDB_NO_ERR) {
+		RTE_LOGE("Update partition[%p] version failed.", cur_pa_info);
+		fota_res = FOTA_GENERAL_ERR;
 	}
-
-    cache_buf = rte_malloc(THE_NOR_FLASH_GRANULARITY);
-    if (cache_buf == NULL)
-    {
-        RTE_LOGE("Not enough memory for head erase.");
-        fota_res = FOTA_NO_MEM_ERR;
-        goto __exit_copy_version;
-    }
-    pahead = (fota_pahead_t *)cache_buf;
-
-	if (fal_partition_read(part, 0, cache_buf, THE_NOR_FLASH_GRANULARITY) < 0)
-	{
-		RTE_LOGE("Read partition[%s] failed.", paname);
-		fota_res = FOTA_PAREAD_ERR;
-		goto __exit_copy_version;
-	}
-
-	memcpy(pahead->current_version, pahead->download_version, sizeof(pahead->current_version));
-	extern uint32_t fota_crc(uint8_t *buf, uint32_t len);
-	pahead->head_crc = fota_crc((uint8_t *)pahead, sizeof(fota_pahead_t) - 4);
-
-    if (fal_partition_erase(part, 0, THE_NOR_FLASH_GRANULARITY) < 0)
-    {
-		RTE_LOGE("Erase partition[%s] failed.", paname);
-		fota_res = FOTA_PAERASE_ERR;
-		goto __exit_copy_version;
-    }
-
-	if (fal_partition_write(part, 0, (const uint8_t *)cache_buf, THE_NOR_FLASH_GRANULARITY) < 0)
-	{
-		RTE_LOGE("Write partition[%s] failed.", paname);
-		fota_res = FOTA_PAWRITE_ERR;
-		goto __exit_copy_version;
-	}
-__exit_copy_version:
-	if (cache_buf)
-		rte_free(cache_buf);
-
-	if (fota_res != FOTA_NO_ERR)
-		RTE_LOGE("Copy firmware version failed!");
 
 	return fota_res;
 }
 
 
-int fota_erase_app_part(void)
+int fota_erase_part(const char *part_name, uint32_t size)
 {
 	int fota_res = FOTA_NO_ERR;
 	const struct fal_partition *part;
 
-	part = fal_partition_find(fota_pahead.app_paname);
-	if (part == NULL)
-	{
-		RTE_LOGE("Erase partition[%s] not found.", fota_pahead.app_paname);
+	part = fal_partition_find(part_name);
+	if (part == NULL) {
+		RTE_LOGE("Erase partition[%s] not found.", part_name);
 		fota_res = FOTA_FW_VERIFY_FAILED;
 		goto __exit_partition_erase;
 	}
 
     RTE_LOGI("Partition[%s] erase start:", part->name);
-	if (fal_partition_erase(part, 0, fota_pahead.raw_size) < 0)
-	{
+    if (size) 
+        fota_res = fal_partition_erase(part, 0, size);
+    else
+        fota_res = fal_partition_erase_all(part);
+	if (fota_res < 0) {
 		RTE_LOGE("Partition[%s] erase failed!", part->name);
 		fota_res = FOTA_PAERASE_ERR;
 		goto __exit_partition_erase;
-	}
+	} else {
+        fota_res = FOTA_NO_ERR;
+    }
 
 __exit_partition_erase:
-	if (fota_res == FOTA_NO_ERR)
-	{
-		RTE_LOGD("Partition[%s] erase %d bytes success!", part->name, fota_pahead.raw_size);
+	if (fota_res == FOTA_NO_ERR) {
+		RTE_LOGD("Partition[%s] erase %d bytes success!", part->name, size);
 	}
 	return fota_res;
 }
 
-int fota_write_app_part(int fw_pos, uint8_t *fw_buf, int fw_len)
+static int fota_write_part(const struct fal_partition *part, int fw_pos, uint8_t *fw_buf, int fw_len)
 {
 	int fota_res = FOTA_NO_ERR;
-	const struct fal_partition *part;
 
-	part = fal_partition_find(fota_pahead.app_paname);
-	if (part == NULL)
-	{
-		RTE_LOGE("Erase partition[%s] not found.", fota_pahead.app_paname);
-		fota_res = FOTA_FW_VERIFY_FAILED;
-		goto __partition_write_exit;
-	}
-
-	if (fal_partition_write(part, fw_pos, fw_buf, fw_len) < 0)
-	{
+	if (fal_partition_write(part, fw_pos, fw_buf, fw_len) < 0) {
 		RTE_LOGE("Partition[%s] write failed!", part->name);
 		fota_res = FOTA_PAWRITE_ERR;
-		goto __partition_write_exit;
-	}
-__partition_write_exit:
-	if (fota_res == FOTA_NO_ERR)
-	{
-		RTE_LOGD("Partition[%s] write %d bytes success!", part->name, fw_len);
 	}
 	return fota_res;
 }
 
-static int fota_read_part(const struct fal_partition *part, int read_pos, tiny_aes_context *aes_ctx, uint8_t *aes_iv, uint8_t *decrypt_buf, uint32_t decrypt_len)
+static int fota_read_and_decrypt_part(const struct fal_partition *part, int read_pos, tiny_aes_context *aes_ctx, uint8_t *aes_iv, uint8_t *decrypt_buf, uint32_t decrypt_len)
 {
 	int fota_err = FOTA_NO_ERR;
 	uint8_t *encrypt_buf = NULL;
@@ -366,13 +323,11 @@ __exit_read_decrypt:
 	return fota_err;
 }
 
-int fota_upgrade(const char *paname)
+int fota_upgrade_firmware(const char *firmware_part_name, fota_pahead_t *firmware_part_info)
 {
 	int fota_err = FOTA_NO_ERR;
 
-	const struct fal_partition *part;
-	fota_pahead_t *pahead = NULL;
-
+	const struct fal_partition *firmware_part = NULL, *app_part = NULL;
 	tiny_aes_context *aes_ctx = NULL;
 	uint8_t *aes_iv = NULL;
 	uint8_t *crypt_buf = NULL;
@@ -392,30 +347,34 @@ int fota_upgrade(const char *paname)
 
 	uint32_t hashvalue = FNV_SEED;
 
-	if (paname == NULL)
-	{
+	if (firmware_part_name == NULL || firmware_part_info == NULL) {
 		RTE_LOGE("Invaild paramenter input!");
 		fota_err = FOTA_GENERAL_ERR;
 		goto __exit_upgrade;
 	}
 
-	part = fal_partition_find(paname);
-	if (part == NULL)
+	firmware_part = fal_partition_find(firmware_part_name);
+	if (firmware_part == NULL)
 	{
-		RTE_LOGE("Upgrade partition[%s] not found.", paname);
+		RTE_LOGE("Upgrade partition[%s] not found.", firmware_part_name);
+		fota_err = FOTA_GENERAL_ERR;
+		goto __exit_upgrade;
+	}
+
+	app_part = fal_partition_find(firmware_part_info->app_paname);
+	if (firmware_part == NULL)
+	{
+		RTE_LOGE("Erase partition[%s] not found.", firmware_part_info->app_paname);
 		fota_err = FOTA_GENERAL_ERR;
 		goto __exit_upgrade;
 	}
 
 	/* Application partition erase */
-	fota_err = fota_erase_app_part();
+	fota_err = fota_erase_part(firmware_part_info->app_paname, firmware_part_info->raw_size);
 	if (fota_err != FOTA_NO_ERR)
 	{
 		goto __exit_upgrade;
 	}
-
-	/* fota_erase_app_part() has check fota_pahead vaild already */
-	pahead = &fota_pahead;
 
 	crypt_buf = rte_malloc(FOTA_ALGO_BUFF_SIZE);
 	if (crypt_buf == NULL)
@@ -426,7 +385,7 @@ int fota_upgrade(const char *paname)
 	}
 
 	/* AES256 algorithm enable */
-	if ((pahead->fota_algo & FOTA_CRYPT_STAT_MASK) == FOTA_CRYPT_ALGO_AES256)
+	if ((firmware_part_info->fota_algo & FOTA_CRYPT_STAT_MASK) == FOTA_CRYPT_ALGO_AES256)
 	{
 		aes_ctx = rte_malloc(sizeof(tiny_aes_context));
 		aes_iv = rte_malloc(strlen(FOTA_ALGO_AES_IV) + 1);
@@ -440,51 +399,39 @@ int fota_upgrade(const char *paname)
 		memset(aes_iv, 0x0, strlen(FOTA_ALGO_AES_IV) + 1);
 		memcpy(aes_iv, FOTA_ALGO_AES_IV, strlen(FOTA_ALGO_AES_IV));
 		tiny_aes_setkey_dec(aes_ctx, (uint8_t *)FOTA_ALGO_AES_KEY, 256);
-	}
-	else if ((pahead->fota_algo & FOTA_CRYPT_STAT_MASK) == FOTA_CRYPT_ALGO_XOR)
-	{
+	} else if ((firmware_part_info->fota_algo & FOTA_CRYPT_STAT_MASK) == FOTA_CRYPT_ALGO_XOR) {
 		RTE_LOGE("Not surpport XOR.");
 		fota_err = FOTA_GENERAL_ERR;
 		goto __exit_upgrade;
 	}
 
 	/* If enable fastlz compress function */
-	if ((pahead->fota_algo & FOTA_CMPRS_STAT_MASK) == FOTA_CMPRS_ALGO_FASTLZ)
-	{
+	if ((firmware_part_info->fota_algo & FOTA_CMPRS_STAT_MASK) == FOTA_CMPRS_ALGO_FASTLZ) {
 		cmprs_buff = rte_malloc(FOTA_CMPRS_BUFFER_SIZE * 2);
 		dcprs_buff = rte_malloc(FOTA_CMPRS_BUFFER_SIZE);
-		if (cmprs_buff == NULL || dcprs_buff == NULL)
-		{
+		if (cmprs_buff == NULL || dcprs_buff == NULL) {
 			RTE_LOGE("Not enough memory for firmware hash verify.");
 			fota_err = FOTA_NO_MEM_ERR;
 			goto __exit_upgrade;
 		}
 
 		padding_size = FOTA_CMPRS_BUFFER_SIZE;
-	}
-	else if ((pahead->fota_algo & FOTA_CMPRS_STAT_MASK) == FOTA_CMPRS_ALGO_QUICKLZ)
-	{
+	} else if ((firmware_part_info->fota_algo & FOTA_CMPRS_STAT_MASK) == FOTA_CMPRS_ALGO_QUICKLZ) {
 		RTE_LOGE("Not surpport QUICKLZ.");
 		fota_err = FOTA_GENERAL_ERR;
 		goto __exit_upgrade;
-	}
-	else if ((pahead->fota_algo & FOTA_CMPRS_STAT_MASK) == FOTA_CMPRS_ALGO_GZIP)
-	{
+	} else if ((firmware_part_info->fota_algo & FOTA_CMPRS_STAT_MASK) == FOTA_CMPRS_ALGO_GZIP) {
 		RTE_LOGE("Not surpport GZIP.");
 		fota_err = FOTA_GENERAL_ERR;
 		goto __exit_upgrade;
 	}
 
-	RTE_LOGI("Start to copy firmware from %s to %s partition:", part->name, pahead->app_paname);
-	while (fw_raw_pos < pahead->com_size)
-	{
-		if ((pahead->fota_algo & FOTA_CMPRS_STAT_MASK) != FOTA_CRYPT_ALGO_NONE)
-		{
-			if (block_hdr_pos >= FOTA_ALGO_BUFF_SIZE)
-			{
-				fw_raw_len = fota_read_part(part, fw_raw_pos, aes_ctx, aes_iv, crypt_buf, FOTA_ALGO_BUFF_SIZE);
-				if (fw_raw_len < 0)
-				{
+	RTE_LOGI("Start to copy firmware from %s to %s partition:", firmware_part->name, firmware_part_info->app_paname);
+	while (fw_raw_pos < firmware_part_info->com_size) {
+		if ((firmware_part_info->fota_algo & FOTA_CMPRS_STAT_MASK) != FOTA_CRYPT_ALGO_NONE) {
+			if (block_hdr_pos >= FOTA_ALGO_BUFF_SIZE) {
+				fw_raw_len = fota_read_and_decrypt_part(firmware_part, fw_raw_pos, aes_ctx, aes_iv, crypt_buf, FOTA_ALGO_BUFF_SIZE);
+				if (fw_raw_len < 0) {
 					RTE_LOGE("AES256 algorithm failed.");
 					fota_err = FOTA_PAREAD_ERR;
 					goto __exit_upgrade;
@@ -494,27 +441,19 @@ int fota_upgrade(const char *paname)
 				block_size = block_hdr_buf[0] * (1 << 24) + block_hdr_buf[1] * (1 << 16) + block_hdr_buf[2] * (1 << 8) + block_hdr_buf[3];
 				memset(cmprs_buff, 0x0, FOTA_CMPRS_BUFFER_SIZE + padding_size);
 				memcpy(cmprs_buff, &crypt_buf[FOTA_BLOCK_HEADER_SIZE], block_size);
-
 				block_hdr_pos = FOTA_BLOCK_HEADER_SIZE + block_size;
-			}
-			else
-			{
+			} else {
 				uint8_t hdr_tmp_pos = 0;
-				while (block_hdr_pos < FOTA_ALGO_BUFF_SIZE)
-				{
-					if (hdr_tmp_pos < FOTA_BLOCK_HEADER_SIZE)
-					{
+				while (block_hdr_pos < FOTA_ALGO_BUFF_SIZE) {
+					if (hdr_tmp_pos < FOTA_BLOCK_HEADER_SIZE) {
 						block_hdr_buf[hdr_tmp_pos++] = crypt_buf[block_hdr_pos++];
-					}
-					else
-					{
+					} else {
 						block_size = block_hdr_buf[0] * (1 << 24) + block_hdr_buf[1] * (1 << 16) + block_hdr_buf[2] * (1 << 8) + block_hdr_buf[3];
 
 						memset(cmprs_buff, 0x0, FOTA_CMPRS_BUFFER_SIZE + padding_size);
-						if (block_size > (FOTA_ALGO_BUFF_SIZE - block_hdr_pos))
-						{
+						if (block_size > (FOTA_ALGO_BUFF_SIZE - block_hdr_pos)) {
 							memcpy(cmprs_buff, &crypt_buf[block_hdr_pos], (FOTA_ALGO_BUFF_SIZE - block_hdr_pos));
-							fw_raw_len = fota_read_part(part, fw_raw_pos, aes_ctx, aes_iv, crypt_buf, FOTA_ALGO_BUFF_SIZE);
+							fw_raw_len = fota_read_and_decrypt_part(firmware_part, fw_raw_pos, aes_ctx, aes_iv, crypt_buf, FOTA_ALGO_BUFF_SIZE);
 							if (fw_raw_len < 0)
 							{
 								RTE_LOGE("AES256 algorithm failed.");
@@ -524,9 +463,7 @@ int fota_upgrade(const char *paname)
 							fw_raw_pos += fw_raw_len;
 							memcpy(&cmprs_buff[FOTA_ALGO_BUFF_SIZE - block_hdr_pos], &crypt_buf[0], (block_size +  block_hdr_pos) - FOTA_ALGO_BUFF_SIZE);
 							block_hdr_pos = (block_size +  block_hdr_pos) - FOTA_ALGO_BUFF_SIZE;
-						}
-						else
-						{
+						} else {
 							memcpy(cmprs_buff, &crypt_buf[block_hdr_pos], block_size);
 							block_hdr_pos = block_hdr_pos + block_size;
 						}
@@ -534,19 +471,16 @@ int fota_upgrade(const char *paname)
 					}
 				}
 
-				if (hdr_tmp_pos < FOTA_BLOCK_HEADER_SIZE)
-				{
-					fw_raw_len = fota_read_part(part, fw_raw_pos, aes_ctx, aes_iv, crypt_buf, FOTA_ALGO_BUFF_SIZE);
-					if (fw_raw_len < 0)
-					{
+				if (hdr_tmp_pos < FOTA_BLOCK_HEADER_SIZE) {
+					fw_raw_len = fota_read_and_decrypt_part(firmware_part, fw_raw_pos, aes_ctx, aes_iv, crypt_buf, FOTA_ALGO_BUFF_SIZE);
+					if (fw_raw_len < 0) {
 						RTE_LOGE("AES256 algorithm failed.");
 						fota_err = FOTA_PAREAD_ERR;
 						goto __exit_upgrade;
 					}
 					fw_raw_pos += fw_raw_len;
 					block_hdr_pos = 0;
-					while (hdr_tmp_pos < FOTA_BLOCK_HEADER_SIZE)
-					{
+					while (hdr_tmp_pos < FOTA_BLOCK_HEADER_SIZE) {
 						block_hdr_buf[hdr_tmp_pos++] = crypt_buf[block_hdr_pos++];
 					}
 					block_size = block_hdr_buf[0] * (1 << 24) + block_hdr_buf[1] * (1 << 16) + block_hdr_buf[2] * (1 << 8) + block_hdr_buf[3];
@@ -559,40 +493,33 @@ int fota_upgrade(const char *paname)
 			}
 
 			memset(dcprs_buff, 0x0, FOTA_CMPRS_BUFFER_SIZE);
-			if ((pahead->fota_algo & FOTA_CMPRS_STAT_MASK) == FOTA_CMPRS_ALGO_FASTLZ)
-			{
+			if ((firmware_part_info->fota_algo & FOTA_CMPRS_STAT_MASK) == FOTA_CMPRS_ALGO_FASTLZ) {
 				dcprs_size = fastlz_decompress((const void *)&cmprs_buff[0], block_size, &dcprs_buff[0], FOTA_CMPRS_BUFFER_SIZE);
 			}
 
-			if (dcprs_size <= 0)
-			{
+			if (dcprs_size <= 0) {
 				RTE_LOGE("Decompress failed: %d.", dcprs_size);
 				fota_err = FOTA_GENERAL_ERR;
 				goto __exit_upgrade;
 			}
 
-			if (fota_write_app_part(total_copy_size, dcprs_buff, dcprs_size) < 0)
-			{
+			if (fota_write_part(app_part, total_copy_size, dcprs_buff, dcprs_size) < 0) {
 				fota_err = FOTA_COPY_FAILED;
 				goto __exit_upgrade;
 			}
 			hashvalue = calc_fnv1a_r(dcprs_buff, hashvalue, dcprs_size);
 			total_copy_size += dcprs_size;
 			shell_printf("#");
-		}
-		/* no compress option */
-		else
-		{
-			fw_raw_len = fota_read_part(part, fw_raw_pos, aes_ctx, aes_iv, crypt_buf, FOTA_ALGO_BUFF_SIZE);
-			if (fw_raw_len < 0)
-			{
+		} else {
+            /* no compress option */
+			fw_raw_len = fota_read_and_decrypt_part(firmware_part, fw_raw_pos, aes_ctx, aes_iv, crypt_buf, FOTA_ALGO_BUFF_SIZE);
+			if (fw_raw_len < 0) {
 				RTE_LOGE("AES256 algorithm failed.");
 				fota_err = FOTA_PAREAD_ERR;
 				goto __exit_upgrade;
 			}
 			fw_raw_pos += fw_raw_len;
-			if (fota_write_app_part(total_copy_size, crypt_buf, fw_raw_len) < 0)
-			{
+			if (fota_write_part(app_part, total_copy_size, crypt_buf, fw_raw_len) < 0) {
 				fota_err = FOTA_COPY_FAILED;
 				goto __exit_upgrade;
 			}
@@ -603,57 +530,46 @@ int fota_upgrade(const char *paname)
 	}
 
 	/* it has compress option */
-	if ((pahead->fota_algo & FOTA_CMPRS_STAT_MASK) != FOTA_CRYPT_ALGO_NONE)
-	{
-        while (total_copy_size < pahead->raw_size)
-        {
-            if ((block_hdr_pos < fw_raw_len) && ((fw_raw_len - block_hdr_pos) > FOTA_BLOCK_HEADER_SIZE))
-            {
+	if ((firmware_part_info->fota_algo & FOTA_CMPRS_STAT_MASK) != FOTA_CRYPT_ALGO_NONE) {
+        while (total_copy_size < firmware_part_info->raw_size) {
+            if ((block_hdr_pos < fw_raw_len) && ((fw_raw_len - block_hdr_pos) > FOTA_BLOCK_HEADER_SIZE)) {
                 memcpy(block_hdr_buf, &crypt_buf[block_hdr_pos], FOTA_BLOCK_HEADER_SIZE);
                 block_size = block_hdr_buf[0] * (1 << 24) + block_hdr_buf[1] * (1 << 16) + block_hdr_buf[2] * (1 << 8) + block_hdr_buf[3];
-                if ((fw_raw_len - block_hdr_pos - FOTA_BLOCK_HEADER_SIZE) >= block_size)
-                {
+                if ((fw_raw_len - block_hdr_pos - FOTA_BLOCK_HEADER_SIZE) >= block_size) {
                     memset(cmprs_buff, 0x0, FOTA_CMPRS_BUFFER_SIZE + padding_size);
                     memcpy(cmprs_buff, &crypt_buf[block_hdr_pos + FOTA_BLOCK_HEADER_SIZE], block_size);
                     memset(dcprs_buff, 0x0, FOTA_CMPRS_BUFFER_SIZE);
 
                     block_hdr_pos += (block_size + FOTA_BLOCK_HEADER_SIZE);
 
-                    if ((pahead->fota_algo & FOTA_CMPRS_STAT_MASK) == FOTA_CMPRS_ALGO_FASTLZ)
-                    {
+                    if ((firmware_part_info->fota_algo & FOTA_CMPRS_STAT_MASK) == FOTA_CMPRS_ALGO_FASTLZ) {
                         dcprs_size = fastlz_decompress((const void *)&cmprs_buff[0], block_size, &dcprs_buff[0], FOTA_CMPRS_BUFFER_SIZE);
                     }
 
-                    if (dcprs_size <= 0)
-                    {
+                    if (dcprs_size <= 0) {
                         RTE_LOGE("Decompress failed: %d.", dcprs_size);
                         fota_err = FOTA_GENERAL_ERR;
                         goto __exit_upgrade;
                     }
 
-                    if (fota_write_app_part(total_copy_size, dcprs_buff, dcprs_size) < 0)
-                    {
+                    if (fota_write_part(app_part, total_copy_size, dcprs_buff, dcprs_size) < 0) {
                         fota_err = FOTA_COPY_FAILED;
                         goto __exit_upgrade;
                     }
 					hashvalue = calc_fnv1a_r(dcprs_buff, hashvalue, dcprs_size);
                     total_copy_size += dcprs_size;
                     shell_printf("#");
-                }
-                else
-                {
+                } else {
                     break;
                 }
-            }
-            else
-            {
+            } else {
                 break;
             }
         }
-	}
+	}   
     shell_printf("\r\n");
-	RTE_LOGI("caculated hash value %x, expected %x", hashvalue, pahead->hash_val);
-	if (hashvalue != pahead->hash_val) {
+	RTE_LOGI("caculated hash value %x, expected %x", hashvalue, firmware_part_info->hash_val);
+	if (hashvalue != firmware_part_info->hash_val) {
 		RTE_LOGE("hash of image check failed.");
 		fota_err = FOTA_GENERAL_ERR;
 	}
@@ -687,78 +603,60 @@ __exit_upgrade:
 int shell_cmd_fota(const shell_cmd_t *pcmd, int argc, char *const argv[])
 {
 	char put_buf[24];
-	char paname[2][FAL_DEV_NAME_MAX] =
-    {
+	char paname[2][FAL_DEV_NAME_MAX] = {
         {FOTA_FM_PART_NAME},
         {FOTA_DF_PART_NAME}
     };
 
-	const char* help_info[] =
-    {
+	const char* help_info[] = {
             [0]     = "fota probe                       - probe RBL file of partiton",
             [1]     = "fota show partition addr size    - show 'size' bytes starting at 'addr'",
             [2]     = "fota clone des_part src_part     - clone src partition to des partiton",
             [3]     = "fota exec                        - execute application program",
     };
 
-	if (argc < 2)
-    {
+	if (argc < 2) {
         shell_printf("Usage:\r\n");
         for (int i = 0; i < sizeof(help_info) / sizeof(char*); i++)
         {
             shell_printf("%s\r\n", help_info[i]);
         }
         shell_printf("\r\n");
-    }
-    else
-    {
+    } else {
     	const char *operator = argv[1];
-		if (!strcmp(operator, "probe"))
-		{
-            for (int i = 0; i < 2; i++)
-            {
-                if (fota_part_fw_verify(&paname[i][0]) == FOTA_NO_ERR)
-                {
+		if (!strcmp(operator, "probe")) {
+            for (int i = 0; i < 2; i++) {
+                fota_pahead_t pa_info = {0};
+                if (fota_part_fw_verify(&paname[i][0], &pa_info) == FOTA_NO_ERR) {
                     RTE_LOGI("===== RBL of %s partition =====", &paname[i][0]);
-                    RTE_LOGI("| App partition name | %s |", fota_pahead.app_paname);
+                    RTE_LOGI("| App partition name | %s |", pa_info.app_paname);
 
 					memset(put_buf, 0x0, sizeof(put_buf));
-					if ((fota_pahead.fota_algo & FOTA_CRYPT_STAT_MASK) == FOTA_CRYPT_ALGO_AES256)
-					{
+					if ((pa_info.fota_algo & FOTA_CRYPT_STAT_MASK) == FOTA_CRYPT_ALGO_AES256) {
 						strncpy(put_buf, " AES", 4);
-					}
-					else if ((fota_pahead.fota_algo & FOTA_CRYPT_STAT_MASK) == FOTA_CRYPT_ALGO_XOR)
-					{
+					} else if ((pa_info.fota_algo & FOTA_CRYPT_STAT_MASK) == FOTA_CRYPT_ALGO_XOR) {
 						strncpy(put_buf, " XOR", 4);
-					}
-                    else
-                    {
+					} else {
                         strncpy(put_buf, "NONE", 4);
                     }
 
-					if ((fota_pahead.fota_algo & FOTA_CMPRS_STAT_MASK) == FOTA_CMPRS_ALGO_GZIP)
-					{
+					if ((pa_info.fota_algo & FOTA_CMPRS_STAT_MASK) == FOTA_CMPRS_ALGO_GZIP) {
 						strncpy(&put_buf[strlen(put_buf)], " && GLZ", 7);
-					}
-					else if ((fota_pahead.fota_algo & FOTA_CMPRS_STAT_MASK) == FOTA_CMPRS_ALGO_FASTLZ)
-					{
+					} else if ((pa_info.fota_algo & FOTA_CMPRS_STAT_MASK) == FOTA_CMPRS_ALGO_FASTLZ) {
 						strncpy(&put_buf[strlen(put_buf)], " && FLZ", 7);
 					}
 
-					if (strlen(put_buf) <= 0)
-					{
+					if (strlen(put_buf) <= 0) {
 						strncpy(put_buf, "None", 4);
 					}
 					RTE_LOGI("| Algorithm mode     | %s |", put_buf);
-					RTE_LOGI("| Firmware version   | %s |", fota_pahead.download_version);
-					RTE_LOGI("| Code raw size      | %11d |", fota_pahead.raw_size);
-                    RTE_LOGI("| Code package size  | %11d |", fota_pahead.com_size);
-                    RTE_LOGI("| Build Timestamp    | %11d |", *((uint32_t *)(&fota_pahead.fm_time[2])));
+					RTE_LOGI("| Firmware version   | %s |", pa_info.download_version);
+					RTE_LOGI("| Code raw size      | %11d |", pa_info.raw_size);
+                    RTE_LOGI("| Code package size  | %11d |", pa_info.com_size);
+                    RTE_LOGI("| Build Timestamp    | %11d |", *((uint32_t *)(&pa_info.fm_time[2])));
                 }
             }
-        }
-        else if (!strcmp(operator, "show"))
-        {
+        } else if (!strcmp(operator, "show")) {
        		const struct fal_partition *part;
        		const char *paname = argv[2];
 
@@ -768,15 +666,12 @@ int shell_cmd_fota(const shell_cmd_t *pcmd, int argc, char *const argv[])
 
 
 			part = fal_partition_find(paname);
-			if (part != NULL)
-			{
-				while (size > 16)
-				{
+			if (part != NULL) {
+				while (size > 16) {
 					fal_partition_read(part, addr, buf, 16);
 
 					shell_printf("%08X: ", addr);
-					for (int i = 0; i < 16; i++)
-					{
+					for (int i = 0; i < 16; i++) {
 						shell_printf("%02X ", buf[i]);
 					}
 					shell_printf("\r\n");
@@ -787,19 +682,14 @@ int shell_cmd_fota(const shell_cmd_t *pcmd, int argc, char *const argv[])
 
 				fal_partition_read(part, addr, buf, size);
 				shell_printf("%08X: ", addr);
-				for (int i = 0; i < size; i++)
-				{
+				for (int i = 0; i < size; i++) {
 					shell_printf("%02X ", buf[i]);
 				}
 				shell_printf("\r\n");
-			}
-			else
-			{
+			} else {
 				shell_printf("%s partition is not exist!\r\n", paname);
 			}
-        }
-		else if (!strcmp(operator, "clone"))
-		{
+        } else if (!strcmp(operator, "clone")) {
        		const char *dst_paname = argv[2];
 			const char *src_paname = argv[3];
 			const struct fal_partition *dst_part;
@@ -807,19 +697,15 @@ int shell_cmd_fota(const shell_cmd_t *pcmd, int argc, char *const argv[])
 
 			dst_part = fal_partition_find(dst_paname);
 			src_part = fal_partition_find(src_paname);
-			if (dst_part == NULL || src_part == NULL)
-			{
+			if (dst_part == NULL || src_part == NULL) {
 				if (dst_part == NULL)
 					shell_printf("%s partition is not exist!\r\n", dst_paname);
 
 				if (src_part == NULL)
 					shell_printf("%s partition is not exist!\r\n", src_paname);
-			}
-			else
-			{
+			} else {
 				shell_printf("Clone %s partition to %s partition:\r\n", src_paname, dst_paname);
-				if (fal_partition_erase(dst_part, 0, dst_part->len) >= 0)
-				{
+				if (fal_partition_erase(dst_part, 0, dst_part->len) >= 0) {
 					int clone_pos = 0;
 					int clone_len = 0, clone_tol_len;
 					uint8_t *buf = rte_malloc(4096);
@@ -829,17 +715,14 @@ int shell_cmd_fota(const shell_cmd_t *pcmd, int argc, char *const argv[])
 					else
 						clone_tol_len = src_part->len;
 
-					while ((clone_pos < clone_tol_len) && (buf != NULL))
-					{
+					while ((clone_pos < clone_tol_len) && (buf != NULL)) {
 						clone_len = fal_partition_read(src_part, clone_pos, buf, 4096);
-						if (clone_len < 0)
-						{
+						if (clone_len < 0) {
 							shell_printf("\nread %s partition failed, clone stop!\r\n", src_paname);
 							break;
 						}
 
-						if (fal_partition_write(dst_part, clone_pos, buf, clone_len) < 0)
-						{
+						if (fal_partition_write(dst_part, clone_pos, buf, clone_len) < 0) {
 							shell_printf("\nwrite %s partition failed, clone stop!\r\n", dst_paname);
 							break;
 						}
@@ -857,16 +740,9 @@ int shell_cmd_fota(const shell_cmd_t *pcmd, int argc, char *const argv[])
 						rte_free(buf);
 				}
 			}
-		}
-		else if (!strcmp(operator, "exec"))
-		{
-
-		}
-		else
-		{
+		} else {
             shell_printf("Usage:\r\n");
-            for (int i = 0; i < sizeof(help_info) / sizeof(char*); i++)
-            {
+            for (int i = 0; i < sizeof(help_info) / sizeof(char*); i++) {
                 shell_printf("%s\r\n", help_info[i]);
             }
             shell_printf("\r\n");

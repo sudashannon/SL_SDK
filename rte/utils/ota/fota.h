@@ -27,6 +27,20 @@
 #define FOTA_DF_PART_NAME    "df_area"
 #endif
 
+typedef struct {
+	char type[4];
+	uint16_t fota_algo;
+	uint8_t fm_time[6];
+	char app_paname[16];
+	char download_version[24];
+	char current_version[24];
+	uint32_t code_crc;
+	uint32_t hash_val;
+	uint32_t raw_size;
+	uint32_t com_size;
+	uint32_t head_crc;
+} fota_pahead_t;
+
 /**
  * FOTA firmware encryption algorithm and compression algorithm
  */
@@ -58,12 +72,11 @@ typedef enum {
     FOTA_PAERASE_ERR     = -9,    /* partition erase error */
 } fota_err_t;
 
-int fota_part_fw_verify(const char *paname);
-int fota_check_upgrade(void);
-int fota_copy_version(const char *paname);
-int fota_erase_app_part(void);
-int fota_write_app_part(int fw_pos, uint8_t *fw_buf, int fw_len);
-int fota_upgrade(const char *paname);
+int fota_part_fw_verify(const char *paname, fota_pahead_t *pa_info);
+int fota_check_upgrade(fota_pahead_t *cur_pa_info);
+int fota_update_current_version(fota_pahead_t *cur_pa_info);
+int fota_erase_part(const char *part_name, uint32_t size);
+int fota_upgrade_firmware(const char *firmware_part_name, fota_pahead_t *firmware_part_info);
 
 #endif /* _FOTA_H_ */
 

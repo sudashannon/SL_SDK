@@ -109,7 +109,6 @@ struct rym_ctx
     enum rym_stage stage;
     /* user could get the error content through this */
     uint8_t *buf;
-
     char *dev_name;
 };
 

@@ -108,50 +108,34 @@ static rte_error_t _rym_do_handshake(
         struct rym_ctx *ctx,
         int count)
 {
-    enum rym_code code;
     size_t i;
     uint16_t recv_crc, cal_crc;
-    size_t data_sz;
-    uint32_t tick;
-
+    size_t data_sz = 0;
     ctx->stage = RYM_STAGE_ESTABLISHING;
     /* send C every second, so the sender could know we are waiting for it. */
     for (i = 0; i < count; i++) {
         _rym_putchar(ctx, RYM_CODE_C);
-        code = _rym_read_code(ctx, RYM_WAIT_CHR_TICK);
-        if (code == RYM_CODE_SOH)
-        {
-            data_sz = _RYM_SOH_PKG_SZ;
+        data_sz = _rym_read_data(ctx, _RYM_SOH_PKG_SZ);
+        if (data_sz == _RYM_SOH_PKG_SZ)
             break;
-        } else if(code == RYM_CODE_STX) {
-            data_sz = _RYM_STX_PKG_SZ;
-            break;
-        }
     }
-    if (i == count)
-    {
+
+    if (i == count) {
         return -RYM_ERR_TMO;
     }
 
-    /* receive all data */
-    i = 0;
-    i += _rym_read_data(ctx, data_sz - 1);
-
-    if (i != (data_sz - 1))
-        return -RYM_ERR_DSZ;
-
     /* sanity check */
-    if (ctx->buf[1] != 0 || ctx->buf[2] != 0xFF) {
+    if (ctx->buf[2] != 0 || ctx->buf[3] != 0xFF) {
         return -RYM_ERR_SEQ;
     }
 
-    recv_crc = (uint16_t)(*(ctx->buf + data_sz - 2) << 8) | *(ctx->buf + data_sz - 1);
-    cal_crc = CRC16(ctx->buf + 3, data_sz - 5);
+    recv_crc = (uint16_t)(*(ctx->buf + data_sz - 1) << 8) | *(ctx->buf + data_sz);
+    cal_crc = CRC16(ctx->buf + 4, data_sz - 5);
     if (recv_crc != cal_crc)
         return -RYM_ERR_CRC;
 
     /* congratulations, check passed. */
-    if (ctx->on_begin && ctx->on_begin(ctx, ctx->buf+3, data_sz-5) != RYM_CODE_ACK)
+    if (ctx->on_begin && ctx->on_begin(ctx, ctx->buf + 4, data_sz - 5) != RYM_CODE_ACK)
         return -RYM_ERR_CAN;
 
     return RTE_SUCCESS;
@@ -162,7 +146,7 @@ static rte_error_t _rym_trans_data(
         size_t data_sz,
         enum rym_code *code)
 {
-    const size_t tsz = 2+data_sz+2;
+    const size_t tsz = 2 + data_sz + 2;
     uint16_t recv_crc;
 
     /* seq + data + crc */
@@ -329,8 +313,7 @@ static rte_error_t _rym_do_recv(
         RTE_LOGE("handshake error: %d", err);
         return err;
     }
-    while (1)
-    {
+    while (1) {
         err = _rym_do_trans(ctx);
         if (err != RTE_SUCCESS)
             return err;
