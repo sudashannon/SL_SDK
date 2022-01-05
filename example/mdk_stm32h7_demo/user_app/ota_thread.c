@@ -106,6 +106,8 @@ int shell_upgrade_cmd(const shell_cmd_t *pcmd, int argc, char *const argv[])
         shell_printf("Warning: Ymodem has started! This operator will not recovery.\r\n");
         shell_printf("Please select the ota firmware file and use Ymodem to send.\r\n");
         upgrade_status_set(false);
+        extern timer_id_t running_timer_id;
+
         if (!rym_recv_on_device(&rctx, "com_0", ymodem_on_begin, ymodem_on_data, NULL, HAL_MAX_DELAY)) {
             shell_printf("Download firmware to flash success.\r\n");
             if (fota_part_fw_verify(recv_partition, NULL) >= 0) {

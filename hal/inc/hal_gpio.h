@@ -14,14 +14,8 @@
 #include "hal.h"
 typedef enum
 {
-	GPIO_RUN = 0,
-	LCD_BLK = 1,
-	LCD_CS = 2,
-	LCD_DC = 3,
-	LCD_RST = 4,
-	CAM_LIGHT =5,
-	CAM_RST = 6,
-	CAM_PWR = 7,
+	GPIO_LED0 = 0,
+	GPIO_LED1 = 1,
 	GPIO_N,
 } gpio_name_t;
 

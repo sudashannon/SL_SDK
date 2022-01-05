@@ -9,11 +9,7 @@ example/armgcc_stm32h7_demo/build/
 example/armgcc_stm32h7_demo/*.bin
 example/mingw_sdl2_demo/obj/
 example/mingw_sdl2_demo/bin/Debug/example.exe
-example/mdk_stm32h7_demo/Objects/*.o
-example/mdk_stm32h7_demo/Objects/*.d
-example/mdk_stm32h7_demo/Objects/*.iex
-example/mdk_stm32h7_demo/Objects/*.__i
-example/mdk_stm32h7_demo/Objects/*.build_log.htm
-example/mdk_stm32h7_demo/Objects/*.lnp
+example/mdk_stm32h7_demo/Listings/
+example/mdk_stm32h7_demo/Objects/
 
 .vscode/settings.json

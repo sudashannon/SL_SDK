@@ -12,19 +12,6 @@
 #define __HAL_COM_H
 #include "stm32h7xx.h"
 #include "hal.h"
-typedef struct {
-    // Configuration section.
-    uint16_t capacity;
-    uint16_t recv_length;
-    // Resource section.
-    bool if_trans_enable_dma;
-    bool if_recv_enable_dma;
-    bool if_recv_enable_fifo;
-    uint8_t *buffer;
-    void *driver_handle;
-    // General resource section.
-    hal_device_t device;
-} com_device_t;
 /**
  * @brief List all provided com instance's name.
  *

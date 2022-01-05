@@ -12,6 +12,20 @@
 #include "../inc/hal_com.h"
 #include "usart.h"
 
+typedef struct {
+    // Configuration section.
+    uint16_t capacity;
+    uint16_t recv_length;
+    // Resource section.
+    bool if_trans_enable_dma;
+    bool if_recv_enable_dma;
+    bool if_recv_enable_fifo;
+    uint8_t *buffer;
+    void *driver_handle;
+    // General resource section.
+    hal_device_t device;
+} com_device_t;
+
 static com_device_t com_control_handle[com_N] = {
     {
         .capacity = 2048,

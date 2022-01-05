@@ -9,6 +9,8 @@ static uint32_t boot_count = 0;
 static time_t boot_time[10] = {0, 1, 2, 3};
 static char default_version[] = "0.0";
 static bool upgrade_status = false;
+
+timer_id_t running_timer_id = 0;
 /* default KV nodes */
 static struct fdb_default_kv_node default_kv_table[] = {
         {"boot_count", &boot_count, sizeof(boot_count)}, /* int type KV */
@@ -39,7 +41,7 @@ size_t rte_data_out(uint8_t *data, size_t length)
 
 static void running_timer(void *arg)
 {
-    gpio_toggle(GPIO_RUN);
+    gpio_toggle(GPIO_LED0);
 }
 
 __NO_RETURN void system_thread(void *argument)
@@ -107,7 +109,6 @@ __NO_RETURN void system_thread(void *argument)
     }
 #endif /* FDB_USING_KVDB */
     timer_configuration_t config = TIMER_CONFIG_INITIALIZER;
-    timer_id_t running_timer_id = 0;
     config.repeat_period_ms = 100;
     config.timer_callback = running_timer;
     timer_create_new(rte_get_main_timergroup(), &config, &running_timer_id);

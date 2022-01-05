@@ -24,14 +24,8 @@ typedef struct {
  */
 static gpio_t gpio_table[GPIO_N] = {
     // Name    ,PORT , PIN
-    {GPIO_RUN, GPIOA, GPIO_PIN_1},
-    {LCD_BLK, GPIOD, GPIO_PIN_1},
-    {LCD_CS, GPIOB, GPIO_PIN_12},
-    {LCD_DC, GPIOB, GPIO_PIN_1},
-    {LCD_RST, GPIOD, GPIO_PIN_14},
-    {CAM_LIGHT, GPIOA, GPIO_PIN_5},
-    {CAM_RST, GPIOC, GPIO_PIN_4},
-    {CAM_PWR, GPIOA, GPIO_PIN_7},
+    {GPIO_LED0, GPIOA, GPIO_PIN_1},
+    {GPIO_LED1, GPIOA, GPIO_PIN_5},
 };
 /**
  * @brief Init a gpio.
