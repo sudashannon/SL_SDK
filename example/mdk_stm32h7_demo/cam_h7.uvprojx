@@ -774,6 +774,21 @@
           </Files>
         </Group>
         <Group>
+          <GroupName>utils/hardfault_handle</GroupName>
+          <Files>
+            <File>
+              <FileName>SEGGER_HardFaultHandler.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\rte\utils\segger_hardfault_handle\SEGGER_HardFaultHandler.c</FilePath>
+            </File>
+            <File>
+              <FileName>HardFaultHandler.S</FileName>
+              <FileType>2</FileType>
+              <FilePath>..\..\rte\utils\segger_hardfault_handle\HardFaultHandler.S</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
           <GroupName>rtx/kernel</GroupName>
           <Files>
             <File>
