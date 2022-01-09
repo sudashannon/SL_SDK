@@ -6926,7 +6926,7 @@ uint8_t w25qxx_init(w25qxx_handle_t *handle)
             id = (uint16_t)out[0] << 8 | out[1];                                           /* set id */
             if (id != handle->type)                                                        /* check id */
             {
-                handle->debug_print("w25qxx: id is invalid.\r\n");                           /* id is invalid */
+                handle->debug_print("w25qxx: id is invalid. expect:%x real:%x\r\n", handle->type, id);                           /* id is invalid */
 
                 return 6;                                                                  /* return error */
             }
@@ -6991,7 +6991,7 @@ uint8_t w25qxx_init(w25qxx_handle_t *handle)
             id = (uint16_t)out[0] << 8 | out[1];                                           /* set id */
             if (id != handle->type)                                                        /* check id */
             {
-                handle->debug_print("w25qxx: id is invalid.\r\n");                           /* id is invalid */
+                handle->debug_print("w25qxx: id is invalid. expect:%x real:%x\r\n", handle->type, id);                           /* id is invalid */
 
                 return 6;                                                                  /* return error */
             }
@@ -7136,7 +7136,7 @@ uint8_t w25qxx_init(w25qxx_handle_t *handle)
         id = (uint16_t)out[0] << 8 | out[1];                                               /* set id */
         if (id != handle->type)                                                            /* check id */
         {
-            handle->debug_print("w25qxx: id is invalid.\r\n");                               /* id is invalid */
+            handle->debug_print("w25qxx: id is invalid. expect:%x real:%x\r\n", handle->type, id);                           /* id is invalid */
 
             return 6;                                                                      /* return error */
         }

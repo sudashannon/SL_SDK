@@ -60,26 +60,28 @@
 #endif
 
 #define FAL_PART_HAS_TABLE_CFG
-#define NOR_FLASH_DEV_NAME             "norflash0"
 
 /* ===================== Flash device Configuration ========================= */
 extern struct fal_flash_dev nor_flash0;
+extern struct fal_flash_dev nor_flash1;
 
 /* flash device table */
 #define FAL_FLASH_DEV_TABLE                                          \
 {                                                                    \
     &nor_flash0,                                                     \
+    &nor_flash1,                                                     \
 }
 /* ====================== Partition Configuration ========================== */
 #ifdef FAL_PART_HAS_TABLE_CFG
 /* partition table */
 #define FAL_PART_TABLE                                                               \
 {                                                                                    \
-    {FAL_PART_MAGIC_WROD,    "user_app",   NOR_FLASH_DEV_NAME,                           0,      2048 * 1024, 0}, \
-    {FAL_PART_MAGIC_WROD,    "fm_area",    NOR_FLASH_DEV_NAME,                 2048 * 1024,      2048 * 1024, 0}, \
-    {FAL_PART_MAGIC_WROD,    "df_area",    NOR_FLASH_DEV_NAME,                 4096 * 1024,      2048 * 1024, 0}, \
-    {FAL_PART_MAGIC_WORD,    "fdb_kvdb1",  NOR_FLASH_DEV_NAME,                 6144 * 1024,        16 * 1024, 0}, \
-    {FAL_PART_MAGIC_WORD,    "fdb_tsdb1",  NOR_FLASH_DEV_NAME,                 6160 * 1024,        16 * 1024, 0}, \
+    {FAL_PART_MAGIC_WROD,    "user_app",   "norflash0",                           0,      2048 * 1024, 0}, \
+    {FAL_PART_MAGIC_WROD,    "fm_area",    "norflash0",                 2048 * 1024,      2048 * 1024, 0}, \
+    {FAL_PART_MAGIC_WROD,    "df_area",    "norflash0",                 4096 * 1024,      2048 * 1024, 0}, \
+    {FAL_PART_MAGIC_WORD,    "dc_area",    "norflash0",                 6144 * 1024,      2048 * 1024, 0}, \
+    {FAL_PART_MAGIC_WROD,    "user_kvdb",  "norflash1",                           0,      16 * 1024, 0}, \
+    {FAL_PART_MAGIC_WROD,    "user_tsdb",  "norflash1",                 4096 * 1024,      1024 * 1024, 0}, \
 }
 #endif /* FAL_PART_HAS_TABLE_CFG */
 

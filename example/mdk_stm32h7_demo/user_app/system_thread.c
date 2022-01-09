@@ -39,6 +39,47 @@ size_t rte_data_out(uint8_t *data, size_t length)
     return length;
 }
 
+void start_shell(void)
+{
+    char input_user_name[64];
+    char input_password[32];
+retry:
+    memset(input_user_name, 0, 64);
+    memset(input_password, 0, 32);
+    RTE_LOGI("plz input user name:");
+    for (uint8_t i = 0; ; ) {
+        uint32_t read_size = 1;
+        hal_device_read_sync("com_0", (uint8_t *)input_user_name + i, &read_size, HAL_MAX_DELAY);
+        i++;
+        if (i >= sizeof(input_user_name) ||
+            input_user_name[i - 1] == 0x0d) {
+            input_user_name[i - 1] = 0;
+            break;
+        }
+    }
+    RTE_LOGI("plz input password:");
+    for (uint8_t i = 0; ; ) {
+        uint32_t read_size = 1;
+        hal_device_read_sync("com_0", (uint8_t *)input_password + i, &read_size, HAL_MAX_DELAY);
+        i++;
+        if (i >= sizeof(input_password) ||
+            input_password[i - 1] == 0x0d) {
+            input_password[i - 1] = 0;
+            break;
+        }
+    }
+    if (strcmp("root", input_user_name) ||
+        strcmp("root", input_password)) {
+        RTE_LOGE("Sorry, we don't know you, you input %s %s", input_user_name, input_password);
+        goto retry;
+    }
+    osThreadAttr_t shell_tconfig = {
+        .name = "shell_task",
+        .stack_size = 8192,
+    };
+    osThreadId_t shell_tid = osThreadNew(shell_task, NULL, &shell_tconfig);
+}
+
 static void running_timer(void *arg)
 {
     gpio_toggle(GPIO_LED0);
@@ -60,6 +101,8 @@ __NO_RETURN void system_thread(void *argument)
     extern int fota_crc_init(void);
     fota_crc_init();
 	/* partition initial */
+    extern void driver_w25qxx_init(void);
+    driver_w25qxx_init();
 	fal_init();
 	extern int fal_init_check(void);
 	/* verify partition */
@@ -80,7 +123,7 @@ __NO_RETURN void system_thread(void *argument)
         * &default_kv: The default KV nodes. It will auto add to KVDB when first initialize successfully.
         *        NULL: The user data if you need, now is empty.
         */
-        result = fdb_kvdb_init(&kvdb, "env", "fdb_kvdb1", &default_kv, NULL);
+        result = fdb_kvdb_init(&kvdb, "env", "user_kvdb", &default_kv, NULL);
         RTE_LOGI("flash database kvdb init result: %d", result);
         if (result == 0) {
             char *current_version = fdb_kv_get(&kvdb, "current_version");
@@ -127,43 +170,7 @@ __NO_RETURN void system_thread(void *argument)
         }
     }
     if (if_upgrade_mode == true) {
-        char input_user_name[64];
-        char input_password[32];
-retry:
-        memset(input_user_name, 0, 64);
-        memset(input_password, 0, 32);
-        RTE_LOGI("plz input user name:");
-        for (uint8_t i = 0; ; ) {
-            uint32_t read_size = 1;
-            hal_device_read_sync("com_0", (uint8_t *)input_user_name + i, &read_size, HAL_MAX_DELAY);
-            i++;
-            if (i >= sizeof(input_user_name) ||
-                input_user_name[i - 1] == 0x0d) {
-                input_user_name[i - 1] = 0;
-                break;
-            }
-        }
-        RTE_LOGI("plz input password:");
-        for (uint8_t i = 0; ; ) {
-            uint32_t read_size = 1;
-            hal_device_read_sync("com_0", (uint8_t *)input_password + i, &read_size, HAL_MAX_DELAY);
-            i++;
-            if (i >= sizeof(input_password) ||
-                input_password[i - 1] == 0x0d) {
-                input_password[i - 1] = 0;
-                break;
-            }
-        }
-        if (strcmp("root", input_user_name) ||
-            strcmp("root", input_password)) {
-            RTE_LOGE("Sorry, we don't know you, you input %s %s", input_user_name, input_password);
-            goto retry;
-        }
-        osThreadAttr_t shell_tconfig = {
-            .name = "shell_task",
-            .stack_size = 8192,
-        };
-        osThreadId_t shell_tid = osThreadNew(shell_task, NULL, &shell_tconfig);
+        start_shell();
     } else {
         osThreadAttr_t ota_tconfig = {
             .name = "ota_task",

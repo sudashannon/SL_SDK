@@ -15,7 +15,7 @@
 
 typedef enum
 {
-	spi_lcd = 0,
+	spi_flash = 0,
 	spi_N,
 } spi_name_t;
 

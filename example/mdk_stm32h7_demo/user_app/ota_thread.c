@@ -142,8 +142,8 @@ static void ota_start_application(void)
         return;
 	}
 
-    extern w25qxx_handle_t gs_handle;
-    w25qxx_exit_qspi_mode(&gs_handle);
+    extern w25qxx_handle_t ex_flash_handle;
+    w25qxx_exit_qspi_mode(&ex_flash_handle);
     app_addr = part->offset + 0x90000000;
     RTE_LOGI("app_addr: %x", app_addr);
     QSPI_CommandTypeDef s_command = {0};
@@ -266,5 +266,7 @@ recover_default_image:
         }
     }
     RTE_LOGI("Boot application failed, entry shell mode.");
+    extern void start_shell(void);
+    start_shell();
     osThreadExit();
 }

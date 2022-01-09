@@ -15,23 +15,13 @@
 #include "cmsis_os2.h"
 
 #define FLASH_ERASE_MIN_SIZE    (4 * 1024)
-extern w25qxx_handle_t gs_handle;
-static rte_mutex_t flash_mutex_instance = {NULL};
+extern w25qxx_handle_t ex_flash_handle;
+extern w25qxx_handle_t db_flash_handle;
+static rte_mutex_t ex_flash_mutex_instance = {NULL};
+static rte_mutex_t db_flash_mutex_instance = {NULL};
 
-#define LOCK()                                  \
-    do {                                        \
-        RTE_LOCK(&flash_mutex_instance);        \
-    } while(0)
-
-#define UNLOCK()                                \
-    do {                                        \
-        RTE_UNLOCK(&flash_mutex_instance);      \
-    } while(0)
-
-static int init(void)
+static int ex_fal_init(void)
 {
-    extern void driver_w25qxx_init(void);
-    driver_w25qxx_init();
     w25qxx_info_t info;
     uint8_t res = 0;
     /* get information */
@@ -48,81 +38,178 @@ static int init(void)
     }
 
     /* set chip type */
-    res = w25qxx_set_type(&gs_handle, W25Q64);
+    res = w25qxx_set_type(&ex_flash_handle, W25Q64);
     if (res) {
         RTE_LOGE("w25qxx: set type failed.");
         return 1;
     }
     /* set chip interface */
-    res = w25qxx_set_interface(&gs_handle, W25QXX_INTERFACE_QSPI);
+    res = w25qxx_set_interface(&ex_flash_handle, W25QXX_INTERFACE_QSPI);
     if (res) {
         RTE_LOGE("w25qxx: set interface failed.");
         return 1;
     }
     /* set dual quad spi */
-    res = w25qxx_set_dual_quad_spi(&gs_handle, W25QXX_BOOL_FALSE);
+    res = w25qxx_set_dual_quad_spi(&ex_flash_handle, W25QXX_BOOL_FALSE);
     if (res) {
         RTE_LOGE("w25qxx: set dual quad spi failed.");
-        w25qxx_deinit(&gs_handle);
+        w25qxx_deinit(&ex_flash_handle);
         return 1;
     }
     /* chip init */
-    res = w25qxx_init(&gs_handle);
+    res = w25qxx_init(&ex_flash_handle);
     if (res) {
         RTE_LOGE("w25qxx: init failed.");
         return 1;
     }
     /* Init mutex */
     osMutexAttr_t flash_mutex_attr = {
-        LOG_STR(FLASH),
+        LOG_STR(EXE_FLASH),
         osMutexPrioInherit | osMutexRecursive,
         NULL,
         0U
     };
-    flash_mutex_instance.mutex = (void *)osMutexNew(&flash_mutex_attr);
-    flash_mutex_instance.lock = rte_mutex_lock;
-    flash_mutex_instance.unlock = rte_mutex_unlock;
-    flash_mutex_instance.trylock = NULL;
+    ex_flash_mutex_instance.mutex = (void *)osMutexNew(&flash_mutex_attr);
+    ex_flash_mutex_instance.lock = rte_mutex_lock;
+    ex_flash_mutex_instance.unlock = rte_mutex_unlock;
+    ex_flash_mutex_instance.trylock = NULL;
     return 0;
 }
 
-static int read(long offset, uint8_t *buf, size_t size)
+static int db_fal_init(void)
+{
+    w25qxx_info_t info;
+    uint8_t res = 0;
+    /* get information */
+    res = w25qxx_info(&info);
+    if (res) {
+        RTE_LOGE("w25qxx: get info failed.");
+        return 1;
+    } else {
+        /* print chip information */
+        RTE_LOGI("w25qxx: chip is %s.", info.chip_name);
+        RTE_LOGI("w25qxx: manufacturer is %s.", info.manufacturer_name);
+        RTE_LOGI("w25qxx: interface is %s.", info.interface);
+        RTE_LOGI("w25qxx: driver version is %d.%d.", info.driver_version / 1000, (info.driver_version % 1000) / 100);
+    }
+
+    /* set chip type */
+    res = w25qxx_set_type(&db_flash_handle, W25Q64);
+    if (res) {
+        RTE_LOGE("w25qxx: set type failed.");
+        return 1;
+    }
+    /* set chip interface */
+    res = w25qxx_set_interface(&db_flash_handle, W25QXX_INTERFACE_SPI);
+    if (res) {
+        RTE_LOGE("w25qxx: set interface failed.");
+        return 1;
+    }
+    /* set dual quad spi */
+    res = w25qxx_set_dual_quad_spi(&db_flash_handle, W25QXX_BOOL_FALSE);
+    if (res) {
+        RTE_LOGE("w25qxx: set dual quad spi failed.");
+        w25qxx_deinit(&db_flash_handle);
+        return 1;
+    }
+    /* chip init */
+    res = w25qxx_init(&db_flash_handle);
+    if (res) {
+        RTE_LOGE("w25qxx: init failed %d.", res);
+        return 1;
+    }
+    /* Init mutex */
+    osMutexAttr_t flash_mutex_attr = {
+        LOG_STR(DB_FLASH),
+        osMutexPrioInherit | osMutexRecursive,
+        NULL,
+        0U
+    };
+    db_flash_mutex_instance.mutex = (void *)osMutexNew(&flash_mutex_attr);
+    db_flash_mutex_instance.lock = rte_mutex_lock;
+    db_flash_mutex_instance.unlock = rte_mutex_unlock;
+    db_flash_mutex_instance.trylock = NULL;
+    return 0;
+}
+
+static int db_fal_read(long offset, uint8_t *buf, size_t size)
+{
+    /* You can add your code under here. */
+    int32_t ret;
+    uint32_t addr = nor_flash1.addr + offset;
+
+
+    RTE_LOCK(&db_flash_mutex_instance);
+    ret = w25qxx_fast_read(&db_flash_handle, addr, buf, size);
+    RTE_UNLOCK(&db_flash_mutex_instance);
+
+    return (ret == 0) ? size : ret;
+}
+
+static int db_fal_write(long offset, const uint8_t *buf, size_t size)
+{
+    int32_t ret;
+    uint32_t addr = nor_flash1.addr + offset;
+
+    RTE_LOCK(&db_flash_mutex_instance);
+    ret = w25qxx_write(&db_flash_handle, addr, (uint8_t *)buf, size);
+    RTE_UNLOCK(&db_flash_mutex_instance);
+
+    return (ret == 0) ? size : ret;
+}
+
+static int db_fal_erase(long offset, size_t size)
+{
+    int32_t ret;
+    uint32_t addr = nor_flash1.addr + offset;
+
+    int32_t erase_size = ((size - 1) / FLASH_ERASE_MIN_SIZE) + 1;
+
+    RTE_LOCK(&db_flash_mutex_instance);
+    for (int32_t i = 0; i < erase_size; i++)
+        ret = w25qxx_sector_erase_4k(&db_flash_handle, addr);
+    RTE_UNLOCK(&db_flash_mutex_instance);
+
+    return (ret == 0) ? erase_size : ret;
+}
+
+static int ex_fal_read(long offset, uint8_t *buf, size_t size)
 {
     /* You can add your code under here. */
     int32_t ret;
     uint32_t addr = nor_flash0.addr + offset;
 
 
-    LOCK();
-    ret = w25qxx_fast_read(&gs_handle, addr, buf, size);
-    UNLOCK();
+    RTE_LOCK(&ex_flash_mutex_instance);
+    ret = w25qxx_fast_read(&ex_flash_handle, addr, buf, size);
+    RTE_UNLOCK(&ex_flash_mutex_instance);
 
     return (ret == 0) ? size : ret;
 }
 
-static int write(long offset, const uint8_t *buf, size_t size)
+static int ex_fal_write(long offset, const uint8_t *buf, size_t size)
 {
     int32_t ret;
     uint32_t addr = nor_flash0.addr + offset;
 
-    LOCK();
-    ret = w25qxx_write(&gs_handle, addr, (uint8_t *)buf, size);
-    UNLOCK();
+    RTE_LOCK(&ex_flash_mutex_instance);
+    ret = w25qxx_write(&ex_flash_handle, addr, (uint8_t *)buf, size);
+    RTE_UNLOCK(&ex_flash_mutex_instance);
 
     return (ret == 0) ? size : ret;
 }
 
-static int erase(long offset, size_t size)
+static int ex_fal_erase(long offset, size_t size)
 {
     int32_t ret;
     uint32_t addr = nor_flash0.addr + offset;
 
     int32_t erase_size = ((size - 1) / FLASH_ERASE_MIN_SIZE) + 1;
 
-    LOCK();
+    RTE_LOCK(&ex_flash_mutex_instance);
     for (int32_t i = 0; i < erase_size; i++)
-        ret = w25qxx_sector_erase_4k(&gs_handle, addr);
-    UNLOCK();
+        ret = w25qxx_sector_erase_4k(&ex_flash_handle, addr);
+    RTE_UNLOCK(&ex_flash_mutex_instance);
 
     return (ret == 0) ? erase_size : ret;
 }
@@ -148,6 +235,17 @@ struct fal_flash_dev nor_flash0 =
     .addr       = 0x0,
     .len        = 8 * 1024 * 1024,
     .blk_size   = FLASH_ERASE_MIN_SIZE,
-    .ops        = {init, read, write, erase},
+    .ops        = {ex_fal_init, ex_fal_read, ex_fal_write, ex_fal_erase},
+    .write_gran = 1
+};
+
+
+struct fal_flash_dev nor_flash1 =
+{
+    .name       = "norflash1",
+    .addr       = 0x0,
+    .len        = 8 * 1024 * 1024,
+    .blk_size   = FLASH_ERASE_MIN_SIZE,
+    .ops        = {db_fal_init, db_fal_read, db_fal_write, db_fal_erase},
     .write_gran = 1
 };

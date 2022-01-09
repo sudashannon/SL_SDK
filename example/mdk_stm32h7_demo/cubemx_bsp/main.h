@@ -60,7 +60,7 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define LED_0_Pin GPIO_PIN_1
 #define LED_1_Pin GPIO_PIN_5
-#define LED_RUNNING_GPIO_Port GPIOA
+#define SPI3_CS_Pin GPIO_PIN_15
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

@@ -37,7 +37,7 @@ typedef struct {
 	uint32_t code_crc;
 	uint32_t hash_val;
 	uint32_t raw_size;
-	uint32_t com_size;
+	uint32_t pkg_size;
 	uint32_t head_crc;
 } fota_pahead_t;
 
@@ -72,11 +72,11 @@ typedef enum {
     FOTA_PAERASE_ERR     = -9,    /* partition erase error */
 } fota_err_t;
 
-int fota_part_fw_verify(const char *paname, fota_pahead_t *pa_info);
-int fota_check_upgrade(fota_pahead_t *cur_pa_info);
-int fota_update_current_version(fota_pahead_t *cur_pa_info);
+int fota_part_fw_verify(const char *part_name, fota_pahead_t *package_info);
+int fota_check_upgrade(fota_pahead_t *cur_package_info);
+int fota_update_current_version(fota_pahead_t *cur_package_info);
 int fota_erase_part(const char *part_name, uint32_t size);
-int fota_upgrade_firmware(const char *firmware_part_name, fota_pahead_t *firmware_part_info);
+int fota_upgrade_firmware(const char *firmware_part_name, fota_pahead_t *firmware_package_info);
 
 #endif /* _FOTA_H_ */
 

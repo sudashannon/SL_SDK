@@ -23,6 +23,7 @@
 #include "quadspi.h"
 #include "usart.h"
 #include "gpio.h"
+#include "spi.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -101,6 +102,7 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_DMA_Init();
+  MX_SPI3_Init();
   MX_USART1_UART_Init();
   MX_QUADSPI_Init();
 

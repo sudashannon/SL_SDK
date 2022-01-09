@@ -1,0 +1,88 @@
+
+   ---------------------------------Error 时间:2022/1/5 18:58:40---------------------------------
+   导致错误信息 : 请求的操作无法在使用用户映射区域打开的文件上执行。
+
+   导致错误的方法 :System.IO.__Error.WinIOError
+
+   在 System.IO.__Error.WinIOError(Int32 errorCode, String maybeFullPath)
+   在 System.IO.FileStream.Init(String path, FileMode mode, FileAccess access, Int32 rights, Boolean useRights, FileShare share, Int32 bufferSize, FileOptions options, SECURITY_ATTRIBUTES secAttrs, String msgPath, Boolean bFromProxy, Boolean useLongPath, Boolean checkHost)
+   在 System.IO.FileStream..ctor(String path, FileMode mode, FileAccess access, FileShare share, Int32 bufferSize, FileOptions options, String msgPath, Boolean bFromProxy)
+   在 System.IO.FileStream..ctor(String path, FileMode mode)
+   在 rt_ota_packaging_tool.FirmwarePack.btnCreate_Click(Object sender, EventArgs e)
+
+   ---------------------------------Error 时间:2022/1/5 18:58:44---------------------------------
+   导致错误信息 : 请求的操作无法在使用用户映射区域打开的文件上执行。
+
+   导致错误的方法 :System.IO.__Error.WinIOError
+
+   在 System.IO.__Error.WinIOError(Int32 errorCode, String maybeFullPath)
+   在 System.IO.FileStream.Init(String path, FileMode mode, FileAccess access, Int32 rights, Boolean useRights, FileShare share, Int32 bufferSize, FileOptions options, SECURITY_ATTRIBUTES secAttrs, String msgPath, Boolean bFromProxy, Boolean useLongPath, Boolean checkHost)
+   在 System.IO.FileStream..ctor(String path, FileMode mode, FileAccess access, FileShare share, Int32 bufferSize, FileOptions options, String msgPath, Boolean bFromProxy)
+   在 System.IO.FileStream..ctor(String path, FileMode mode)
+   在 rt_ota_packaging_tool.FirmwarePack.btnCreate_Click(Object sender, EventArgs e)
+
+   ---------------------------------Error 时间:2022/1/5 18:58:47---------------------------------
+   导致错误信息 : 请求的操作无法在使用用户映射区域打开的文件上执行。
+
+   导致错误的方法 :System.IO.__Error.WinIOError
+
+   在 System.IO.__Error.WinIOError(Int32 errorCode, String maybeFullPath)
+   在 System.IO.FileStream.Init(String path, FileMode mode, FileAccess access, Int32 rights, Boolean useRights, FileShare share, Int32 bufferSize, FileOptions options, SECURITY_ATTRIBUTES secAttrs, String msgPath, Boolean bFromProxy, Boolean useLongPath, Boolean checkHost)
+   在 System.IO.FileStream..ctor(String path, FileMode mode, FileAccess access, FileShare share, Int32 bufferSize, FileOptions options, String msgPath, Boolean bFromProxy)
+   在 System.IO.FileStream..ctor(String path, FileMode mode)
+   在 rt_ota_packaging_tool.FirmwarePack.btnCreate_Click(Object sender, EventArgs e)
+
+   ---------------------------------Error 时间:2022/1/5 18:58:58---------------------------------
+   导致错误信息 : 请求的操作无法在使用用户映射区域打开的文件上执行。
+
+   导致错误的方法 :System.IO.__Error.WinIOError
+
+   在 System.IO.__Error.WinIOError(Int32 errorCode, String maybeFullPath)
+   在 System.IO.FileStream.Init(String path, FileMode mode, FileAccess access, Int32 rights, Boolean useRights, FileShare share, Int32 bufferSize, FileOptions options, SECURITY_ATTRIBUTES secAttrs, String msgPath, Boolean bFromProxy, Boolean useLongPath, Boolean checkHost)
+   在 System.IO.FileStream..ctor(String path, FileMode mode, FileAccess access, FileShare share, Int32 bufferSize, FileOptions options, String msgPath, Boolean bFromProxy)
+   在 System.IO.FileStream..ctor(String path, FileMode mode)
+   在 rt_ota_packaging_tool.FirmwarePack.btnCreate_Click(Object sender, EventArgs e)
+
+   ---------------------------------Error 时间:2022/1/5 19:40:53---------------------------------
+   导致错误信息 : 请求的操作无法在使用用户映射区域打开的文件上执行。
+
+   导致错误的方法 :System.IO.__Error.WinIOError
+
+   在 System.IO.__Error.WinIOError(Int32 errorCode, String maybeFullPath)
+   在 System.IO.FileStream.Init(String path, FileMode mode, FileAccess access, Int32 rights, Boolean useRights, FileShare share, Int32 bufferSize, FileOptions options, SECURITY_ATTRIBUTES secAttrs, String msgPath, Boolean bFromProxy, Boolean useLongPath, Boolean checkHost)
+   在 System.IO.FileStream..ctor(String path, FileMode mode, FileAccess access, FileShare share, Int32 bufferSize, FileOptions options, String msgPath, Boolean bFromProxy)
+   在 System.IO.FileStream..ctor(String path, FileMode mode)
+   在 rt_ota_packaging_tool.FirmwarePack.btnCreate_Click(Object sender, EventArgs e)
+
+   ---------------------------------Error 时间:2022/1/6 10:27:03---------------------------------
+   导致错误信息 : 请求的操作无法在使用用户映射区域打开的文件上执行。
+
+   导致错误的方法 :System.IO.__Error.WinIOError
+
+   在 System.IO.__Error.WinIOError(Int32 errorCode, String maybeFullPath)
+   在 System.IO.FileStream.Init(String path, FileMode mode, FileAccess access, Int32 rights, Boolean useRights, FileShare share, Int32 bufferSize, FileOptions options, SECURITY_ATTRIBUTES secAttrs, String msgPath, Boolean bFromProxy, Boolean useLongPath, Boolean checkHost)
+   在 System.IO.FileStream..ctor(String path, FileMode mode, FileAccess access, FileShare share, Int32 bufferSize, FileOptions options, String msgPath, Boolean bFromProxy)
+   在 System.IO.FileStream..ctor(String path, FileMode mode)
+   在 rt_ota_packaging_tool.FirmwarePack.btnCreate_Click(Object sender, EventArgs e)
+
+   ---------------------------------Error 时间:2022/1/6 10:45:58---------------------------------
+   导致错误信息 : 请求的操作无法在使用用户映射区域打开的文件上执行。
+
+   导致错误的方法 :System.IO.__Error.WinIOError
+
+   在 System.IO.__Error.WinIOError(Int32 errorCode, String maybeFullPath)
+   在 System.IO.FileStream.Init(String path, FileMode mode, FileAccess access, Int32 rights, Boolean useRights, FileShare share, Int32 bufferSize, FileOptions options, SECURITY_ATTRIBUTES secAttrs, String msgPath, Boolean bFromProxy, Boolean useLongPath, Boolean checkHost)
+   在 System.IO.FileStream..ctor(String path, FileMode mode, FileAccess access, FileShare share, Int32 bufferSize, FileOptions options, String msgPath, Boolean bFromProxy)
+   在 System.IO.FileStream..ctor(String path, FileMode mode)
+   在 rt_ota_packaging_tool.FirmwarePack.btnCreate_Click(Object sender, EventArgs e)
+
+   ---------------------------------Error 时间:2022/1/6 16:41:36---------------------------------
+   导致错误信息 : 请求的操作无法在使用用户映射区域打开的文件上执行。
+
+   导致错误的方法 :System.IO.__Error.WinIOError
+
+   在 System.IO.__Error.WinIOError(Int32 errorCode, String maybeFullPath)
+   在 System.IO.FileStream.Init(String path, FileMode mode, FileAccess access, Int32 rights, Boolean useRights, FileShare share, Int32 bufferSize, FileOptions options, SECURITY_ATTRIBUTES secAttrs, String msgPath, Boolean bFromProxy, Boolean useLongPath, Boolean checkHost)
+   在 System.IO.FileStream..ctor(String path, FileMode mode, FileAccess access, FileShare share, Int32 bufferSize, FileOptions options, String msgPath, Boolean bFromProxy)
+   在 System.IO.FileStream..ctor(String path, FileMode mode)
+   在 rt_ota_packaging_tool.FirmwarePack.btnCreate_Click(Object sender, EventArgs e)
