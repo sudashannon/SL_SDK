@@ -18,7 +18,10 @@ target("stm32h7_demo")
                 "../../rte/src/middleware/*.c",
                 "../../hal/src/hal.c",
                 "../../hal/src/hal_gpio_stm32h7.c",
-                "../../hal/src/hal_com_stm32h7.c")
+                "../../hal/src/hal_com_stm32h7.c",
+                "../../osal/src/sugar/*.c",
+                "../../osal/src/sugar/port/arm_v7m/*.c",
+                "../../osal/src/sugar/port/arm_v7m/*.s")
     add_files("../../sis/cmsis/device/stm32h7/src/gcc/startup_stm32h750xx.s",
                 "../../sis/cmsis/device/stm32h7/src/system_stm32h7xx.c",
                 "../../sis/cmsis/drivers/stm32h7/src/stm32h7xx_hal.c",
@@ -40,12 +43,15 @@ target("stm32h7_demo")
                     "../../sis/cmsis/device/stm32h7/inc",
                     "../../sis/cmsis/drivers/stm32h7/inc",
                     "../../rte/inc",
-                    "../../hal/inc")
+                    "../../hal/inc",
+                    "../../osal/src/sugar",
+                    "../../osal/src/sugar/port/arm_v7m")
     add_cxflags("-DSTM32H750xx", "-DUSE_HAL_DRIVER",
                 "-mcpu=cortex-m7", "-mthumb", "-mfpu=fpv5-d16",
                 "-Og",
                 "-Wall", "-fdata-sections", "-ffunction-sections")
-    add_asflags("-mcpu=cortex-m7", "-mthumb", "-mfpu=fpv5-d16",
+    add_asflags("-D__NEWLIB__",
+                "-mcpu=cortex-m7", "-mthumb", "-mfpu=fpv5-d16",
                 "-Og",
                 "-Wall", "-fdata-sections", "-ffunction-sections")
     -- set ld configurations
