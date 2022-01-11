@@ -11,5 +11,6 @@ example/mingw_sdl2_demo/obj/
 example/mingw_sdl2_demo/bin/Debug/example.exe
 example/mdk_stm32h7_demo/Listings/
 example/mdk_stm32h7_demo/Objects/
+example/embedded_studio_v3s_spl/Output/
 
 .vscode/settings.json

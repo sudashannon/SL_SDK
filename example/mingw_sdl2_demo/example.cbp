@@ -16,10 +16,10 @@
 					<Add option="-DLV_CONF_INCLUDE_SIMPLE=1" />
 					<Add option="-DLV_LVGL_H_INCLUDE_SIMPLE=1" />
 					<Add option="-DSHELL_USING_CMD_EXPORT=0" />
-					<Add directory="../../inc" />
+					<Add directory="../../rte/inc" />
 					<Add directory="SDL2/include/SDL2" />
-					<Add directory="../../src/utils/lvgl" />
-					<Add directory="../../src/utils/letter-shell/src" />
+					<Add directory="../../rte/utils/lvgl" />
+					<Add directory="../../rte/utils/letter-shell/src" />
 					<Add directory="../mingw_sdl2_demo" />
 				</Compiler>
 				<Linker>

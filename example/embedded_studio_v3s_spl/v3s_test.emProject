@@ -1,0 +1,60 @@
+<!DOCTYPE CrossStudio_Project_File>
+<solution Name="v3s_test" target="8" version="2">
+  <project Name="v3s_test">
+    <configuration
+      LIBRARY_IO_TYPE="None"
+      Name="Common"
+      arm_architecture="v7A"
+      arm_compiler_variant="gcc"
+      arm_core_type="Cortex-A7"
+      arm_endian="Little"
+      arm_fpu_type="VFPv3-D16"
+      arm_instruction_set="Thumb"
+      arm_linker_fiq_stack_size="0"
+      arm_linker_heap_size="0"
+      arm_linker_irq_stack_size="0"
+      arm_linker_stack_size="2048"
+      arm_linker_variant="GNU"
+      arm_rtl_variant="SEGGER"
+      arm_simulator_memory_simulation_parameter="RWX 00000000,00100000,FFFFFFFF;RWX 20000000,00100000,CDCDCDCD"
+      arm_target_device_name="Cortex-A7"
+      arm_target_interface_type="JTAG"
+      debug_stack_pointer_start="__stack_end__"
+      debug_target_connection="J-Link"
+      gcc_entry_point="Reset_Handler"
+      linker_output_format="hex"
+      linker_section_placement_file="Setup/sram_placement.xml"
+      linker_section_placements_segments="FLASH1 RX 0x00000000 0x00100000;RAM1 RWX 0x20000000 0x00100000"
+      project_directory=""
+      project_type="Executable" />
+    <folder Name="Source">
+      <file file_name="Source/main.c" />
+      <file file_name="Source/sys-uart.c" />
+      <file file_name="Source/sys-clock.c" />
+      <file file_name="Source/sys-dram.c" />
+    </folder>
+    <folder Name="Setup">
+      <file file_name="Setup/sram_placement.xml" />
+    </folder>
+    <folder Name="System">
+      <file file_name="System/ARM_Startup.s" />
+      <file file_name="System/crt0.s" />
+    </folder>
+    <configuration
+      Name="Debug"
+      arm_fp_abi="Hard"
+      arm_fpu_type="VFPv4-D32"
+      linker_section_placements_segments="FLASH1 RX 0x00000000 0x00003FFF;RAM1 RWX 0x00004000 0x00009FFF;RAM2 RWX 0x40000000 0x04000000" />
+  </project>
+  <configuration
+    Name="Debug"
+    c_preprocessor_definitions="DEBUG"
+    gcc_debugging_level="Level 3"
+    gcc_optimization_level="None" />
+  <configuration
+    Name="Release"
+    c_preprocessor_definitions="NDEBUG"
+    gcc_debugging_level="Level 2"
+    gcc_omit_frame_pointer="Yes"
+    gcc_optimization_level="Level 2 balanced" />
+</solution>
