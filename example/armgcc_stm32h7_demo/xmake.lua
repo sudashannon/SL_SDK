@@ -15,7 +15,9 @@ target("stm32h7_demo")
     add_files("../rte_adapter_metal.c")
     add_files("./cubemx_driver/*.c")
     add_files("../../rte/src/data_structure/*.c",
-                "../../rte/src/middleware/*.c")
+                "../../rte/src/middleware/*.c",
+                "../../hal/src/hal.c",
+                "../../hal/src/hal_gpio_stm32h7.c")
     add_files("../../sis/cmsis/device/stm32h7/src/gcc/startup_stm32h750xx.s",
                 "../../sis/cmsis/device/stm32h7/src/system_stm32h7xx.c",
                 "../../sis/cmsis/drivers/stm32h7/src/stm32h7xx_hal.c",
@@ -32,10 +34,12 @@ target("stm32h7_demo")
                 "../../sis/cmsis/drivers/stm32h7/src/stm32h7xx_hal_uart_ex.c",
                 "../../sis/cmsis/drivers/stm32h7/src/stm32h7xx_hal_cortex.c")
     add_includedirs("./user_config",
+                    "./cubemx_driver",
                     "../../sis/cmsis/core/inc",
                     "../../sis/cmsis/device/stm32h7/inc",
                     "../../sis/cmsis/drivers/stm32h7/inc",
-                    "../../rte/inc")
+                    "../../rte/inc",
+                    "../../hal/inc")
     add_cxflags("-DSTM32H750xx", "-DUSE_HAL_DRIVER",
                 "-mcpu=cortex-m7", "-mthumb", "-mfpu=fpv5-d16",
                 "-Og",
@@ -47,7 +51,8 @@ target("stm32h7_demo")
     add_ldflags("-mcpu=cortex-m7", "-mthumb", "-mfpu=fpv5-d16",
                 "-Tdefault.ld",
                 "-specs=nano.specs",
-                "-lc", "-lm", "-lnosys",
+                "-specs=nosys.specs",
+                "-lc", "-lm",
                 "-Wl,--cref",
                 "-Wl,--gc-sections",
                 "-Wl,-Map=build/stm32h7_demo.map",

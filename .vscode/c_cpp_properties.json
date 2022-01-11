@@ -4,6 +4,9 @@
             "name": "arm_windows",
             "compilerPath": "C:/UserProfession/GNU Arm Embedded Toolchain/10 2021.10/bin/arm-none-eabi-gcc.exe",
             "includePath": [
+                "${workspaceFolder}/example/armgcc_stm32h7_demo",
+                "${workspaceFolder}/example/armgcc_stm32h7_demo/user_config",
+                "${workspaceFolder}/example/armgcc_stm32h7_demo/cubemx_driver",
                 "${workspaceFolder}/sis/cmsis/core/inc",
                 "${workspaceFolder}/sis/cmsis/device/stm32h7/inc",
                 "${workspaceFolder}/sis/cmsis/drivers/stm32h7/inc",
@@ -14,7 +17,10 @@
             "defines": [
                 "_DEBUG",
                 "UNICODE",
-                "_UNICODE"
+                "_UNICODE",
+                "STM32H7",
+                "STM32H750xx",
+                "USE_HAL_DRIVER"
             ],
             "cStandard": "gnu99",
             "cppStandard": "gnu++11",

@@ -20,8 +20,6 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "dma.h"
-#include "mdma.h"
-#include "quadspi.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -29,6 +27,7 @@
 /* USER CODE BEGIN Includes */
 #include "stm32h7xx.h"
 #include "rte_include.h"
+#include "hal_include.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -55,12 +54,21 @@
 void SystemClock_Config(void);
 static void MPU_Config(void);
 /* USER CODE BEGIN PFP */
-
+timer_id_t running_timer_id = 0;
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+static size_t rte_data_out(uint8_t *data, size_t length)
+{
+    HAL_UART_Transmit(&huart1, data, length, HAL_MAX_DELAY);
+    return length;
+}
 
+static void running_timer(void *arg)
+{
+    RTE_LOGI("System running...");
+}
 /* USER CODE END 0 */
 
 /**
@@ -102,18 +110,26 @@ int main(void)
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_USART1_UART_Init();
-  MX_QUADSPI_Init();
   /* USER CODE BEGIN 2 */
   rte_init();
-  HAL_UART_Transmit(&huart1, (uint8_t *)"helloworld", 11, HAL_MAX_DELAY);
+  hal_init();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  log_level_t log_level = LOG_LEVEL_INFO;
+  log_control(LOG_CMD_SET_LEVEL, &log_level);
+  log_control(LOG_CMD_SET_OUTPUT, rte_data_out);
+  shell_printf("\r\r\r");
+  RTE_LOGI("System boots at clk: %d", SystemCoreClock);
+  timer_configuration_t config = TIMER_CONFIG_INITIALIZER;
+  config.repeat_period_ms = 500;
+  config.timer_callback = running_timer;
+  timer_create_new(rte_get_main_timergroup(), &config, &running_timer_id);
   while (1)
   {
     /* USER CODE END WHILE */
-
+    timer_group_poll(0);
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */

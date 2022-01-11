@@ -99,7 +99,7 @@ extern void shell_react(char ch);
  * @_name: name of the entry.
  */
 #define _shell_entry_declare(_type, _name)                              \
-    __attribute__((used)) __attribute__((section("shell")))             \
+    __attribute__((used)) __attribute__((section("shell_command")))     \
         const _type shell_##_type##_##_name
 
 // Forward delecation of shell command structure

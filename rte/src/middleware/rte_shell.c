@@ -772,10 +772,21 @@ int shell_run_subcmd_implem(const shell_cmd_t* pCmdt,
 
 void shell_init(void)
 {
-    extern const uintptr_t shell$$Base;
-    extern const uintptr_t shell$$Limit;
-    shell_cmd_t *start = (shell_cmd_t *)&shell$$Base;
-    shell_cmd_t *end = (shell_cmd_t *)&shell$$Limit;
+    shell_cmd_t *start = NULL;
+    shell_cmd_t *end = NULL;
+#if defined (__CC_ARM) || defined (__ARMCC_VERSION)
+    extern const uintptr_t shell_command$$Base;
+    extern const uintptr_t shell_command$$Limit;
+    start = (shell_cmd_t *)&shell_command$$Base;
+    end = (shell_cmd_t *)&shell_command$$Limit;
+#elif defined(__GNUC__)
+    extern const uintptr_t __shell_command_start;
+    extern const uintptr_t __shell_command_end;
+    start = (shell_cmd_t *)&__shell_command_start;
+    end = (shell_cmd_t *)&__shell_command_end;
+#else
+#error "Doesn't support this platform!"
+#endif
     shell_handle.command_num = (end - start);
     shell_handle.command_table_base = start;
     SHELL_LOGI("command num %d start %p end %p", shell_handle.command_num, start, end);

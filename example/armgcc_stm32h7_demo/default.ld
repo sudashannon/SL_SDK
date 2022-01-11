@@ -93,6 +93,10 @@ SECTIONS
     KEEP (*(.init))
     KEEP (*(.fini))
 
+    PROVIDE_HIDDEN (__shell_command_start = .);
+    KEEP (*(shell_command))
+    PROVIDE_HIDDEN (__shell_command_end = .);
+
     . = ALIGN(4);
     _etext = .;        /* define a global symbols at end of code */
   } >FLASH
@@ -125,6 +129,9 @@ SECTIONS
     KEEP (*(SORT(.init_array.*)))
     KEEP (*(.init_array*))
     PROVIDE_HIDDEN (__init_array_end = .);
+    PROVIDE_HIDDEN (__hal_constructors_start = .);
+    KEEP (*(hal_constructors))
+    PROVIDE_HIDDEN (__hal_constructors_end = .);
   } >FLASH
   .fini_array :
   {
@@ -132,6 +139,9 @@ SECTIONS
     KEEP (*(SORT(.fini_array.*)))
     KEEP (*(.fini_array*))
     PROVIDE_HIDDEN (__fini_array_end = .);
+    PROVIDE_HIDDEN (__hal_destructors_start = .);
+    KEEP (*(hal_destructors))
+    PROVIDE_HIDDEN (__hal_destructors_end = .);
   } >FLASH
 
   /* Main rte memory */
@@ -140,6 +150,11 @@ SECTIONS
 
   } >RAM_D1
 
+  /* dma memory */
+  .dma_memory (NOLOAD) :
+  {
+
+  } >RAM_D2
 
   /* used by the startup to initialize data */
   _sidata = LOADADDR(.data);

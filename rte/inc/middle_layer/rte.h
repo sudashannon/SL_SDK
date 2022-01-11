@@ -11,15 +11,22 @@
 #ifndef __RTE_H
 #define __RTE_H
 
-#define RTE_VERSION                 "5.0.1"
+#define RTE_VERSION                 "5.1.0"
+
+#ifndef RTE_USE_OS
+#define RTE_USE_OS                  0
+#endif
+
 #define RTE_USE_LOG                 1
 // Recommended when ram is smaller than 16KB, and use
 // first-fit method when enabled. If disabled,
 // the mempool will use tlsf method */
 #define RTE_USE_SIMPLY_MEMPOOL      0
+
 #ifndef RTE_MEMPOOL_SIZE
 #define RTE_MEMPOOL_SIZE            512 * 1024
 #endif
+
 #define RTE_MEMPOOL_ENABLE_DEBUG    1
 /*
 ** Detect whether or not we are building for a 32- or 64-bit (LP/LLP)
