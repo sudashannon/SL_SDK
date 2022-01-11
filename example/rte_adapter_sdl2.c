@@ -9,7 +9,7 @@
  *
  */
 
-#include "../inc/rte_include.h"
+#include "rte_include.h"
 #include <stdio.h>
 #include "SDL.h"
 /**

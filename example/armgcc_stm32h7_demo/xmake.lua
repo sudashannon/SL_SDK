@@ -12,7 +12,10 @@ target("stm32h7_demo")
     set_warnings("all", "error")
     -- set language: gnu99, gnu++11
     set_languages("gnu99", "gnu++11")
+    add_files("../rte_adapter_metal.c")
     add_files("./cubemx_driver/*.c")
+    add_files("../../rte/src/data_structure/*.c",
+                "../../rte/src/middleware/*.c")
     add_files("../../sis/cmsis/device/stm32h7/src/gcc/startup_stm32h750xx.s",
                 "../../sis/cmsis/device/stm32h7/src/system_stm32h7xx.c",
                 "../../sis/cmsis/drivers/stm32h7/src/stm32h7xx_hal.c",
@@ -31,7 +34,8 @@ target("stm32h7_demo")
     add_includedirs("./user_config",
                     "../../sis/cmsis/core/inc",
                     "../../sis/cmsis/device/stm32h7/inc",
-                    "../../sis/cmsis/drivers/stm32h7/inc")
+                    "../../sis/cmsis/drivers/stm32h7/inc",
+                    "../../rte/inc")
     add_cxflags("-DSTM32H750xx", "-DUSE_HAL_DRIVER",
                 "-mcpu=cortex-m7", "-mthumb", "-mfpu=fpv5-d16",
                 "-Og",

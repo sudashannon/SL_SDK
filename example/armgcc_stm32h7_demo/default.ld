@@ -134,6 +134,13 @@ SECTIONS
     PROVIDE_HIDDEN (__fini_array_end = .);
   } >FLASH
 
+  /* Main rte memory */
+  .rte_memory (NOLOAD) :
+  {
+
+  } >RAM_D1
+
+
   /* used by the startup to initialize data */
   _sidata = LOADADDR(.data);
 

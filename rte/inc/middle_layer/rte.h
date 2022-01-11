@@ -18,7 +18,7 @@
 // the mempool will use tlsf method */
 #define RTE_USE_SIMPLY_MEMPOOL      0
 #ifndef RTE_MEMPOOL_SIZE
-#define RTE_MEMPOOL_SIZE            256 * 1024
+#define RTE_MEMPOOL_SIZE            512 * 1024
 #endif
 #define RTE_MEMPOOL_ENABLE_DEBUG    1
 /*

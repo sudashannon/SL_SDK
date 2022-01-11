@@ -28,6 +28,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "stm32h7xx.h"
+#include "rte_include.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -103,7 +104,8 @@ int main(void)
   MX_USART1_UART_Init();
   MX_QUADSPI_Init();
   /* USER CODE BEGIN 2 */
-
+  rte_init();
+  HAL_UART_Transmit(&huart1, (uint8_t *)"helloworld", 11, HAL_MAX_DELAY);
   /* USER CODE END 2 */
 
   /* Infinite loop */

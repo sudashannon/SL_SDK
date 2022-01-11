@@ -5,6 +5,19 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "cwd": "${workspaceRoot}",
+            "executable": "${workspaceFolder}/example/armgcc_stm32h7_demo/build/cross/none/debug/stm32h7_demo",
+            "name": "Debug Microcontroller",
+            "request": "launch",
+            "type": "cortex-debug",
+            "svdFile": "${workspaceFolder}/example/armgcc_stm32h7_demo/STM32H750x.svd",
+            "showDevDebugOutput": false,
+            "servertype": "openocd",
+            "configFiles": [
+                "${workspaceFolder}/example/armgcc_stm32h7_demo/debug.cfg"
+            ]
+        },
+        {
             "name": "(gdb for riscv_ubuntu) 启动",
             "type": "cppdbg",
             "request": "launch",

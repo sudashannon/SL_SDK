@@ -1015,7 +1015,7 @@ void ht_foreach_pair(
 }
 
 typedef struct {
-    int (*cb)();
+    ht_iterator_status_t (*cb)();
     void *user;
 } ht_iterator_arg_t;
 

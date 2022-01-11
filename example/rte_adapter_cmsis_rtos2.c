@@ -9,7 +9,7 @@
  *
  */
 
-#include "../inc/rte_include.h"
+#include "rte_include.h"
 #include "stm32h7xx.h"
 #include "cmsis_os2.h"
 #include "hal_com.h"
@@ -147,7 +147,7 @@ void rte_init(void)
 	DWT->CTRL &= ~0x00000001;
 	DWT->CTRL |=  0x00000001;
 	/* Reset counter */
-	DWT->CYCCNT = 0;	
+	DWT->CYCCNT = 0;
 	/* 2 dummys */
 	__ASM volatile ("NOP");
 	__ASM volatile ("NOP");
