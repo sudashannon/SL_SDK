@@ -17,7 +17,8 @@ target("stm32h7_demo")
     add_files("../../rte/src/data_structure/*.c",
                 "../../rte/src/middleware/*.c",
                 "../../hal/src/hal.c",
-                "../../hal/src/hal_gpio_stm32h7.c")
+                "../../hal/src/hal_gpio_stm32h7.c",
+                "../../hal/src/hal_com_stm32h7.c")
     add_files("../../sis/cmsis/device/stm32h7/src/gcc/startup_stm32h750xx.s",
                 "../../sis/cmsis/device/stm32h7/src/system_stm32h7xx.c",
                 "../../sis/cmsis/drivers/stm32h7/src/stm32h7xx_hal.c",
@@ -52,7 +53,6 @@ target("stm32h7_demo")
                 "-Tdefault.ld",
                 "-specs=nano.specs",
                 "-specs=nosys.specs",
-                "-lc", "-lm",
                 "-Wl,--cref",
                 "-Wl,--gc-sections",
                 "-Wl,-Map=build/stm32h7_demo.map",

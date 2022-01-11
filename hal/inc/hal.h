@@ -138,6 +138,8 @@ rte_error_t hal_device_write_async(char *device_name, uint8_t *src_buf,
 
 #if RTE_USE_OS
 
+#define hal_device_prepare_wait(device, op)
+
 #define hal_device_wait_rx_ready(device, timeout_ms)                                \
     osSemaphoreAcquire((device)->rx_sema, timeout_ms)
 
@@ -145,7 +147,7 @@ rte_error_t hal_device_write_async(char *device_name, uint8_t *src_buf,
     osSemaphoreAcquire((device)->tx_sema, timeout_ms)
 
 #define hal_device_active(device, op)                                               \
-    osSemaphoreRelease((device)->op##_sema);
+    osSemaphoreRelease((device)->op##_sema)
 
 #define hal_device_initialize(device_type, name,                                    \
                                 read_f, write_f,                                    \
@@ -174,6 +176,37 @@ rte_error_t hal_device_write_async(char *device_name, uint8_t *src_buf,
     device_type##_control_handle[name].device.user_arg = NULL;                      \
     *device_ptr = &device_type##_control_handle[name].device
 
+#else
+
+#define hal_device_prepare_wait(device, op)                                         \
+    (device)->if_##op##_ready = false
+
+extern rte_error_t hal_device_wait_rx_ready(hal_device_t *device, uint32_t timeout_ms);
+extern rte_error_t hal_device_wait_tx_ready(hal_device_t *device, uint32_t timeout_ms);
+
+#define hal_device_active(device, op)                                               \
+    (device)->if_##op##_ready = true
+
+#define hal_device_initialize(device_type, name,                                    \
+                                read_f, write_f,                                    \
+                                read_async_f, write_async_f, device_ptr)            \
+    device_type##_control_handle[name].device.mutex.mutex = NULL;                   \
+    device_type##_control_handle[name].device.mutex.lock = NULL;                    \
+    device_type##_control_handle[name].device.mutex.unlock = NULL;                  \
+    device_type##_control_handle[name].device.mutex.trylock = NULL;                 \
+    device_type##_control_handle[name].device.device_id = name;                     \
+    device_type##_control_handle[name].device.read = read_f;                        \
+    device_type##_control_handle[name].device.write = write_f;                      \
+    device_type##_control_handle[name].device.read_async = read_async_f;            \
+    device_type##_control_handle[name].device.write_async = write_async_f;          \
+    device_type##_control_handle[name].device.if_rx_ready = false;                  \
+    device_type##_control_handle[name].device.if_tx_ready = false;                  \
+    device_type##_control_handle[name].device.op_callback = NULL;                   \
+    device_type##_control_handle[name].device.user_arg = NULL;                      \
+    *device_ptr = &device_type##_control_handle[name].device
+
+#endif
+
 #define hal_device_poll(device_type)    for (device_type##_name_t this_device = 0; this_device < device_type##_N; this_device++)
 
 #define hal_device_register(device_type, user_prefix)                                 \
@@ -192,9 +225,5 @@ rte_error_t hal_device_write_async(char *device_name, uint8_t *src_buf,
     hal_device_poll(device_type) {                                                  \
         device_type##_destroy(this_device);                                         \
     }
-
-#else
-
-#endif
 
 #endif

@@ -61,16 +61,18 @@ timer_id_t running_timer_id = 0;
 /* USER CODE BEGIN 0 */
 static size_t rte_data_out(uint8_t *data, size_t length)
 {
-    HAL_UART_Transmit(&huart1, data, length, HAL_MAX_DELAY);
+    hal_device_write_async("com_0", data, length, HAL_MAX_DELAY);
     return length;
 }
 
 static void running_timer(void *arg)
 {
     char data = 0;
-    if (HAL_UART_Receive(&huart1, (uint8_t *)&data, 1, 100) == HAL_OK) {
-      shell_react(data);
+    uint32_t read_size = 1;
+    if (hal_device_read_async("com_0", (uint8_t *)&data, &read_size, 100) == RTE_SUCCESS) {
+        shell_react(data);
     }
+    gpio_toggle(GPIO_LED0);
 }
 /* USER CODE END 0 */
 
@@ -126,7 +128,7 @@ int main(void)
   shell_printf("\r\r\r");
   RTE_LOGI("System boots at clk: %d", SystemCoreClock);
   timer_configuration_t config = TIMER_CONFIG_INITIALIZER;
-  config.repeat_period_ms = 100;
+  config.repeat_period_ms = 50;
   config.timer_callback = running_timer;
   timer_create_new(rte_get_main_timergroup(), &config, &running_timer_id);
   shell_puts(CONFIG_SHELL_BOOT_INFO);

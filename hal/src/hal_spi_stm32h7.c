@@ -63,6 +63,7 @@ static rte_error_t spi_send_async(hal_device_t *device, uint8_t *data, uint32_t 
     HAL_StatusTypeDef result = HAL_ERROR;
     if (size == 0)
         return RTE_SUCCESS;
+    hal_device_prepare_wait(device, tx);
     result = HAL_SPI_Transmit_IT(
                 spi_control_handle[device->device_id].driver_handle,
                 data, size);
@@ -83,6 +84,7 @@ static rte_error_t spi_recv_async(hal_device_t *device, uint8_t *buffer, uint32_
     HAL_StatusTypeDef result = HAL_ERROR;
     if (size == 0)
         return RTE_SUCCESS;
+    hal_device_prepare_wait(device, rx);
     result = HAL_SPI_Receive_IT(
                 spi_control_handle[device->device_id].driver_handle,
                 buffer, *size);

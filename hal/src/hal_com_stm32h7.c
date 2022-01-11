@@ -80,6 +80,7 @@ static rte_error_t com_send_async(hal_device_t *device, uint8_t *data, uint32_t 
             return RTE_ERR_NO_RSRC;
         memcpy(tx_buffer, data, size);
         HAL_RAM_CLEAN_PRE_SEND(tx_buffer, size);
+        hal_device_prepare_wait(device, tx);
         HAL_UART_Transmit_DMA(com_control_handle[com_name].driver_handle,
                             tx_buffer,
                             size);
@@ -91,6 +92,7 @@ static rte_error_t com_send_async(hal_device_t *device, uint8_t *data, uint32_t 
         memory_free(BANK_DMA, tx_buffer);
         return RTE_ERR_TIMEOUT;
     } else {
+        hal_device_prepare_wait(device, tx);
         HAL_UART_Transmit_IT(com_control_handle[com_name].driver_handle, data, size);
         if (hal_device_wait_tx_ready(device, timeout_ms) == RTE_SUCCESS) {
             return RTE_SUCCESS;
@@ -104,6 +106,7 @@ static rte_error_t com_recv_async(hal_device_t *device, uint8_t *buffer, uint32_
 {
     com_name_t com_name = device->device_id;
     if (com_control_handle[com_name].if_recv_enable_dma) {
+        hal_device_prepare_wait(device, rx);
         HAL_UARTEx_ReceiveToIdle_DMA(com_control_handle[com_name].driver_handle,
                             com_control_handle[com_name].buffer,
                             com_control_handle[com_name].capacity);
@@ -117,6 +120,7 @@ static rte_error_t com_recv_async(hal_device_t *device, uint8_t *buffer, uint32_
         HAL_UART_AbortReceive_IT(com_control_handle[com_name].driver_handle);
         return RTE_ERR_TIMEOUT;
     } else {
+        hal_device_prepare_wait(device, rx);
         HAL_UARTEx_ReceiveToIdle_IT(com_control_handle[com_name].driver_handle, buffer, *size);
         if (hal_device_wait_rx_ready(device, timeout_ms) == RTE_SUCCESS) {
             *size = com_control_handle[com_name].recv_length;

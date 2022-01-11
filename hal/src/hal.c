@@ -192,3 +192,29 @@ rte_error_t hal_device_write_async(char *device_name, uint8_t *src_buf,
     RTE_UNLOCK(&device->mutex);
     return retval;
 }
+
+#if RTE_USE_OS == 0
+rte_error_t hal_device_wait_rx_ready(hal_device_t *device, uint32_t timeout_ms)
+{
+    uint32_t start_time_ms = rte_get_tick_ms();
+    while (device->if_rx_ready == false) {
+        rte_yield();
+        if (rte_time_consume(start_time_ms) >= timeout_ms) {
+            return RTE_ERR_TIMEOUT;
+        }
+    }
+    return RTE_SUCCESS;
+}
+
+rte_error_t hal_device_wait_tx_ready(hal_device_t *device, uint32_t timeout_ms)
+{
+    uint32_t start_time_ms = rte_get_tick_ms();
+    while (device->if_tx_ready == false) {
+        rte_yield();
+        if (rte_time_consume(start_time_ms) >= timeout_ms) {
+            return RTE_ERR_TIMEOUT;
+        }
+    }
+    return RTE_SUCCESS;
+}
+#endif
