@@ -66,11 +66,11 @@ typedef struct {
 #endif
     key_state_t state_machine;
     key_fifo_t fifo;
-} key_t;
+} key_handle_t;
 
-rte_error_t key_create(gpio_name_t gpio_name, uint8_t pressed_value, key_t **key_handle);
-rte_error_t key_destroy(key_t **key_handle);
-bool key_read_io(key_t *key);
-key_value_t key_read_value(key_t *key);
-rte_error_t key_change_mode(key_t *key, uint8_t pressed_value);
+rte_error_t key_create(gpio_name_t gpio_name, uint8_t pressed_value, key_handle_t **key_handle);
+rte_error_t key_destroy(key_handle_t **key_handle);
+bool key_read_io(key_handle_t *key);
+key_value_t key_read_value(key_handle_t *key);
+rte_error_t key_change_mode(key_handle_t *key, uint8_t pressed_value);
 #endif

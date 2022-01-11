@@ -27,6 +27,19 @@
 
 #define CONFIG_SHELL_PROMPT "SL-SDK >> "
 
+#define CONFIG_SHELL_BOOT_INFO  "\r\n"                                                          \
+                                "    _____ __        _____ ____  __ __\r\n"                     \
+                                "   / ___// /       / ___// __ \\/ //_/\r\n"                    \
+                                "   \\__ \\/ /  ______\\__ \\/ / / / ,<\r\n"                    \
+                                "  ___/ / /__/_____/__/ / /_/ / /| |\r\n"                       \
+                                " /____/_____/    /____/_____/_/ |_|\r\n"                       \
+                                "\r\n"                                                          \
+                                "Welcome to SL_SDK "RTE_VERSION"\r\n"                           \
+                                "\r\n"                                                          \
+                                " * Build:     "__DATE__" - "__TIME__"\r\n"                     \
+                                " * Source:    https://github.com/sudashannon/SL_SDK\r\n"       \
+                                " * Copyright: (c) 2021 @Leon Shan\r\n"                         \
+                                "\r\n"
 
 /*********************************************************************
     shell uses these functions to get/send character from/to stream.

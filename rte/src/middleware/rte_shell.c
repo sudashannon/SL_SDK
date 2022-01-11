@@ -648,19 +648,7 @@ void shell_task(void *argument)
     char *argv[CONFIG_SHELL_CMD_MAX_ARGC + 1] = {NULL};
     int argc = 0;
     const shell_cmd_t *last_cmd = NULL;
-    shell_puts("\r\n"
-                "    _____ __        _____ ____  __ __\r\n"
-                "   / ___// /       / ___// __ \\/ //_/\r\n"
-                "   \\__ \\/ /  ______\\__ \\/ / / / ,<\r\n"
-                "  ___/ / /__/_____/__/ / /_/ / /| |\r\n"
-                " /____/_____/    /____/_____/_/ |_|\r\n"
-                "\r\n"
-                "Welcome to SL_SDK "RTE_VERSION"\r\n"
-                "\r\n"
-                " * Build:     "__DATE__" - "__TIME__"\r\n"
-                " * Source:    https://github.com/sudashannon/SL_SDK\r\n"
-                " * Copyright: (c) 2021 @Leon Shan\r\n"
-                "\r\n");
+    shell_puts(CONFIG_SHELL_BOOT_INFO);
     for (;;) {
         if (last_cmd == NULL)
             shell_puts(CONFIG_SHELL_PROMPT);

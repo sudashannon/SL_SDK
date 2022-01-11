@@ -67,7 +67,10 @@ static size_t rte_data_out(uint8_t *data, size_t length)
 
 static void running_timer(void *arg)
 {
-    RTE_LOGI("System running...");
+    char data = 0;
+    if (HAL_UART_Receive(&huart1, (uint8_t *)&data, 1, 100) == HAL_OK) {
+      shell_react(data);
+    }
 }
 /* USER CODE END 0 */
 
@@ -123,9 +126,11 @@ int main(void)
   shell_printf("\r\r\r");
   RTE_LOGI("System boots at clk: %d", SystemCoreClock);
   timer_configuration_t config = TIMER_CONFIG_INITIALIZER;
-  config.repeat_period_ms = 500;
+  config.repeat_period_ms = 100;
   config.timer_callback = running_timer;
   timer_create_new(rte_get_main_timergroup(), &config, &running_timer_id);
+  shell_puts(CONFIG_SHELL_BOOT_INFO);
+  shell_puts(CONFIG_SHELL_PROMPT);
   while (1)
   {
     /* USER CODE END WHILE */

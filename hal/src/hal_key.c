@@ -17,9 +17,9 @@
  *
  * @param param
  */
-static void key_timer(void* param)
+static void key_handle_timer(void* param)
 {
-    key_t *key = (key_t *)param;
+    key_handle_t *key = (key_handle_t *)param;
     switch (key->state_machine) {
         case KEY_SM_POLL: {
             if (key_read_io(key)) {
@@ -71,7 +71,7 @@ static void key_timer(void* param)
  * @param key_handle
  * @return rte_error_t
  */
-rte_error_t key_create(gpio_name_t gpio_name, uint8_t pressed_value, key_t **key_handle)
+rte_error_t key_create(gpio_name_t gpio_name, uint8_t pressed_value, key_handle_t **key_handle)
 {
     if (pressed_value == GPIO_OFF) {
         gpio_init(gpio_name, GPIO_UP_IN);
@@ -81,7 +81,7 @@ rte_error_t key_create(gpio_name_t gpio_name, uint8_t pressed_value, key_t **key
         return RTE_ERR_PARAM;
     }
 
-    key_t *obj = rte_calloc(sizeof(key_t));
+    key_handle_t *obj = rte_calloc(sizeof(key_handle_t));
     if (!obj)
         return RTE_ERR_NO_MEM;
     obj->pressed_value = pressed_value;
@@ -92,7 +92,7 @@ rte_error_t key_create(gpio_name_t gpio_name, uint8_t pressed_value, key_t **key
     timer_configuration_t config = TIMER_CONFIG_INITIALIZER;
     timer_id_t running_timer_id = 0;
     config.repeat_period_ms = KEY_FILTER_TIME;
-    config.timer_callback = key_timer;
+    config.timer_callback = key_handle_timer;
     config.parameter = obj;
     rte_error_t result = timer_create_new(rte_get_main_timergroup(), &config, &running_timer_id);
     if (result != RTE_SUCCESS) {
@@ -110,7 +110,7 @@ rte_error_t key_create(gpio_name_t gpio_name, uint8_t pressed_value, key_t **key
  * @param key_handle
  * @return rte_error_t
  */
-rte_error_t key_destroy(key_t **key_handle)
+rte_error_t key_destroy(key_handle_t **key_handle)
 {
     if (!*key_handle)
         return RTE_ERR_PARAM;
@@ -126,7 +126,7 @@ rte_error_t key_destroy(key_t **key_handle)
  * @return true
  * @return false
  */
-bool key_read_io(key_t *key)
+bool key_read_io(key_handle_t *key)
 {
     return (gpio_read_value(key->gpio_name) ==key->pressed_value);
 }
@@ -136,7 +136,7 @@ bool key_read_io(key_t *key)
  * @param key
  * @return key_value_t
  */
-key_value_t key_read_value(key_t *key)
+key_value_t key_read_value(key_handle_t *key)
 {
     if (key->fifo.write_point == key->fifo.read_point) {
         return KEY_NONE;
@@ -150,7 +150,7 @@ key_value_t key_read_value(key_t *key)
     }
 }
 
-rte_error_t key_change_mode(key_t *key, uint8_t pressed_value)
+rte_error_t key_change_mode(key_handle_t *key, uint8_t pressed_value)
 {
     if (pressed_value == GPIO_OFF) {
         gpio_change_mode(key->gpio_name, GPIO_UP_IN);
