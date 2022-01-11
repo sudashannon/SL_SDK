@@ -140,8 +140,9 @@ void w25_flash_map(void)
 
 rte_error_t qspi_create(qspi_name_t qspi_name, qspi_configuration_t *config, hal_device_t **device)
 {
-    qspi_control_handle[qspi_name].device.fd = config->hqspi;
-    HAL_DEVICE_INIT_GENERAL(qspi, qspi_name, qspi_recv, qspi_send, qspi_recv_async, qspi_send_async, config->hqspi);
+    hal_device_initialize(qspi, qspi_name,
+                        qspi_recv, qspi_send, qspi_recv_async, qspi_send_async,
+                        device);
     return RTE_SUCCESS;
 }
 

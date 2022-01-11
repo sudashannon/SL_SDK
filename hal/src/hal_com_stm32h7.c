@@ -83,7 +83,7 @@ static rte_error_t com_send_async(hal_device_t *device, uint8_t *data, uint32_t 
         HAL_UART_Transmit_DMA(com_control_handle[com_name].driver_handle,
                             tx_buffer,
                             size);
-        if (osSemaphoreAcquire(com_control_handle[com_name].device.tx_sema, timeout_ms) == osOK) {
+        if (hal_device_wait_tx_ready(device, timeout_ms) == RTE_SUCCESS) {
             memory_free(BANK_DMA, tx_buffer);
             return RTE_SUCCESS;
         }
@@ -92,7 +92,7 @@ static rte_error_t com_send_async(hal_device_t *device, uint8_t *data, uint32_t 
         return RTE_ERR_TIMEOUT;
     } else {
         HAL_UART_Transmit_IT(com_control_handle[com_name].driver_handle, data, size);
-        if (osSemaphoreAcquire(com_control_handle[com_name].device.tx_sema, timeout_ms) == osOK) {
+        if (hal_device_wait_tx_ready(device, timeout_ms) == RTE_SUCCESS) {
             return RTE_SUCCESS;
         }
         HAL_UART_AbortTransmit_IT(com_control_handle[com_name].driver_handle);
@@ -107,7 +107,7 @@ static rte_error_t com_recv_async(hal_device_t *device, uint8_t *buffer, uint32_
         HAL_UARTEx_ReceiveToIdle_DMA(com_control_handle[com_name].driver_handle,
                             com_control_handle[com_name].buffer,
                             com_control_handle[com_name].capacity);
-        if (osSemaphoreAcquire(com_control_handle[com_name].device.rx_sema, timeout_ms) == osOK) {
+        if (hal_device_wait_rx_ready(device, timeout_ms) == RTE_SUCCESS) {
             HAL_RAM_CLEAN_AFTER_REC(com_control_handle[com_name].buffer, com_control_handle[com_name].recv_length);
             *size = RTE_MIN(com_control_handle[com_name].recv_length, *size);
             memcpy(buffer, com_control_handle[com_name].buffer, *size);
@@ -118,7 +118,7 @@ static rte_error_t com_recv_async(hal_device_t *device, uint8_t *buffer, uint32_
         return RTE_ERR_TIMEOUT;
     } else {
         HAL_UARTEx_ReceiveToIdle_IT(com_control_handle[com_name].driver_handle, buffer, *size);
-        if (osSemaphoreAcquire(com_control_handle[com_name].device.rx_sema, timeout_ms) == osOK) {
+        if (hal_device_wait_rx_ready(device, timeout_ms) == RTE_SUCCESS) {
             *size = com_control_handle[com_name].recv_length;
             return RTE_SUCCESS;
         }
@@ -137,10 +137,9 @@ static rte_error_t com_create(com_name_t com_name, hal_device_t **device)
         com_control_handle[com_name].buffer = memory_alloc_align(BANK_DMA, __SCB_DCACHE_LINE_SIZE, com_control_handle[com_name].capacity);
     }
     // Create general resources
-    HAL_DEVICE_INIT_GENERAL(com, com_name,
+    hal_device_initialize(com, com_name,
                             com_recv, com_send,
-                            com_recv_async, com_send_async,
-                            com_control_handle[com_name].driver_handle);
+                            com_recv_async, com_send_async, device);
     return RTE_SUCCESS;
 }
 
@@ -149,14 +148,14 @@ static rte_error_t com_destroy(com_name_t com_name)
     return RTE_SUCCESS;
 }
 
-HAL_CONSTRUCTOR(com_regist)
+HAL_DECLARE_CONSTRUCTOR(com_regist)
 {
-    HAL_DEVICE_REGIST(com, "com");
+    hal_device_register(com, "com");
 }
 
-HAL_DESTRUCTOR(com_unregist)
+HAL_DECLARE_DESTRUCTOR(com_unregist)
 {
-    HAL_DEVICE_UNREGIST(com);
+    hal_device_unregister(com);
 }
 
 /**
@@ -166,19 +165,19 @@ HAL_DESTRUCTOR(com_unregist)
  */
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t size)
 {
-    HAL_DEVICE_POLL(com) {
+    hal_device_poll(com) {
         if (com_control_handle[this_device].driver_handle == huart) {
             com_control_handle[this_device].recv_length = size;
-            osSemaphoreRelease(com_control_handle[this_device].device.rx_sema);
+            hal_device_active(&com_control_handle[this_device].device, rx);
         }
     }
 }
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 {
-    HAL_DEVICE_POLL(com) {
+    hal_device_poll(com) {
         if (com_control_handle[this_device].driver_handle == huart) {
-            osSemaphoreRelease(com_control_handle[this_device].device.tx_sema);
+            hal_device_active(&com_control_handle[this_device].device, tx);
         }
     }
 }

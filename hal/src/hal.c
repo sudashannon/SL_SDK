@@ -25,8 +25,10 @@
         left_time -= consumed_time
 
 static ds_hashtable_t hal_device_table = NULL;
+#if RTE_USE_OS
 static rte_mutex_t ht_chain_mutex_instance = {NULL};
 static rte_mutex_t ht_bucket_mutex_instance = {NULL};
+#endif
 
 void *hal_get_device_table(void)
 {
@@ -35,6 +37,7 @@ void *hal_get_device_table(void)
 
 rte_error_t hal_init(void)
 {
+#if RTE_USE_OS
     ht_chain_mutex_instance.mutex = (void *)osMutexNew(NULL);
     ht_chain_mutex_instance.lock = rte_mutex_lock;
     ht_chain_mutex_instance.unlock = rte_mutex_unlock;
@@ -49,6 +52,14 @@ rte_error_t hal_init(void)
         .bucket_mutex = &ht_bucket_mutex_instance,
         .free_cb = NULL,
     };
+#else
+    hashtable_configuration_t hal_dt_config = {
+        .initial_capacity = HASHTABLE_MIN_CAPACITY,
+        .chain_mutex = NULL,
+        .bucket_mutex = NULL,
+        .free_cb = NULL,
+    };
+#endif
     ht_create(&hal_dt_config, &hal_device_table);
     hal_device_constructor_t *constructor_func_base = NULL;
     uint16_t constructor_num = 0;
@@ -78,8 +89,10 @@ rte_error_t hal_init(void)
 rte_error_t hal_deinit(void)
 {
     ht_destroy(hal_device_table);
+#if RTE_USE_OS
     osMutexDelete(ht_chain_mutex_instance.mutex);
     osMutexDelete(ht_bucket_mutex_instance.mutex);
+#endif
     hal_device_destructor_t *destructor_func_base = NULL;
     uint16_t destructor_num = 0;
 #if defined(__CC_ARM) || (defined(__ARMCC_VERSION) && __ARMCC_VERSION >= 6000000)

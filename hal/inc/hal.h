@@ -14,7 +14,10 @@
 
 #include <stdio.h>
 #include "rte_include.h"
+
+#if RTE_USE_OS
 #include <cmsis_os2.h>
+#endif
 
 #if __DCACHE_PRESENT
 /*
@@ -64,13 +67,13 @@ typedef void (*hal_device_destructor_t)(void);
  * the metal_init() function.
  */
 #if defined (__IAR_SYSTEMS_ICC__)
-#define HAL_CONSTRUCTOR(function_name)                                       \
+#define HAL_DECLARE_CONSTRUCTOR(function_name)                                       \
     void function_name(void);                                                \
     __root @("hal_constructors")                                             \
         const hal_device_constructor_t hal_constructors_##function_name##_ptr = &function_name;    \
     void function_name(void)
 #else
-#define HAL_CONSTRUCTOR(function_name)                                       \
+#define HAL_DECLARE_CONSTRUCTOR(function_name)                                       \
     void function_name(void);                                                \
     __attribute__((used)) __attribute__((section("hal_constructors")))       \
         const hal_device_constructor_t hal_constructors_##function_name##_ptr = &function_name;    \
@@ -86,14 +89,14 @@ typedef void (*hal_device_destructor_t)(void);
  * the metal_fini() function.
  */
 #if defined (__IAR_SYSTEMS_ICC__)
-#define HAL_DESTRUCTOR(function_name)                                        \
+#define HAL_DECLARE_DESTRUCTOR(function_name)                                        \
     void function_name(void);                                                \
     __root @("hal_constructors")                                             \
     __attribute__((used)) __attribute__((section("hal_destructors")))        \
         const hal_device_destructor_t hal_destructors_##function_name##_ptr = &function_name;     \
     void function_name(void)
 #else
-#define HAL_DESTRUCTOR(function_name)                                        \
+#define HAL_DECLARE_DESTRUCTOR(function_name)                                        \
     void function_name(void);                                                \
     __attribute__((used)) __attribute__((section("hal_destructors")))        \
         const hal_device_destructor_t hal_destructors_##function_name##_ptr = &function_name;     \
@@ -106,8 +109,13 @@ typedef struct __hal_device {
     device_read_f read_async;
     device_write_f write;
     device_write_f write_async;
+#if RTE_USE_OS
     osSemaphoreId_t rx_sema;
     osSemaphoreId_t tx_sema;
+#else
+    bool if_rx_ready;
+    bool if_tx_ready;
+#endif
     hal_device_op_callback_f op_callback;
     void *user_arg;
 } hal_device_t;
@@ -128,10 +136,20 @@ rte_error_t hal_device_read_async(char *device_name, uint8_t *dest_buf,
 rte_error_t hal_device_write_async(char *device_name, uint8_t *src_buf,
                                 uint32_t buf_size, uint32_t timeout_ms);
 
+#if RTE_USE_OS
 
-#define HAL_DEVICE_INIT_GENERAL(device_type, name,                                  \
+#define hal_device_wait_rx_ready(device, timeout_ms)                                \
+    osSemaphoreAcquire((device)->rx_sema, timeout_ms)
+
+#define hal_device_wait_tx_ready(device, timeout_ms)                                \
+    osSemaphoreAcquire((device)->tx_sema, timeout_ms)
+
+#define hal_device_active(device, op)                                               \
+    osSemaphoreRelease((device)->op##_sema);
+
+#define hal_device_initialize(device_type, name,                                    \
                                 read_f, write_f,                                    \
-                                read_async_f, write_async_f, fd_handle)             \
+                                read_async_f, write_async_f, device_ptr)            \
     osMutexAttr_t mutex_attr = {                                                    \
         LOG_STR(name),                                                              \
         osMutexPrioInherit | osMutexRecursive,                                      \
@@ -154,12 +172,12 @@ rte_error_t hal_device_write_async(char *device_name, uint8_t *src_buf,
     RTE_ASSERT(device_type##_control_handle[name].device.tx_sema);                  \
     device_type##_control_handle[name].device.op_callback = NULL;                   \
     device_type##_control_handle[name].device.user_arg = NULL;                      \
-    *device = &device_type##_control_handle[name].device
+    *device_ptr = &device_type##_control_handle[name].device
 
-#define HAL_DEVICE_POLL(device_type)    for (device_type##_name_t this_device = 0; this_device < device_type##_N; this_device++)
+#define hal_device_poll(device_type)    for (device_type##_name_t this_device = 0; this_device < device_type##_N; this_device++)
 
-#define HAL_DEVICE_REGIST(device_type, user_prefix)                                 \
-    HAL_DEVICE_POLL(device_type) {                                                  \
+#define hal_device_register(device_type, user_prefix)                                 \
+    hal_device_poll(device_type) {                                                  \
         char device_name[64] = {0};                                                 \
         hal_device_t *device = NULL;                                                \
         snprintf(device_name, sizeof(device_name), "%s_%d",                         \
@@ -170,9 +188,13 @@ rte_error_t hal_device_write_async(char *device_name, uint8_t *src_buf,
                                 sizeof(hal_device_t *));                            \
     }
 
-#define HAL_DEVICE_UNREGIST(device_type)                                            \
-    HAL_DEVICE_POLL(device_type) {                                                  \
+#define hal_device_unregister(device_type)                                            \
+    hal_device_poll(device_type) {                                                  \
         device_type##_destroy(this_device);                                         \
     }
+
+#else
+
+#endif
 
 #endif
