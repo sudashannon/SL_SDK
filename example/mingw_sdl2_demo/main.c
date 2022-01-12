@@ -12,6 +12,7 @@ extern void test_vector(void);
 extern void test_ringbuffer(void);
 extern void test_hashmap(void);
 extern void test_linklist(void);
+extern void test_rbtree(void);
 extern int gui_thread(void *param);
 
 static bool running_flag = true;
@@ -30,6 +31,7 @@ static int main_thread(void *param)
     test_ringbuffer();
     test_hashmap();
     test_linklist();
+    test_rbtree();
     memory_demon(BANK_DEFAULT);
     RTE_LOGI("Hello world!");
     SDL_Thread *gui_thread_handle = SDL_CreateThread(gui_thread, "gui_thread", NULL);

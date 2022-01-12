@@ -19,9 +19,6 @@ target("stm32h7_demo")
                 "../../hal/src/hal.c",
                 "../../hal/src/hal_gpio_stm32h7.c",
                 "../../hal/src/hal_com_stm32h7.c",
-                "../../osal/src/sugar/*.c",
-                "../../osal/src/sugar/port/arm_v7m/*.c",
-                "../../osal/src/sugar/port/arm_v7m/*.s",
                 "../../rte/utils/segger_hardfault_handle/SEGGER_HardFaultHandler.c",
                 "../../rte/utils/segger_hardfault_handle/HardFaultHandler.S")
     add_files("../../sis/cmsis/device/stm32h7/src/gcc/startup_stm32h750xx.s",
@@ -45,9 +42,7 @@ target("stm32h7_demo")
                     "../../sis/cmsis/device/stm32h7/inc",
                     "../../sis/cmsis/drivers/stm32h7/inc",
                     "../../rte/inc",
-                    "../../hal/inc",
-                    "../../osal/src/sugar",
-                    "../../osal/src/sugar/port/arm_v7m")
+                    "../../hal/inc")
     add_cxflags("-DSTM32H750xx", "-DUSE_HAL_DRIVER",
                 "-mcpu=cortex-m7", "-mthumb", "-mfpu=fpv5-d16",
                 "-Og",

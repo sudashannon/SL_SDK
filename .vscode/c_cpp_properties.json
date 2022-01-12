@@ -12,9 +12,7 @@
                 "${workspaceFolder}/sis/cmsis/drivers/stm32h7/inc",
                 "${workspaceFolder}/rte/inc",
                 "${workspaceFolder}/hal/inc",
-                "${workspaceFolder}/osal/inc",
-                "${workspaceFolder}/osal/src/sugar",
-                "${workspaceFolder}/osal/src/sugar/port/arm_v7m"
+                "${workspaceFolder}/osal/inc"
             ],
             "defines": [
                 "_DEBUG",

@@ -11,6 +11,7 @@
 #include "data_structure/ds_ringbuffer.h"
 #include "data_structure/ds_hashmap.h"
 #include "data_structure/ds_linklist.h"
+#include "data_structure/ds_rbtree.h"
 #include "image_process/image_process.h"
 
 #define COMMON_MODULE LOG_STR(RTE)

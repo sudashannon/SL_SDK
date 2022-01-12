@@ -55,6 +55,9 @@
 		<Unit filename="../../rte/src/data_structure/ds_linklist.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="../../rte/src/data_structure/ds_rbtree.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="../../rte/src/data_structure/ds_ringbuffer.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -674,6 +677,9 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="../test_mempool.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../test_rbtree.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="../test_ringbuffer.c">

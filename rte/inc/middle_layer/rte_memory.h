@@ -21,6 +21,7 @@ enum {
     BANK_INVALID = -1,
     BANK_DEFAULT = 0,
     BANK_DMA = 1,
+    BANK_OS = 2,
     BANK_CNT,
 };
 
