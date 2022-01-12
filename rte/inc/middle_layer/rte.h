@@ -27,7 +27,10 @@
 #define RTE_MEMPOOL_SIZE            512 * 1024
 #endif
 
+#ifndef RTE_MEMPOOL_ENABLE_DEBUG
 #define RTE_MEMPOOL_ENABLE_DEBUG    1
+#endif
+
 /*
 ** Detect whether or not we are building for a 32- or 64-bit (LP/LLP)
 ** architecture. There is no reliable portable method at compile-time.
@@ -45,8 +48,9 @@
 
 #define RTE_TIMER_GROUP_CAPACITY    8
 
+#ifndef RTE_SHELL_ENABLE
 #define RTE_SHELL_ENABLE            1
-
+#endif
 /**
  * @brief General include.
  *

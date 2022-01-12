@@ -119,7 +119,6 @@ int gui_thread(void *param)
     timer_config.timer_callback = sensor_thread;
     timer_id_t sensor_timer;
     timer_create_new(rte_get_main_timergroup(), &timer_config, &sensor_timer);
-    lv_example_img_4();
     for (;;) {
         /* Periodically call the lv_task handler.
          * It could be done in a timer interrupt or an OS task too.*/
