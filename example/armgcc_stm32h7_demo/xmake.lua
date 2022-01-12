@@ -21,7 +21,9 @@ target("stm32h7_demo")
                 "../../hal/src/hal_com_stm32h7.c",
                 "../../osal/src/sugar/*.c",
                 "../../osal/src/sugar/port/arm_v7m/*.c",
-                "../../osal/src/sugar/port/arm_v7m/*.s")
+                "../../osal/src/sugar/port/arm_v7m/*.s",
+                "../../rte/utils/segger_hardfault_handle/SEGGER_HardFaultHandler.c",
+                "../../rte/utils/segger_hardfault_handle/HardFaultHandler.S")
     add_files("../../sis/cmsis/device/stm32h7/src/gcc/startup_stm32h750xx.s",
                 "../../sis/cmsis/device/stm32h7/src/system_stm32h7xx.c",
                 "../../sis/cmsis/drivers/stm32h7/src/stm32h7xx_hal.c",

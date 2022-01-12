@@ -82,7 +82,7 @@ archContextSwitch(ATOM_TCB *old_tcb_ptr __maybe_unused, ATOM_TCB *new_tcb_ptr)
     }
 }
 
-void sys_tick_handler(void)
+void SysTick_Handler(void)
 {
     /* Call the interrupt entry routine */
     atomIntEnter();
@@ -92,21 +92,6 @@ void sys_tick_handler(void)
 
     /* Call the interrupt exit routine */
     atomIntExit(TRUE);
-}
-
-/**
- * Put chip into infinite loop if NMI or hard fault occurs
- */
-void nmi_handler(void)
-{
-    while(1)
-        ;
-}
-
-void hard_fault_handler(void)
-{
-    while(1)
-        ;
 }
 
 

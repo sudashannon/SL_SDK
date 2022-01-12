@@ -38,7 +38,7 @@
 #include "stm32h7xx_hal.h"
 
 /* Required number of system ticks per second (normally 100 for 10ms tick) */
-#define SYSTEM_TICKS_PER_SEC            100
+#define SYSTEM_TICKS_PER_SEC            1000
 
 /* Size of each stack entry / stack alignment size (4 bytes on Cortex-M without FPU) */
 #define STACK_ALIGN_SIZE    sizeof(uint32_t)

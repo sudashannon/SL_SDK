@@ -83,7 +83,6 @@ retry:
 static void running_timer(void *arg)
 {
     gpio_toggle(GPIO_LED0);
-    RTE_LOGI("System running...");
 }
 
 __NO_RETURN void system_thread(void *argument)
@@ -156,7 +155,11 @@ __NO_RETURN void system_thread(void *argument)
     config.repeat_period_ms = 100;
     config.timer_callback = running_timer;
     timer_create_new(rte_get_main_timergroup(), &config, &running_timer_id);
-
+    osThreadAttr_t shell_tconfig = {
+        .name = "shell_task",
+        .stack_size = 8192,
+    };
+    osThreadId_t shell_tid = osThreadNew(shell_task, NULL, &shell_tconfig);
 //    bool if_upgrade_mode = false;
 //    for(uint8_t i = 0; i < 3; i++) {
 //        RTE_LOGI("press any key to go into OTA mode: %d", 3 - i);

@@ -7,7 +7,7 @@
         {
             "cwd": "${workspaceRoot}",
             "executable": "${workspaceFolder}/example/armgcc_stm32h7_demo/build/cross/none/debug/stm32h7_demo",
-            "name": "Debug Microcontroller",
+            "name": "Debug Microcontroller by stlink",
             "request": "launch",
             "type": "cortex-debug",
             "svdFile": "${workspaceFolder}/example/armgcc_stm32h7_demo/STM32H750x.svd",

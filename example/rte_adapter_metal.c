@@ -70,13 +70,13 @@ uint32_t HAL_GetTick(void)
     return rte_get_tick_ms();
 }
 
-/**
-  * @brief This function handles System tick timer.
-  */
-void SysTick_Handler(void)
-{
-    timer_tick_handle(1);
-}
+// /**
+//   * @brief This function handles System tick timer.
+//   */
+// void SysTick_Handler(void)
+// {
+//     timer_tick_handle(1);
+// }
 
 int shell_getc(char *ch)
 {

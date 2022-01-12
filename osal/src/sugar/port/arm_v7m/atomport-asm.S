@@ -49,7 +49,7 @@
  * Extern variables needed for context switching and first thread restore
  */
 .extern CTX_SW_NFO
-.extern vector_table
+.extern g_pfnVectors
 
 #if defined(__NEWLIB__)
 /**
@@ -83,7 +83,7 @@ _archFirstThreadRestore:
      * Reset main stack pointer to initial value, which is the first entry
      * in the vector table.
      */
-    ldr     r1,         = vector_table
+    ldr     r1,         = g_pfnVectors
     ldr     r1,         [r1, #0]
     msr     MSP,        r1
 
@@ -201,11 +201,11 @@ _archFirstThreadRestore:
 .size   _archFirstThreadRestore, . - _archFirstThreadRestore
 .endfunc
 
-.global pend_sv_handler
-.func   pend_sv_handler
-.type   pend_sv_handler,%function
+.global PendSV_Handler
+.func   PendSV_Handler
+.type   PendSV_Handler,%function
 .thumb_func
-pend_sv_handler:
+PendSV_Handler:
     /**
      * Disable interrupts. No need to check if they were enabled because,
      * well, we're an interrupt handler. Duh...
@@ -387,5 +387,5 @@ no_switch:
     /* Return to new thread */
     bx      lr
     nop
-.size   pend_sv_handler, . - pend_sv_handler
+.size   PendSV_Handler, . - PendSV_Handler
 .endfunc
