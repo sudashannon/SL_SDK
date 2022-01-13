@@ -16,11 +16,27 @@
 extern "C" {
 #endif
 
-#include "../../inc/middle_layer/rte.h"
+#include "../middle_layer/rte.h"
+#include "../middle_layer/rte_timer.h"
+#include "../data_structure/ds_rbtree.h"
+#include "sugar_arch_include.h"
 
 /* Idle thread priority (lowest) */
 #define SUGAR_IDLE_THREAD_PRIORITY    255
-#define SUGAR_ENABLE_STACK_CHECKING   1
+#define SUGAR_ENABLE_STACK_CHECKING   0
+#define SUGAR_TCB_FIFO_CAPABILITY     64
+#define SUGAR_TIMER_GROUP             0
+
+#define THIS_MODULE LOG_STR(SUGAR)
+#define OS_LOGF(...) LOG_FATAL(THIS_MODULE, __VA_ARGS__)
+#define OS_LOGE(...) LOG_ERROR(THIS_MODULE, __VA_ARGS__)
+#define OS_LOGI(...) LOG_INFO(THIS_MODULE, __VA_ARGS__)
+#define OS_LOGW(...) LOG_WARN(THIS_MODULE, __VA_ARGS__)
+#define OS_LOGD(...) LOG_DEBUG(THIS_MODULE, __VA_ARGS__)
+#define OS_LOGV(...) LOG_VERBOSE(THIS_MODULE, __VA_ARGS__)
+#define OS_ASSERT(v) LOG_ASSERT(THIS_MODULE, v)
+
+#define SUGAR_STACK_ALIGN(p, a)     (typeof(p))((typeof(a))(p) & ~((a) - 1))
 
 typedef struct sugar_tcb
 {
@@ -30,8 +46,8 @@ typedef struct sugar_tcb
      */
     uintptr_t stack_ptr;
     /* Thread's port specific private data */
-#if defined (SUGAR_PORT_PRIV_STRUCT)
-    SUGAR_PORT_PRIV_STRUCT;
+#if defined (ARCH_PRIV_STRUCT_DEFINE)
+    ARCH_PRIV_STRUCT_DEFINE;
 #endif
     /* Thread entry point and parameter */
     void (*entry_point)(void *);
@@ -47,7 +63,13 @@ typedef struct sugar_tcb
     uintptr_t stack_bottom;         /* Pointer to bottom of stack allocation */
     uint32_t stack_size;            /* Size of stack allocation in bytes */
 #endif
+    timer_id_t timer_id;
 } sugar_tcb_t;
+
+typedef struct sugar_queue {
+    rbt_t *tcb_rbt;
+    uint8_t highest_priority;
+} sugar_queue_impl_t;
 
 typedef struct sugar_kernel {
     /**
@@ -69,26 +91,29 @@ typedef struct sugar_kernel {
      * on some OS primitive if no longer ready (e.g. on the suspended TCB queue
      * for a semaphore, or in the timer list if suspended on a timer delay).
      */
-    void *ready_queue;
+    sugar_queue_impl_t *ready_queue;
     /** This is a pointer to the TCB for the currently-running thread */
-    sugar_tcb_t *curr_tcb_ptr;
+    sugar_tcb_t *current_tcb;
     /** Storage for the idle thread's TCB */
     sugar_tcb_t *idle_tcb;
     /** Set to TRUE when OS is started and running threads */
     bool if_started;
     /* Number of nested interrupts */
     int32_t interrupts_count;
+    timer_group_id_t timer_group;
 } sugar_kernel_t;
+
+extern sugar_kernel_t sugar_kernel_handle;
+
+extern void arch_first_thread_restore(sugar_tcb_t *new_tcb_ptr);
+extern void arch_context_switch(sugar_tcb_t *old_tcb_ptr, sugar_tcb_t *new_tcb_ptr);
+extern void arch_thread_context_init(sugar_tcb_t *tcb_ptr, void *stack_top,
+                            void (*entry_point)(void *), void *user_param);
 
 extern rte_error_t sugar_kernel_init(void *idle_thread_stack_bottom, uint32_t idle_thread_stack_size, bool if_idle_thread_stack_check);
 extern void sugar_kernel_start(void);
-extern sugar_tcb_t *sugar_tcb_ready_queue_pop_next(void);
-extern sugar_tcb_t *sugar_tcb_ready_queue_pop_priority(uint8_t priority);
-extern rte_error_t sugar_tcb_ready_queue_push_priority(sugar_tcb_t *tcb);
-extern void sugar_sched(bool if_in_tickhandle);
-extern sugar_tcb_t *sugar_context_get_current(void);
-extern void sugar_interrupt_enter(void);
-extern void sugar_interrupt_exit(uint8_t if_in_tickhandle);
+extern sugar_tcb_t *sugar_kernel_get_current_tcb(void);
+
 extern sugar_tcb_t *sugar_thread_create(uint8_t priority,
                                 void (*entry_point)(void *),
                                 void *user_param,
@@ -96,6 +121,7 @@ extern sugar_tcb_t *sugar_thread_create(uint8_t priority,
                                 uint32_t stack_size,
                                 bool if_stack_check);
 extern rte_error_t sugar_thread_check_stack(sugar_tcb_t *tcb_ptr, uint32_t *used_bytes, uint32_t *free_bytes);
+
 #ifdef __cplusplus
 }
 #endif

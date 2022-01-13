@@ -13,6 +13,9 @@
 #include "data_structure/ds_linklist.h"
 #include "data_structure/ds_rbtree.h"
 #include "image_process/image_process.h"
+#include "sugar/sugar_kernel.h"
+#include "sugar/sugar_scheduler.h"
+#include "sugar/sugar_queue.h"
 
 #define COMMON_MODULE LOG_STR(RTE)
 #define RTE_LOGF(...) LOG_FATAL(COMMON_MODULE, __VA_ARGS__)
@@ -55,11 +58,5 @@ extern rte_error_t rte_mutex_trylock(void *mutex, uint32_t timeout_ms);
  * @return rte_error_t
  */
 extern rte_error_t rte_mutex_unlock(void *mutex);
-/**
- * @brief Get the main timer group.
- *
- * @return timer_group_id_t
- */
-extern timer_group_id_t rte_get_main_timergroup(void);
 
 #endif

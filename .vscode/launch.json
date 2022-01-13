@@ -6,7 +6,7 @@
     "configurations": [
         {
             "cwd": "${workspaceRoot}",
-            "executable": "${workspaceFolder}/example/armgcc_stm32h7_demo/build/cross/none/debug/stm32h7_demo",
+            "executable": "${workspaceFolder}/example/armgcc_stm32h7_demo/build/cross/armv7-m/debug/stm32h7_demo",
             "name": "Debug Microcontroller by stlink",
             "request": "launch",
             "type": "cortex-debug",
@@ -42,7 +42,7 @@
             "name": "(gdb for arm_windows) 启动",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/example/armgcc_stm32h7_demo/build/cross/none/debug/stm32h7_demo",
+            "program": "${workspaceFolder}/example/armgcc_stm32h7_demo/build/cross/armv7-m/debug/stm32h7_demo",
             "args": [],
             "stopAtEntry": true,
             "cwd": "${fileDirname}",

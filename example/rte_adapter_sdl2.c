@@ -58,7 +58,7 @@ rte_error_t rte_mutex_unlock(void *mutex)
  *
  * @return uint32_t
  */
-uint32_t rte_get_tick_ms(void)
+uint32_t rte_get_tick(void)
 {
     return SDL_GetTicks();
 }
@@ -101,9 +101,9 @@ void rte_init(void)
     log_mutex_instance.lock = rte_mutex_lock;
     log_mutex_instance.unlock = rte_mutex_unlock;
     log_mutex_instance.trylock = NULL;
-    log_init(NULL, rte_log_output, rte_get_tick_ms);
+    log_init(NULL, rte_log_output, rte_get_tick);
     timer_init(4, true);
-    timer_create_group(&rte_timer_group, NULL);
+    timer_create_group(&rte_timer_group, NULL, 8);
 }
 
 /**

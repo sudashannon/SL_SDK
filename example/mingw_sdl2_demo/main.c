@@ -13,6 +13,7 @@ extern void test_ringbuffer(void);
 extern void test_hashmap(void);
 extern void test_linklist(void);
 extern void test_rbtree(void);
+extern void test_sugar_queue(void);
 extern int gui_thread(void *param);
 
 static bool running_flag = true;
@@ -25,14 +26,15 @@ void end_main_loop(void)
 static int main_thread(void *param)
 {
     rte_init();
-    memory_demon(BANK_DEFAULT);
+ /*   memory_demon(BANK_DEFAULT);
     test_log();
     test_vector();
     test_ringbuffer();
     test_hashmap();
     test_linklist();
     test_rbtree();
-    memory_demon(BANK_DEFAULT);
+    memory_demon(BANK_DEFAULT);*/
+    test_sugar_queue();
     RTE_LOGI("Hello world!");
     SDL_Thread *gui_thread_handle = SDL_CreateThread(gui_thread, "gui_thread", NULL);
     while(running_flag) {

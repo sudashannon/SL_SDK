@@ -20,7 +20,9 @@
                 "_UNICODE",
                 "STM32H7",
                 "STM32H750xx",
-                "USE_HAL_DRIVER"
+                "USE_HAL_DRIVER",
+                "__NEWLIB__",
+                "__ARM_ARCH_7M__"
             ],
             "cStandard": "gnu99",
             "cppStandard": "gnu++11",

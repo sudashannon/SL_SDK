@@ -19,11 +19,6 @@
  */
 MEM_ALIGN_NBYTES (__attribute__((section (".rte_memory"))) uint8_t mempool_buffer[RTE_MEMPOOL_SIZE], MEM_BLOCK_ALIGN) = {0};
 MEM_ALIGN_NBYTES (__attribute__((section (".dma_memory"))) uint8_t dma_buffer[288 * 1024], MEM_BLOCK_ALIGN) = {0};
-/**
- * @brief Used for main timer group internal.
- *
- */
-static timer_group_id_t rte_timer_group = 0;
 
 void rte_init(void)
 {
@@ -40,15 +35,9 @@ void rte_init(void)
     __ASM volatile ("NOP");
     memory_pool(BANK_DEFAULT, NULL, mempool_buffer, sizeof(mempool_buffer));
     memory_pool(BANK_DMA, NULL, dma_buffer, sizeof(dma_buffer));
-    log_init(NULL, NULL, rte_get_tick_ms);
-    timer_init(4, false);
-    timer_create_group(&rte_timer_group, NULL);
+    log_init(NULL, NULL, rte_get_tick);
+    timer_init(RTE_MAX_TIMER_GROUP_SIZE, false);
     shell_init();
-}
-
-timer_group_id_t rte_get_main_timergroup(void)
-{
-    return rte_timer_group;
 }
 
 void rte_delay_us(volatile uint32_t micros)
@@ -67,16 +56,21 @@ void rte_yield(void)
 
 uint32_t HAL_GetTick(void)
 {
-    return rte_get_tick_ms();
+    return rte_get_tick();
 }
 
-// /**
-//   * @brief This function handles System tick timer.
-//   */
-// void SysTick_Handler(void)
-// {
-//     timer_tick_handle(1);
-// }
+/**
+  * @brief This function handles System tick timer.
+  */
+void SysTick_Handler(void)
+{
+    timer_tick_handle(HAL_TICK_FREQ_DEFAULT);
+    if (sugar_kernel_handle.if_started) {
+        sugar_interrupt_enter();
+        timer_group_poll(SUGAR_TIMER_GROUP);
+        sugar_interrupt_exit(true);
+    }
+}
 
 int shell_getc(char *ch)
 {

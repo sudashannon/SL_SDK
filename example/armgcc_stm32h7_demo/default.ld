@@ -157,7 +157,7 @@ SECTIONS
   } >RAM_D2
 
 
-  /* dma memory */
+  /* OS memory */
   .os_memory (NOLOAD) :
   {
 

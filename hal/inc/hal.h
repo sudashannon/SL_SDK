@@ -52,9 +52,9 @@ struct __hal_device;
 
 typedef void (*hal_device_op_callback_f)(struct __hal_device *device, hal_operation_id_t op, void *arg);
 
-typedef rte_error_t (*device_read_f)(struct __hal_device *device, uint8_t *dest_buf, uint32_t *buf_size, uint32_t timeout_ms);
+typedef rte_error_t (*device_read_f)(struct __hal_device *device, uint8_t *dest_buf, uint32_t *buf_size, tick_unit_t timeout_tick);
 
-typedef rte_error_t (*device_write_f)(struct __hal_device *device, uint8_t *src_buf, uint32_t buf_size, uint32_t timeout_ms);
+typedef rte_error_t (*device_write_f)(struct __hal_device *device, uint8_t *src_buf, uint32_t buf_size, tick_unit_t timeout_tick);
 
 typedef void (*hal_device_constructor_t)(void);
 typedef void (*hal_device_destructor_t)(void);
@@ -125,26 +125,26 @@ void *hal_get_device_table(void);
 hal_device_t *hal_get_device(const char *device_name);
 
 rte_error_t hal_device_read_sync(char *device_name, uint8_t *dest_buf,
-                                uint32_t *buf_size, uint32_t timeout_ms);
+                                uint32_t *buf_size, tick_unit_t timeout_tick);
 
 rte_error_t hal_device_write_sync(char *device_name, uint8_t *src_buf,
-                                uint32_t buf_size, uint32_t timeout_ms);
+                                uint32_t buf_size, tick_unit_t timeout_tick);
 
 rte_error_t hal_device_read_async(char *device_name, uint8_t *dest_buf,
-                                uint32_t *buf_size, uint32_t timeout_ms);
+                                uint32_t *buf_size, tick_unit_t timeout_tick);
 
 rte_error_t hal_device_write_async(char *device_name, uint8_t *src_buf,
-                                uint32_t buf_size, uint32_t timeout_ms);
+                                uint32_t buf_size, tick_unit_t timeout_tick);
 
 #if RTE_USE_OS
 
 #define hal_device_prepare_wait(device, op)
 
-#define hal_device_wait_rx_ready(device, timeout_ms)                                \
-    osSemaphoreAcquire((device)->rx_sema, timeout_ms)
+#define hal_device_wait_rx_ready(device, timeout_tick)                                \
+    osSemaphoreAcquire((device)->rx_sema, timeout_tick)
 
-#define hal_device_wait_tx_ready(device, timeout_ms)                                \
-    osSemaphoreAcquire((device)->tx_sema, timeout_ms)
+#define hal_device_wait_tx_ready(device, timeout_tick)                                \
+    osSemaphoreAcquire((device)->tx_sema, timeout_tick)
 
 #define hal_device_active(device, op)                                               \
     osSemaphoreRelease((device)->op##_sema)
@@ -181,8 +181,8 @@ rte_error_t hal_device_write_async(char *device_name, uint8_t *src_buf,
 #define hal_device_prepare_wait(device, op)                                         \
     (device)->if_##op##_ready = false
 
-extern rte_error_t hal_device_wait_rx_ready(hal_device_t *device, uint32_t timeout_ms);
-extern rte_error_t hal_device_wait_tx_ready(hal_device_t *device, uint32_t timeout_ms);
+extern rte_error_t hal_device_wait_rx_ready(hal_device_t *device, tick_unit_t timeout_tick);
+extern rte_error_t hal_device_wait_tx_ready(hal_device_t *device, tick_unit_t timeout_tick);
 
 #define hal_device_active(device, op)                                               \
     (device)->if_##op##_ready = true

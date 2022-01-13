@@ -60,7 +60,7 @@ enum{
 #define COL_VERBOSE "\x1B[36m"  // Cyan
 #define CLR_RESET   "\033[0m"
 typedef size_t (*log_output_f)(uint8_t *data, size_t length);
-typedef uint32_t (*log_get_tick_f)(void);
+typedef tick_unit_t (*log_get_tick_f)(void);
 #define LOG_STR(R)  #R
 #if RTE_USE_LOG
 #define LOG_FATAL(MODULE, ...) log_out(LOG_LEVEL_FATAL, __FILE__, __func__, __LINE__, MODULE, __VA_ARGS__)
@@ -81,7 +81,7 @@ typedef uint32_t (*log_get_tick_f)(void);
     do {														                                \
         if(!(v)) {											                                    \
             LOG_FATAL(MODULE, "assert [%s] fail! at %s %d", LOG_STR(v), __FILE__, __LINE__);    \
-            (*((uint32_t *)0xdeafbeaf)) = 0xdeadbeaf;                                           \
+            while(1);                                                                           \
         }													                                    \
     } while(0)
 

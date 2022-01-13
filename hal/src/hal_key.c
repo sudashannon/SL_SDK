@@ -91,10 +91,10 @@ rte_error_t key_create(gpio_name_t gpio_name, uint8_t pressed_value, key_handle_
     obj->state_machine = KEY_SM_POLL;
     timer_configuration_t config = TIMER_CONFIG_INITIALIZER;
     timer_id_t running_timer_id = 0;
-    config.repeat_period_ms = KEY_FILTER_TIME;
+    config.repeat_period_tick = KEY_FILTER_TIME;
     config.timer_callback = key_handle_timer;
     config.parameter = obj;
-    rte_error_t result = timer_create_new(rte_get_main_timergroup(), &config, &running_timer_id);
+    rte_error_t result = timer_create_new(SUGAR_TIMER_GROUP, &config, &running_timer_id);
     if (result != RTE_SUCCESS) {
         obj->timer_index = running_timer_id;
     } else {
@@ -114,7 +114,7 @@ rte_error_t key_destroy(key_handle_t **key_handle)
 {
     if (!*key_handle)
         return RTE_ERR_PARAM;
-    timer_delete(rte_get_main_timergroup(), (*key_handle)->timer_index);
+    timer_delete(SUGAR_TIMER_GROUP, (*key_handle)->timer_index);
     rte_free(*key_handle);
     *key_handle = NULL;
     return RTE_SUCCESS;

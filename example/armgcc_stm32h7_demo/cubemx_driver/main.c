@@ -54,25 +54,29 @@
 void SystemClock_Config(void);
 static void MPU_Config(void);
 /* USER CODE BEGIN PFP */
-timer_id_t running_timer_id = 0;
+sugar_tcb_t *main_thread_tcb = NULL;
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 static size_t rte_data_out(uint8_t *data, size_t length)
 {
-    hal_device_write_async("com_0", data, length, HAL_MAX_DELAY);
+    hal_device_write_sync("com_0", data, length, HAL_MAX_DELAY);
     return length;
 }
 
-static void running_timer(void *arg)
+static void main_thread(void *arg)
 {
-    char data = 0;
-    uint32_t read_size = 1;
-    if (hal_device_read_async("com_0", (uint8_t *)&data, &read_size, 100) == RTE_SUCCESS) {
-        shell_react(data);
+    // char data = 0;
+    // uint32_t read_size = 1;
+    // if (hal_device_read_async("com_0", (uint8_t *)&data, &read_size, 100) == RTE_SUCCESS) {
+    //     shell_react(data);
+    // }
+    while (1) {
+      gpio_toggle(GPIO_LED0);
+      OS_LOGI("READY TO DELAY!");
+      sugar_delay_tick(1000);
     }
-    gpio_toggle(GPIO_LED0);
 }
 /* USER CODE END 0 */
 
@@ -103,7 +107,7 @@ int main(void)
   /* USER CODE BEGIN Init */
   HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
   HAL_NVIC_SetPriority(PendSV_IRQn, 15U, 0);
-  HAL_NVIC_SetPriority(SysTick_IRQn, 14U, 0);
+  HAL_NVIC_SetPriority(SysTick_IRQn,14U, 0);
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -129,16 +133,25 @@ int main(void)
   log_control(LOG_CMD_SET_OUTPUT, rte_data_out);
   shell_printf("\r\r\r");
   RTE_LOGI("System boots at clk: %d", SystemCoreClock);
-  timer_configuration_t config = TIMER_CONFIG_INITIALIZER;
-  config.repeat_period_ms = 50;
-  config.timer_callback = running_timer;
-  timer_create_new(rte_get_main_timergroup(), &config, &running_timer_id);
   shell_puts(CONFIG_SHELL_BOOT_INFO);
   shell_puts(CONFIG_SHELL_PROMPT);
+    /* Init sugar kernel */
+    sugar_kernel_init(NULL, 512, false);
+  /* Create the main thread */
+  sugar_thread_create(
+    10,
+    main_thread,
+    NULL,
+    NULL,
+    1024,
+    false
+  );
+  /* Start the sugar kernel */
+  sugar_kernel_start();
+  /* Shall never go here */
   while (1)
   {
     /* USER CODE END WHILE */
-    timer_group_poll(0);
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */

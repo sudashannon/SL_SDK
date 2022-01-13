@@ -3,91 +3,11 @@
 #include "SDL.h"
 
 /**
- * @brief 8bit signed integers comparator
+ * @brief 8bit unsigned integers comparator
  */
-static int rbt_cmp_keys_int8(void *k1, size_t k1size, void *k2, size_t k2size)
+static int rbt_cmp_keys_uint8(void *k1, size_t k1size, void *k2, size_t k2size)
 {
     RBT_CMP_KEYS_TYPE(int8_t, k1, k1size, k2, k2size);
-}
-
-/**
- * @brief 16bit signed integers comparator
- */
-static int rbt_cmp_keys_int16(void *k1, size_t k1size, void *k2, size_t k2size)
-{
-    RBT_CMP_KEYS_TYPE(int16_t, k1, k1size, k2, k2size);
-}
-
-/**
- * @brief 32bit signed integers comparator
- */
-static int rbt_cmp_keys_int32(void *k1, size_t k1size,
-                                        void *k2, size_t k2size)
-{
-    RBT_CMP_KEYS_TYPE(int32_t, k1, k1size, k2, k2size);
-}
-
-/**
- * @brief 64bit signed integers comparator
- */
-static int rbt_cmp_keys_int64(void *k1, size_t k1size,
-                                        void *k2, size_t k2size)
-{
-    RBT_CMP_KEYS_TYPE(int64_t, k1, k1size, k2, k2size);
-}
-
-/**
- * @brief 16bit unsigned integers comparator
- */
-static int rbt_cmp_keys_uint8(void *k1, size_t k1size,
-                       void *k2, size_t k2size)
-{
-    RBT_CMP_KEYS_TYPE(uint8_t, k1, k1size, k2, k2size);
-}
-
-/**
- * @brief 16bit unsigned integers comparator
- */
-static int rbt_cmp_keys_uint16(void *k1, size_t k1size,
-                       void *k2, size_t k2size)
-{
-    RBT_CMP_KEYS_TYPE(uint16_t, k1, k1size, k2, k2size);
-}
-
-/**
- * @brief 32bit unsigned integers comparator
- */
-static int rbt_cmp_keys_uint32(void *k1, size_t k1size,
-                                         void *k2, size_t k2size)
-{
-    RBT_CMP_KEYS_TYPE(uint32_t, k1, k1size, k2, k2size);
-}
-
-/**
- * @brief 64bit unsigned integers comparator
- */
-static int rbt_cmp_keys_uint64(void *k1, size_t k1size,
-                                         void *k2, size_t k2size)
-{
-    RBT_CMP_KEYS_TYPE(uint64_t, k1, k1size, k2, k2size);
-}
-
-/**
- * @brief float comparator
- */
-static int rbt_cmp_keys_float(void *k1, size_t k1size,
-                                        void *k2, size_t k2size)
-{
-    RBT_CMP_KEYS_TYPE(float, k1, k1size, k2, k2size);
-}
-
-/**
- * @brief double comparator
- */
-static int rbt_cmp_keys_double(void *k1, size_t k1size,
-                                         void *k2, size_t k2size)
-{
-    RBT_CMP_KEYS_TYPE(double, k1, k1size, k2, k2size);
 }
 
 static int
@@ -126,21 +46,26 @@ get_root(rbt_t *rbt, void *key, size_t ksize, void *value, void *priv)
     return 0;
 }
 
+static void element_free(void *element)
+{
+    rte_free(element);
+}
+
 void test_rbtree(void)
 {
     int *v;
-    int i;
+    uint8_t i;
 
     RTE_LOGI("rbt_create(free)");
-    rbt_t *rbt = rbt_create(rbt_cmp_keys_int16, free);
+    rbt_t *rbt = rbt_create(rbt_cmp_keys_uint8, element_free);
     RTE_ASSERT(rbt);
 
     RTE_LOGI("Adding 0..18");
     int sum = 0;
     for (i = 0; i < 18; i++) {
-        v = malloc(sizeof(int));
+        v = rte_malloc(sizeof(int));
         *v = i;
-        rbt_add(rbt, v, sizeof(int), v);
+        rbt_add(rbt, &i, sizeof(uint8_t), v);
         sum += i;
     }
     rbt_walk(rbt, print_value, NULL);
@@ -165,7 +90,7 @@ void test_rbtree(void)
     rbt_walk(rbt, print_value, NULL);
     RTE_LOGI("Removing '7'");
     i = 7;
-    rbt_remove(rbt, &i, sizeof(int), NULL);
+    rbt_remove(rbt, &i, sizeof(uint8_t), NULL);
     vsum = 0;
     rbt_walk(rbt, sum_value, &vsum);
     RTE_ASSERT(vsum == (sum - 7));

@@ -12,10 +12,10 @@
 #include "hal.h"
 #include "hal_com.h"
 
-#define HAL_DEVICE_TRY_LOCK(device, timeout_ms, retval)             \
-        uint32_t start_time = rte_get_tick_ms();                    \
-        RTE_TRYLOCK(&(device->mutex), timeout_ms, retval);          \
-        uint32_t consumed_time = rte_time_consume(start_time);      \
+#define HAL_DEVICE_TRY_LOCK(device, timeout_tick, retval)           \
+        tick_unit_t start_time = rte_get_tick();                    \
+        RTE_TRYLOCK(&(device->mutex), timeout_tick, retval);        \
+        tick_unit_t consumed_time = rte_time_consume(start_time);   \
         if (retval != RTE_SUCCESS)                                  \
             return retval;                                          \
         if (consumed_time >= left_time) {                           \
@@ -126,7 +126,7 @@ hal_device_t *hal_get_device(const char *device_name)
 }
 
 rte_error_t hal_device_read_sync(char *device_name, uint8_t *dest_buf,
-                                uint32_t *buf_size, uint32_t timeout_ms)
+                                uint32_t *buf_size, tick_unit_t timeout_tick)
 {
     hal_device_t *device = hal_get_device(device_name);
     if (RTE_UNLIKELY(device == NULL) ||
@@ -135,7 +135,7 @@ rte_error_t hal_device_read_sync(char *device_name, uint8_t *dest_buf,
         return RTE_ERR_PARAM;
     }
     rte_error_t retval = RTE_ERR_UNDEFINE;
-    uint32_t left_time = timeout_ms;
+    tick_unit_t left_time = timeout_tick;
     HAL_DEVICE_TRY_LOCK(device, left_time, retval);
     retval = device->read(device, dest_buf, buf_size, left_time);
     RTE_UNLOCK(&device->mutex);
@@ -143,7 +143,7 @@ rte_error_t hal_device_read_sync(char *device_name, uint8_t *dest_buf,
 }
 
 rte_error_t hal_device_write_sync(char *device_name, uint8_t *src_buf,
-                                        uint32_t buf_size, uint32_t timeout_ms)
+                                        uint32_t buf_size, tick_unit_t timeout_tick)
 {
     hal_device_t *device = hal_get_device(device_name);
     if (RTE_UNLIKELY(device == NULL) ||
@@ -152,7 +152,7 @@ rte_error_t hal_device_write_sync(char *device_name, uint8_t *src_buf,
         return RTE_ERR_PARAM;
     }
     rte_error_t retval = RTE_ERR_UNDEFINE;
-    uint32_t left_time = timeout_ms;
+    tick_unit_t left_time = timeout_tick;
     HAL_DEVICE_TRY_LOCK(device, left_time, retval);
     retval = device->write(device, src_buf, buf_size, left_time);
     RTE_UNLOCK(&device->mutex);
@@ -160,7 +160,7 @@ rte_error_t hal_device_write_sync(char *device_name, uint8_t *src_buf,
 }
 
 rte_error_t hal_device_read_async(char *device_name, uint8_t *dest_buf,
-                                        uint32_t *buf_size, uint32_t timeout_ms)
+                                        uint32_t *buf_size, tick_unit_t timeout_tick)
 {
     hal_device_t *device = hal_get_device(device_name);
     if (RTE_UNLIKELY(device == NULL) ||
@@ -169,7 +169,7 @@ rte_error_t hal_device_read_async(char *device_name, uint8_t *dest_buf,
         return RTE_ERR_PARAM;
     }
     rte_error_t retval = RTE_ERR_UNDEFINE;
-    uint32_t left_time = timeout_ms;
+    tick_unit_t left_time = timeout_tick;
     HAL_DEVICE_TRY_LOCK(device, left_time, retval);
     retval = device->read_async(device, dest_buf, buf_size, left_time);
     RTE_UNLOCK(&device->mutex);
@@ -177,7 +177,7 @@ rte_error_t hal_device_read_async(char *device_name, uint8_t *dest_buf,
 }
 
 rte_error_t hal_device_write_async(char *device_name, uint8_t *src_buf,
-                                        uint32_t buf_size, uint32_t timeout_ms)
+                                        uint32_t buf_size, tick_unit_t timeout_tick)
 {
     hal_device_t *device = hal_get_device(device_name);
     if (RTE_UNLIKELY(device == NULL) ||
@@ -186,7 +186,7 @@ rte_error_t hal_device_write_async(char *device_name, uint8_t *src_buf,
         return RTE_ERR_PARAM;
     }
     rte_error_t retval = RTE_ERR_UNDEFINE;
-    uint32_t left_time = timeout_ms;
+    tick_unit_t left_time = timeout_tick;
     HAL_DEVICE_TRY_LOCK(device, left_time, retval);
     retval = device->write_async(device, src_buf, buf_size, left_time);
     RTE_UNLOCK(&device->mutex);
@@ -194,24 +194,24 @@ rte_error_t hal_device_write_async(char *device_name, uint8_t *src_buf,
 }
 
 #if RTE_USE_OS == 0
-rte_error_t hal_device_wait_rx_ready(hal_device_t *device, uint32_t timeout_ms)
+rte_error_t hal_device_wait_rx_ready(hal_device_t *device, tick_unit_t timeout_tick)
 {
-    uint32_t start_time_ms = rte_get_tick_ms();
+    tick_unit_t start_time = rte_get_tick();
     while (device->if_rx_ready == false) {
         rte_yield();
-        if (rte_time_consume(start_time_ms) >= timeout_ms) {
+        if (rte_time_consume(start_time) >= timeout_tick) {
             return RTE_ERR_TIMEOUT;
         }
     }
     return RTE_SUCCESS;
 }
 
-rte_error_t hal_device_wait_tx_ready(hal_device_t *device, uint32_t timeout_ms)
+rte_error_t hal_device_wait_tx_ready(hal_device_t *device, tick_unit_t timeout_tick)
 {
-    uint32_t start_time_ms = rte_get_tick_ms();
+    tick_unit_t start_time = rte_get_tick();
     while (device->if_tx_ready == false) {
         rte_yield();
-        if (rte_time_consume(start_time_ms) >= timeout_ms) {
+        if (rte_time_consume(start_time) >= timeout_tick) {
             return RTE_ERR_TIMEOUT;
         }
     }

@@ -18,6 +18,7 @@
 					<Add option="-DRTE_SHELL_ENABLE=0" />
 					<Add option="-DRTE_MEMPOOL_SIZE=16*1024*1024" />
 					<Add option="-DRTE_MEMPOOL_ENABLE_DEBUG=0" />
+					<Add option="-DRTE_SUGAR_DISABLE" />
 					<Add directory="../../rte/inc" />
 					<Add directory="SDL2/include/SDL2" />
 					<Add directory="../../rte/utils/lvgl" />
@@ -74,6 +75,9 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="../../rte/src/middleware/rte_timer.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../rte/src/sugar/sugar_queue.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="../../rte/utils/lvgl/lvgl.h" />
@@ -683,6 +687,9 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="../test_ringbuffer.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../test_sugar_queue.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="../test_timer.c">

@@ -6,7 +6,7 @@
         {
             "label": "cross_init",
             "type": "shell",
-            "command": "xmake f -p cross -m debug"
+            "command": "xmake f -p cross -m debug -a armv7-m"
         },
         {
             "label": "rebuild project",

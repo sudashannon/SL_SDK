@@ -31,11 +31,11 @@ typedef struct
     } config;
     timer_id_t index;			    /*!< Timer ID */
     timer_group_id_t group_id;	    /*!< Group ID */
-    volatile uint32_t ARR;          /*!< Auto reload value */
-    volatile uint32_t CNT;          /*!< Counter value, counter counts down */
+    volatile tick_unit_t ARR;       /*!< Auto reload value */
+    volatile tick_unit_t CNT;       /*!< Counter value, counter counts down */
     rte_callback_f callback;	    /*!< Callback which will be called when timer reaches zero */
     void* parameter;           		/*!< Pointer to user parameters used for callback function */
-} stimer_t;
+} timer_impl_t;
 
 typedef struct
 {
@@ -45,12 +45,12 @@ typedef struct
 
 typedef struct
 {
-    uint8_t if_with_os:1;
+    uint8_t if_with_external_os:1;
     uint8_t reserved:7;
     uint8_t group_capability;
     uint8_t group_count;
     timer_group_t *timer_group;
-    volatile uint32_t timer_ms_count;
+    volatile tick_unit_t tick_count;
 } timer_handle_t;
 
 static timer_handle_t timer_handle_instance;
@@ -58,17 +58,17 @@ static timer_handle_t timer_handle_instance;
 static void single_timer_free_cb(void *timer, uint32_t index)
 {
     RTE_UNUSED(index);
-    TIMER_ASSERT(timer == ds_vector_at(timer_handle_instance.timer_group[((stimer_t *)timer)->group_id].timer_table, index));
+    TIMER_ASSERT(timer == ds_vector_at(timer_handle_instance.timer_group[((timer_impl_t *)timer)->group_id].timer_table, index));
     rte_free(timer);
 }
 /**
  * @brief Init the timer module with excepted group count and os configration.
  *
  * @param max_group_num
- * @param if_with_os
+ * @param if_with_external_os
  * @return rte_error_t
  */
-rte_error_t timer_init(uint8_t max_group_num, bool if_with_os)
+rte_error_t timer_init(uint8_t max_group_num, bool if_with_external_os)
 {
     timer_handle_instance.timer_group = rte_calloc(
                                         sizeof(timer_group_t) * max_group_num);
@@ -76,8 +76,8 @@ rte_error_t timer_init(uint8_t max_group_num, bool if_with_os)
         return RTE_ERR_NO_MEM;
     timer_handle_instance.group_count = 0;
     timer_handle_instance.group_capability = max_group_num;
-    timer_handle_instance.timer_ms_count = 0;
-    timer_handle_instance.if_with_os = if_with_os;
+    timer_handle_instance.tick_count = 0;
+    timer_handle_instance.if_with_external_os = if_with_external_os;
     return RTE_SUCCESS;
 }
 /**
@@ -86,9 +86,11 @@ rte_error_t timer_init(uint8_t max_group_num, bool if_with_os)
  *              Mutex given to the timer group must be recursive!
  *
  * @param group_id
+ * @param mutex
+ * @param capacity
  * @return rte_error_t
  */
-rte_error_t timer_create_group(timer_group_id_t *group_id, rte_mutex_t *mutex)
+rte_error_t timer_create_group(timer_group_id_t *group_id, rte_mutex_t *mutex, uint32_t capacity)
 {
     if (RTE_UNLIKELY(group_id == NULL)) {
         return RTE_ERR_PARAM;
@@ -100,8 +102,8 @@ rte_error_t timer_create_group(timer_group_id_t *group_id, rte_mutex_t *mutex)
     ds_vector_t temp = NULL;
     vector_configuration_t configuration = VECTOR_CONFIG_INITIALIZER;
     configuration.mutex = mutex;
-    configuration.capacity = RTE_TIMER_GROUP_CAPACITY;
-    configuration.if_expand = true;
+    configuration.capacity = capacity;
+    configuration.if_expand = false;
     configuration.free_cb = single_timer_free_cb;
     rte_error_t result = ds_vector_create(&configuration, &temp);
     if (result != RTE_SUCCESS) {
@@ -142,15 +144,15 @@ rte_error_t timer_create_new(timer_group_id_t group_id, timer_configuration_t *c
         return RTE_ERR_PARAM;
     }
     TIMER_ASSERT(timer_handle_instance.timer_group[group_id].timer_table);
-    stimer_t *v = rte_calloc(sizeof(stimer_t));
+    timer_impl_t *v = rte_calloc(sizeof(timer_impl_t));
     if (v == NULL)
         return RTE_ERR_NO_MEM;
     ds_vector_lock(timer_handle_instance.timer_group[group_id].timer_table);
     v->index = ds_vector_length(timer_handle_instance.timer_group[group_id].timer_table);
     v->config.AREN = config->if_reload;
     v->config.CNTEN = config->if_run_immediately;
-    v->ARR = config->repeat_period_ms;
-    v->CNT = config->repeat_period_ms;
+    v->ARR = config->repeat_period_tick;
+    v->CNT = config->repeat_period_tick;
     v->callback = config->timer_callback;
     v->parameter = config->parameter;
     v->group_id = group_id;
@@ -179,7 +181,7 @@ rte_error_t timer_delete(timer_group_id_t group_id, timer_id_t timer_id)
     return ds_vector_remove_by_index(timer_handle_instance.timer_group[group_id].timer_table, timer_id);
 }
 
-inline static void timer_check(stimer_t *timer)
+inline static void timer_check(timer_impl_t *timer)
 {
     /* Check if count is zero */
     if(timer->CNT == 0) {
@@ -204,7 +206,7 @@ inline static void timer_check(stimer_t *timer)
 void timer_group_poll(timer_group_id_t group_id)
 {
     uint8_t i = 0;
-    stimer_t *timer = NULL;
+    timer_impl_t *timer = NULL;
     ds_vector_lock(timer_handle_instance.timer_group[group_id].timer_table);
     // Loop through each task in the task table.
     VECTOR_FOR_EACH_SAFELY(i, timer, timer_handle_instance.timer_group[group_id].timer_table) {
@@ -227,7 +229,7 @@ rte_error_t timer_pause(uint8_t group_id, uint8_t timer_id)
     ds_vector_t this_timer_table = timer_handle_instance.timer_group[group_id].timer_table;
     rte_error_t retval = RTE_ERR_UNDEFINE;
     ds_vector_lock(this_timer_table);
-    stimer_t *timer = ds_vector_at(this_timer_table, timer_id);
+    timer_impl_t *timer = ds_vector_at(this_timer_table, timer_id);
     if (timer) {
         timer->config.CNTEN = 0;
         retval = RTE_SUCCESS;
@@ -252,7 +254,7 @@ rte_error_t timer_resume(uint8_t group_id, uint8_t timer_id)
     ds_vector_t this_timer_table = timer_handle_instance.timer_group[group_id].timer_table;
     rte_error_t retval = RTE_ERR_UNDEFINE;
     ds_vector_lock(this_timer_table);
-    stimer_t *timer = ds_vector_at(this_timer_table, timer_id);
+    timer_impl_t *timer = ds_vector_at(this_timer_table, timer_id);
     if (timer) {
         timer->config.CNTEN = 1;
         retval = RTE_SUCCESS;
@@ -267,12 +269,12 @@ rte_error_t timer_resume(uint8_t group_id, uint8_t timer_id)
  *        or in the timer thread when with OS.
  *
  */
-void timer_tick_handle(uint32_t delta_ms)
+void timer_tick_handle(tick_unit_t delta_tick)
 {
     // Loop through each group in the group table.
     for(uint8_t i = 0; i < timer_handle_instance.group_count; i++) {
         uint8_t j = 0;
-        stimer_t *timer = NULL;
+        timer_impl_t *timer = NULL;
         ds_vector_lock(timer_handle_instance.timer_group[i].timer_table);
         // Loop through each task in the task table.
         VECTOR_FOR_EACH_SAFELY(j, timer, timer_handle_instance.timer_group[i].timer_table) {
@@ -280,55 +282,58 @@ void timer_tick_handle(uint32_t delta_ms)
             if (timer->config.CNTEN) {
                 /* Decrease counter if needed */
                 if (timer->CNT) {
-                    timer->CNT -= delta_ms;
+                    timer->CNT -= delta_tick;
                 }
             }
         }
         ds_vector_unlock(timer_handle_instance.timer_group[i].timer_table);
     }
-    if (timer_handle_instance.if_with_os)
+    if (timer_handle_instance.if_with_external_os) {
         timer_group_poll(0);
-    else
-        timer_handle_instance.timer_ms_count += delta_ms;
+    } else {
+        timer_handle_instance.tick_count += delta_tick;
+    }
 }
 /**
  * @brief Return current time in milliseconds
  *
- * @return uint32_t
+ * @return tick_unit_t
  */
-__attribute__((weak)) uint32_t rte_get_tick_ms(void)
+__attribute__((weak)) tick_unit_t rte_get_tick(void)
 {
-    return timer_handle_instance.timer_ms_count;
+    return timer_handle_instance.tick_count;
 }
 /**
  * @brief Calculate time diff.
  *
- * @param prev_time_ms
- * @return uint32_t
+ * @param prev_tick
+ * @return tick_unit_t
  */
-uint32_t rte_time_consume(uint32_t prev_time_ms)
+tick_unit_t rte_time_consume(tick_unit_t prev_tick)
 {
-    uint32_t act_time = rte_get_tick_ms();
+    tick_unit_t now_tick = rte_get_tick();
     /*If there is no overflow in sys_time simple subtract*/
-    if(act_time >= prev_time_ms) {
-        prev_time_ms = act_time - prev_time_ms;
+    if(now_tick >= prev_tick) {
+        prev_tick = now_tick - prev_tick;
     } else {
-        prev_time_ms = UINT32_MAX - prev_time_ms + 1;
-        prev_time_ms += act_time;
+        prev_tick = TIME_MAX_DELAY - prev_tick + 1;
+        prev_tick += now_tick;
     }
-    return prev_time_ms;
+    return prev_tick;
 }
 /**
  * @brief Block CPU for the running thread in some certain time.
  *
  * @param delay
  */
-__attribute__((weak)) void rte_delay_ms(uint32_t delay_ms)
+__attribute__((weak)) void rte_block_tick(tick_unit_t delay_tick)
 {
     /* Delay for amount of milliseconds */
-    uint32_t time_start = rte_get_tick_ms();
+    tick_unit_t tick_start = rte_get_tick();
     /* Count interrupts */
-    while ((rte_get_tick_ms() - time_start) < delay_ms);
+    while ((rte_get_tick() - tick_start) < delay_tick) {
+        rte_yield();
+    }
 }
 /**
  * @brief Block CPU for the running thread.

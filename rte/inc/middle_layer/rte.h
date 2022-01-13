@@ -11,7 +11,22 @@
 #ifndef __RTE_H
 #define __RTE_H
 
-#define RTE_VERSION                 "5.1.0"
+/**
+ * @brief General include.
+ *
+ */
+#include <stdarg.h>
+#include <stdint.h>
+#include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <time.h>
+#include <math.h>
+#include <float.h>
+#include <limits.h>
+
+#define RTE_VERSION                 "6.0.0"
 
 #ifndef RTE_USE_OS
 #define RTE_USE_OS                  0
@@ -22,6 +37,13 @@
 // first-fit method when enabled. If disabled,
 // the mempool will use tlsf method */
 #define RTE_USE_SIMPLY_MEMPOOL      0
+
+
+#define RTE_MAX_TIMER_GROUP_SIZE    2
+#ifndef RTE_TIMER_TICK_UNIT
+#define tick_unit_t                 uint32_t
+#define TIME_MAX_DELAY              UINT32_MAX
+#endif
 
 #ifndef RTE_MEMPOOL_SIZE
 #define RTE_MEMPOOL_SIZE            512 * 1024
@@ -46,25 +68,11 @@
 #endif
 #endif
 
-#define RTE_TIMER_GROUP_CAPACITY    8
+#define RTE_TIMER_CAPACITY          256
 
 #ifndef RTE_SHELL_ENABLE
 #define RTE_SHELL_ENABLE            1
 #endif
-/**
- * @brief General include.
- *
- */
-#include <stdarg.h>
-#include <stdint.h>
-#include <stddef.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdbool.h>
-#include <time.h>
-#include <math.h>
-#include <float.h>
-#include <limits.h>
 
 /**
  * @brief Some general typedef.

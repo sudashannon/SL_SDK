@@ -697,14 +697,14 @@ size_t log_out(log_level_t level, const char *file, const char *function, int li
     }
     if(level <= log_config_handle.level) {
         if(log_config_handle.format & LOG_FMT_TIME) {
-            uint64_t tick = 0;
+            tick_unit_t tick = 0;
             struct tm time = {0};
             if(log_config_handle.get_tick_func) {
                 tick = log_config_handle.get_tick_func();
             }
             log_sec2time(tick/1000, &time);
             offset += log_snprintf(log_head + offset, LOG_MAX_HEAD_LENGTH - offset, "%02d:%02d:%02d:%03d",
-                                    time.tm_hour, time.tm_min, time.tm_sec, tick%1000);
+                                    time.tm_hour, time.tm_min, time.tm_sec, tick % 1000);
         }
         offset += log_snprintf(log_head + offset, LOG_MAX_HEAD_LENGTH - offset, " %s ",
                                 log_level_tbl[level].name);

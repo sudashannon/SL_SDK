@@ -85,7 +85,7 @@ static size_t _rym_read_data(
     uint32_t readlen = 0;
     uint32_t received_len = 0;
     rte_error_t result = RTE_ERR_TIMEOUT;
-    uint32_t start_tick = rte_get_tick_ms();
+    uint32_t start_tick = rte_get_tick();
     do {
         readlen = len - received_len;
         result = hal_device_read_async(ctx->dev_name, buf + received_len, &readlen, 500);

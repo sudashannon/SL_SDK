@@ -115,7 +115,7 @@ int gui_thread(void *param)
 	sensor_disp_image.data_size = sensor_disp_image.header.w * sensor_disp_image.header.h * sizeof(lv_color_t);
 	lv_img_set_src(imgobj_sensor, &sensor_disp_image);
     timer_configuration_t timer_config = TIMER_CONFIG_INITIALIZER;
-    timer_config.repeat_period_ms = 10;
+    timer_config.repeat_period_tick = 10;
     timer_config.timer_callback = sensor_thread;
     timer_id_t sensor_timer;
     timer_create_new(rte_get_main_timergroup(), &timer_config, &sensor_timer);

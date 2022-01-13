@@ -152,9 +152,9 @@ __NO_RETURN void system_thread(void *argument)
 //    }
 //#endif /* FDB_USING_KVDB */
     timer_configuration_t config = TIMER_CONFIG_INITIALIZER;
-    config.repeat_period_ms = 100;
+    config.repeat_period_tick = 100;
     config.timer_callback = running_timer;
-    timer_create_new(rte_get_main_timergroup(), &config, &running_timer_id);
+    timer_create_new(SUGAR_TIMER_GROUP, &config, &running_timer_id);
     osThreadAttr_t shell_tconfig = {
         .name = "shell_task",
         .stack_size = 8192,

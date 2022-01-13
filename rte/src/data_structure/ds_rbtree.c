@@ -400,6 +400,8 @@ rbt_find_internal(rbt_t *rbt, rbt_node_t *node, void *key, size_t klen)
 int
 rbt_find(rbt_t *rbt, void *k, size_t klen, void **v)
 {
+    if (rbt->root == NULL)
+        return -1;
     rbt_node_t *node = rbt_find_internal(rbt, rbt->root, k, klen);
     if (!node)
         return -1;
