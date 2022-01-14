@@ -36,7 +36,9 @@ void rte_init(void)
     memory_pool(BANK_DEFAULT, NULL, mempool_buffer, sizeof(mempool_buffer));
     memory_pool(BANK_DMA, NULL, dma_buffer, sizeof(dma_buffer));
     log_init(NULL, NULL, rte_get_tick);
-    timer_init(RTE_MAX_TIMER_GROUP_SIZE, false);
+    timer_init(RTE_MAX_TIMER_GROUP_SIZE);
+    /* Init sugar kernel */
+    sugar_kernel_init(NULL, 512, false);
     shell_init();
 }
 
@@ -65,18 +67,4 @@ uint32_t HAL_GetTick(void)
 void SysTick_Handler(void)
 {
     timer_tick_handle(HAL_TICK_FREQ_DEFAULT);
-    if (sugar_kernel_handle.if_started) {
-        sugar_interrupt_enter();
-        timer_group_poll(SUGAR_TIMER_GROUP);
-        sugar_interrupt_exit(true);
-    }
-}
-
-int shell_getc(char *ch)
-{
-    uint32_t read_size = 1;
-    if (hal_device_read_async("com_0", (uint8_t *)ch, &read_size, 100) != RTE_SUCCESS) {
-        return 0;
-    }
-    return 1;
 }

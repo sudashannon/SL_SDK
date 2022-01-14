@@ -9,7 +9,6 @@
  *
  */
 
-#include "../inc/hal_gpio.h"
 #include "../inc/hal_key.h"
 
 /**
@@ -90,13 +89,13 @@ rte_error_t key_create(gpio_name_t gpio_name, uint8_t pressed_value, key_handle_
     obj->fifo.read_point = 0;
     obj->state_machine = KEY_SM_POLL;
     timer_configuration_t config = TIMER_CONFIG_INITIALIZER;
-    timer_id_t running_timer_id = 0;
+    timer_impl_t *running_timer = NULL;
     config.repeat_period_tick = KEY_FILTER_TIME;
     config.timer_callback = key_handle_timer;
     config.parameter = obj;
-    rte_error_t result = timer_create_new(SUGAR_TIMER_GROUP, &config, &running_timer_id);
+    rte_error_t result = timer_create_new(SUGAR_TIMER_GROUP, &config, &running_timer);
     if (result != RTE_SUCCESS) {
-        obj->timer_index = running_timer_id;
+        obj->timer = running_timer;
     } else {
         key_destroy(&obj);
         return RTE_ERR_UNDEFINE;
@@ -114,7 +113,7 @@ rte_error_t key_destroy(key_handle_t **key_handle)
 {
     if (!*key_handle)
         return RTE_ERR_PARAM;
-    timer_delete(SUGAR_TIMER_GROUP, (*key_handle)->timer_index);
+    timer_delete(SUGAR_TIMER_GROUP, (*key_handle)->timer->index);
     rte_free(*key_handle);
     *key_handle = NULL;
     return RTE_SUCCESS;

@@ -337,7 +337,7 @@
             <v6Rtti>0</v6Rtti>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>USE_HAL_DRIVER, STM32H750xx,RTE_MEMPOOL_SIZE=256*1024,RTE_USE_OS=1</Define>
+              <Define>USE_HAL_DRIVER, STM32H750xx,RTE_MEMPOOL_SIZE=256*1024,RTE_USE_EXTERNAL_OS=1,RTE_USE_SUGAR_KERNEL=0</Define>
               <Undefine></Undefine>
               <IncludePath>..\mdk_stm32h7_demo;..\..\rte\inc;..\..\hal\inc;.\user_app;.\user_bsp;..\stm32_h7_full_demo;..\..\sis\cmsis\drivers\stm32h7\inc;.\cubemx_bsp;..\..\sis\cmsis\core\inc;..\..\osal\inc\rtx;..\..\osal\inc;..\..\rte\utils\fal\inc;..\..\rte\utils\w25xxdriver;..\..\rte\utils\flashdb\inc;..\..\rte\utils\ota;..\..\rte\utils\fastlz;..\..\rte\utils\tinycrypt</IncludePath>
             </VariousControls>

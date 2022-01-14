@@ -19,7 +19,6 @@ struct _linked_list_s {
     size_t length;
     rte_mutex_t *lock;
     free_value_callback_t free_value_cb;
-    int refcnt;
     list_entry_t *slices;
 };
 

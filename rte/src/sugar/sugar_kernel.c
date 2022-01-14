@@ -10,7 +10,7 @@
  */
 
 #include "../../inc/sugar/sugar_kernel.h"
-#include "../../inc/sugar/sugar_queue.h"
+#include "../../inc/sugar/sugar_prior_vector.h"
 #include "../../inc/sugar/sugar_scheduler.h"
 #include "../../inc/middle_layer/rte_memory.h"
 #include "../../inc/middle_layer/rte_log.h"
@@ -96,7 +96,7 @@ rte_error_t sugar_kernel_init(void *idle_thread_stack_bottom, uint32_t idle_thre
         idle_thread_stack_bottom = memory_calloc(BANK_OS, idle_thread_stack_size);
         OS_ASSERT(idle_thread_stack_bottom);
     }
-    sugar_kernel_handle.ready_queue = sugar_tcb_queue_init();
+    sugar_kernel_handle.ready_queue = sugar_prior_vector_create();
     if (sugar_kernel_handle.ready_queue == NULL) {
         if (idle_thread_stack_bottom == NULL &&
             idle_thread_stack_size) {
@@ -154,7 +154,7 @@ void sugar_kernel_start(void)
      * idle thread's priority, 255).
      */
     OS_LOGI("Sugar kernel start to run!");
-    new_tcb = sugar_tcb_ready_queue_pop_next(sugar_kernel_handle.ready_queue);
+    new_tcb = sugar_prior_vector_pop_highest(sugar_kernel_handle.ready_queue);
     if (new_tcb) {
         /* Set the new currently-running thread pointer */
         sugar_kernel_handle.current_tcb = new_tcb;
@@ -247,7 +247,8 @@ sugar_tcb_t *sugar_thread_create(uint8_t priority,
         tcb_ptr->if_suspended = false;
         tcb_ptr->if_terminated = false;
         tcb_ptr->priority = priority;
-        tcb_ptr->timer_id = -1;
+        tcb_ptr->suspend_timer = NULL;
+        tcb_ptr->suspend_wake_status = SUGAR_SUSPEND_INVALID_STATE;
         /**
          * Store the thread entry point and parameter in the TCB. This may
          * not be necessary for all architecture ports if they put all of
@@ -308,7 +309,7 @@ sugar_tcb_t *sugar_thread_create(uint8_t priority,
         arch_critical_enter();
 
         /* Put this thread on the ready queue */
-        if (sugar_tcb_ready_queue_push_priority(sugar_kernel_handle.ready_queue, tcb_ptr) != RTE_SUCCESS) {
+        if (sugar_prior_vector_push(sugar_kernel_handle.ready_queue, tcb_ptr) != RTE_SUCCESS) {
             /* Exit critical region */
             arch_critical_exit();
             /* Queue-related error */

@@ -28,8 +28,18 @@
 
 #define RTE_VERSION                 "6.0.0"
 
-#ifndef RTE_USE_OS
-#define RTE_USE_OS                  0
+#ifndef RTE_USE_EXTERNAL_OS
+#define RTE_USE_EXTERNAL_OS         0
+#endif
+
+#ifndef RTE_USE_SUGAR_KERNEL
+#define RTE_USE_SUGAR_KERNEL        1
+#endif
+
+#if RTE_USE_SUGAR_KERNEL
+#ifndef RTE_SUGAR_KERNEL_FREQUENCY
+#define RTE_SUGAR_KERNEL_FREQUENCY  100
+#endif
 #endif
 
 #define RTE_USE_LOG                 1
@@ -74,6 +84,10 @@
 #define RTE_SHELL_ENABLE            1
 #endif
 
+#if RTE_USE_SUGAR_KERNEL && RTE_USE_EXTERNAL_OS
+#error "You must choose only one kernel for SL_SDK!"
+#endif
+
 /**
  * @brief Some general typedef.
  *
@@ -87,6 +101,9 @@ typedef int8_t  rte_error_t;
 #define RTE_ERR_PARAM                           -4
 #define RTE_ERR_NO_RSRC                         -5
 #define RTE_ERR_MISMATCH                        -6
+#define RTE_ERR_BAD_USE                         -7
+#define RTE_ERR_TRY_LATER                       -8
+#define RTE_ERR_OVERFLOW                        -9
 
 /* Typedef for unused */
 #ifndef RTE_UNUSED

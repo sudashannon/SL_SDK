@@ -10,7 +10,7 @@ static time_t boot_time[10] = {0, 1, 2, 3};
 static char default_version[] = "0.0";
 static bool upgrade_status = false;
 
-timer_id_t running_timer_id = 0;
+timer_impl_t *running_timer_id = 0;
 /* default KV nodes */
 static struct fdb_default_kv_node default_kv_table[] = {
         {"boot_count", &boot_count, sizeof(boot_count)}, /* int type KV */

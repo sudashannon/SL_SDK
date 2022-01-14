@@ -1,24 +1,29 @@
 /**
- * @file sugar_queue.c
+ * @file sugar_prior_vector.c
  * @author Leon Shan (813475603@qq.com)
- * @brief
+ * @brief Use rbtree to marked the priority, vector to be as a fifo.
  * @version 1.0.0
  * @date 2022-01-13
  *
  * @copyright Copyright (c) 2022
  *
  */
-#include "../../inc/sugar/sugar_queue.h"
+#include "../../inc/sugar/sugar_prior_vector.h"
 #include "../../inc/middle_layer/rte_memory.h"
 #include "../../inc/middle_layer/rte_log.h"
 #include "../../inc/middle_layer/rte_atomic.h"
 #include "../../inc/data_structure/ds_rbtree.h"
 #include "../../inc/data_structure/ds_vector.h"
 
-typedef struct sugar_queue_rbt_element {
+typedef struct sugar_pri_vec_rbt_element {
     uint8_t priority;
     ds_vector_t tcb_array;
-} sugar_queue_rbt_element_t;
+} sugar_pri_vec_rbt_element_t;
+
+typedef struct sugar_pri_vec {
+    rbt_t *tcb_rbt;
+    uint8_t highest_priority;
+} sugar_pri_vec_impl_t;
 
 /**
  * @brief 8bit unsigned integers comparator
@@ -36,8 +41,8 @@ static void rbt_free_element(void *element)
 
 static rbt_walk_return_code_t rbt_walk_update_highest_priority(rbt_t *rbt, void *key, size_t ksize, void *value, void *priv)
 {
-    sugar_queue_impl_t *queue_impl = (sugar_queue_impl_t *)priv;
-    sugar_queue_rbt_element_t *element = (sugar_queue_rbt_element_t *)value;
+    sugar_pri_vec_impl_t *queue_impl = (sugar_pri_vec_impl_t *)priv;
+    sugar_pri_vec_rbt_element_t *element = (sugar_pri_vec_rbt_element_t *)value;
     if (element->priority <= queue_impl->highest_priority &&
         ds_vector_length(element->tcb_array) != 0) {
         queue_impl->highest_priority = element->priority;
@@ -45,10 +50,10 @@ static rbt_walk_return_code_t rbt_walk_update_highest_priority(rbt_t *rbt, void 
     return RBT_WALK_CONTINUE;
 }
 
-sugar_queue_t sugar_tcb_queue_init(void)
+sugar_pri_vec_t sugar_prior_vector_create(void)
 {
-    sugar_queue_impl_t *queue = NULL;
-    queue = memory_calloc(BANK_OS, sizeof(sugar_queue_impl_t));
+    sugar_pri_vec_impl_t *queue = NULL;
+    queue = memory_calloc(BANK_OS, sizeof(sugar_pri_vec_impl_t));
     OS_ASSERT(queue);
     queue->tcb_rbt = rbt_create(rbt_cmp_priority, rbt_free_element);
     queue->highest_priority = SUGAR_IDLE_THREAD_PRIORITY;
@@ -57,26 +62,26 @@ sugar_queue_t sugar_tcb_queue_init(void)
 }
 
 /**
- * \b sugar_tcb_ready_queue_pop_next
+ * \b sugar_prior_vector_pop_highest
  *
  * This is an internal function not for use by application code.
  *
  * Dequeues the highest priority TCB on the queue pointed to by
- * \c tcb_queue_ptr.
+ * \c pri_vec.
  *
  * The TCB will be removed from the queue. Same priority TCBs are dequeued in
  * FIFO order.
  *
  * \b NOTE: Assumes that the caller is already in a critical section.
  *
- * @param[in,out] tcb_queue_ptr Pointer to TCB queue head pointer
+ * @param[in,out] pri_vec Pointer to TCB queue head pointer
  *
  * @return Pointer to highest priority TCB on queue, or NULL if queue empty
  */
-sugar_tcb_t *sugar_tcb_ready_queue_pop_next(sugar_queue_t queue)
+sugar_tcb_t *sugar_prior_vector_pop_highest(sugar_pri_vec_t pri_vec)
 {
-    sugar_queue_impl_t *queue_impl = (sugar_queue_impl_t *)queue;
-    sugar_queue_rbt_element_t *element = NULL;
+    sugar_pri_vec_impl_t *queue_impl = (sugar_pri_vec_impl_t *)pri_vec;
+    sugar_pri_vec_rbt_element_t *element = NULL;
     sugar_tcb_t *retval = NULL;
     if (RTE_UNLIKELY(queue_impl == NULL)) {
         goto end;
@@ -101,12 +106,12 @@ end:
 }
 
 /**
- * \b sugar_tcb_ready_queue_pop_priority
+ * \b sugar_prior_vector_pop_as_priority
  *
  * This is an internal function not for use by application code.
  *
  * Dequeues the first TCB of the given priority or higher, from the queue
- * pointed to by \c tcb_queue_ptr. Because the queue is ordered high priority
+ * pointed to by \c pri_vec. Because the queue is ordered high priority
  * first, we only ever dequeue the list head, if any. If the list head is
  * lower priority than we wish to dequeue, then all following ones will also
  * be lower priority and hence are not parsed.
@@ -116,15 +121,15 @@ end:
  *
  * \b NOTE: Assumes that the caller is already in a critical section.
  *
- * @param[in,out] tcb_queue_ptr Pointer to TCB queue head pointer
+ * @param[in,out] pri_vec Pointer to TCB queue head pointer
  * @param[in] priority Minimum priority to qualify for dequeue
  *
  * @return Pointer to the dequeued TCB, or NULL if none found within priority
  */
-sugar_tcb_t *sugar_tcb_ready_queue_pop_priority(sugar_queue_t queue, uint8_t priority)
+sugar_tcb_t *sugar_prior_vector_pop_as_priority(sugar_pri_vec_t pri_vec, uint8_t priority)
 {
-    sugar_queue_rbt_element_t *element = NULL;
-    sugar_queue_impl_t *queue_impl = (sugar_queue_impl_t *)queue;
+    sugar_pri_vec_rbt_element_t *element = NULL;
+    sugar_pri_vec_impl_t *queue_impl = (sugar_pri_vec_impl_t *)pri_vec;
     sugar_tcb_t *retval = NULL;
     if (RTE_UNLIKELY(queue_impl == NULL)) {
         goto end;
@@ -149,14 +154,59 @@ end:
 }
 
 /**
- * \b sugar_tcb_ready_queue_push_priority
+ * \b sugar_prior_vector_pop
  *
  * This is an internal function not for use by application code.
  *
- * Enqueues the TCB \c tcb on the sugar_queue pointed to by \c queue.
+ * Dequeues a particular TCB from the queue pointed to by \c pri_vec.
+ *
+ * The TCB will be removed from the queue.
+ *
+ * \b NOTE: Assumes that the caller is already in a critical section.
+ *
+ * @param[in,out] queue Pointer to TCB queue pointer
+ * @param[in] tcb_ptr Pointer to TCB to dequeue
+ *
+ * @return Pointer to the dequeued TCB, or NULL if entry wasn't found
+ */
+sugar_tcb_t *sugar_prior_vector_pop(sugar_pri_vec_t pri_vec, sugar_tcb_t *tcb_ptr)
+{
+    sugar_pri_vec_rbt_element_t *element = NULL;
+    sugar_pri_vec_impl_t *queue_impl = (sugar_pri_vec_impl_t *)pri_vec;
+    sugar_tcb_t *retval = NULL;
+    rte_error_t result = RTE_ERR_UNDEFINE;
+    if (RTE_UNLIKELY(queue_impl == NULL)) {
+        goto end;
+    }
+    rbt_find(queue_impl->tcb_rbt, &(tcb_ptr->priority), sizeof(uint8_t), (void **)&element);
+    if (element == NULL) {
+        goto end;
+    }
+    OS_ASSERT(tcb_ptr->priority == element->priority);
+    result = ds_vector_remove_by_pointer(element->tcb_array, tcb_ptr);
+    if (result != RTE_SUCCESS) {
+        goto end;
+    }
+    if (ds_vector_length(element->tcb_array) == 0 &&
+        element->priority != SUGAR_IDLE_THREAD_PRIORITY &&
+        queue_impl->highest_priority == tcb_ptr->priority) {
+        queue_impl->highest_priority = SUGAR_IDLE_THREAD_PRIORITY;
+        rbt_walk(queue_impl->tcb_rbt, rbt_walk_update_highest_priority, queue_impl);
+    }
+    retval = tcb_ptr;
+end:
+    return retval;
+}
+
+/**
+ * \b sugar_prior_vector_push
+ *
+ * This is an internal function not for use by application code.
+ *
+ * Enqueues the TCB \c tcb on the sugar_pri_vec pointed to by \c queue.
  * TCBs are placed on the rbtree in priority order. If there are existing TCBs
  * at the same priority as the TCB to be enqueued, the enqueued TCB will be
- * placed at the end of the same-priority TCBs vector. Calls to sugar_tcb_ready_queue_pop_priority()
+ * placed at the end of the same-priority TCBs vector. Calls to sugar_prior_vector_pop_as_priority()
  * will dequeue same-priority TCBs in FIFO order.
  *
  * \b NOTE: Assumes that the caller is already in a critical section.
@@ -167,10 +217,10 @@ end:
  * @retval RTE_SUCCESS Success
  * @retval Other Bad parameters and so on
  */
-rte_error_t sugar_tcb_ready_queue_push_priority(sugar_queue_t queue, sugar_tcb_t *tcb)
+rte_error_t sugar_prior_vector_push(sugar_pri_vec_t pri_vec, sugar_tcb_t *tcb)
 {
-    sugar_queue_rbt_element_t *element = NULL;
-    sugar_queue_impl_t *queue_impl = (sugar_queue_impl_t *)queue;
+    sugar_pri_vec_rbt_element_t *element = NULL;
+    sugar_pri_vec_impl_t *queue_impl = (sugar_pri_vec_impl_t *)pri_vec;
     rte_error_t retval = RTE_ERR_UNDEFINE;
     if (RTE_UNLIKELY(queue_impl == NULL) ||
         RTE_UNLIKELY(tcb == NULL)) {
@@ -190,7 +240,7 @@ rte_error_t sugar_tcb_ready_queue_push_priority(sugar_queue_t queue, sugar_tcb_t
             }
         }
     } else {
-        element = memory_calloc(BANK_OS, sizeof(sugar_queue_rbt_element_t));
+        element = memory_calloc(BANK_OS, sizeof(sugar_pri_vec_rbt_element_t));
         OS_ASSERT(element);
         vector_configuration_t configuration = VECTOR_CONFIG_INITIALIZER;
         configuration.capacity = SUGAR_TCB_FIFO_CAPABILITY;

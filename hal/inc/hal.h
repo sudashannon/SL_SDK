@@ -15,7 +15,7 @@
 #include <stdio.h>
 #include "rte_include.h"
 
-#if RTE_USE_OS
+#if RTE_USE_EXTERNAL_OS
 #include <cmsis_os2.h>
 #endif
 
@@ -109,9 +109,12 @@ typedef struct __hal_device {
     device_read_f read_async;
     device_write_f write;
     device_write_f write_async;
-#if RTE_USE_OS
+#if RTE_USE_EXTERNAL_OS
     osSemaphoreId_t rx_sema;
     osSemaphoreId_t tx_sema;
+#elif RTE_USE_SUGAR_KERNEL
+    sugar_semaphore_t rx_sema;
+    sugar_semaphore_t tx_sema;
 #else
     bool if_rx_ready;
     bool if_tx_ready;
@@ -136,7 +139,7 @@ rte_error_t hal_device_read_async(char *device_name, uint8_t *dest_buf,
 rte_error_t hal_device_write_async(char *device_name, uint8_t *src_buf,
                                 uint32_t buf_size, tick_unit_t timeout_tick);
 
-#if RTE_USE_OS
+#if RTE_USE_EXTERNAL_OS
 
 #define hal_device_prepare_wait(device, op)
 
@@ -171,6 +174,39 @@ rte_error_t hal_device_write_async(char *device_name, uint8_t *src_buf,
     device_type##_control_handle[name].device.rx_sema = osSemaphoreNew(1, 0, NULL); \
     RTE_ASSERT(device_type##_control_handle[name].device.rx_sema);                  \
     device_type##_control_handle[name].device.tx_sema = osSemaphoreNew(1, 0, NULL); \
+    RTE_ASSERT(device_type##_control_handle[name].device.tx_sema);                  \
+    device_type##_control_handle[name].device.op_callback = NULL;                   \
+    device_type##_control_handle[name].device.user_arg = NULL;                      \
+    *device_ptr = &device_type##_control_handle[name].device
+
+#elif RTE_USE_SUGAR_KERNEL
+
+#define hal_device_prepare_wait(device, op)
+
+#define hal_device_wait_rx_ready(device, timeout_tick)                                \
+    sugar_sema_acquire((device)->rx_sema, timeout_tick)
+
+#define hal_device_wait_tx_ready(device, timeout_tick)                                \
+    sugar_sema_acquire((device)->tx_sema, timeout_tick)
+
+#define hal_device_active(device, op)                                                 \
+    sugar_sema_give((device)->op##_sema)
+
+#define hal_device_initialize(device_type, name,                                    \
+                                read_f, write_f,                                    \
+                                read_async_f, write_async_f, device_ptr)            \
+    device_type##_control_handle[name].device.mutex.mutex = NULL;                   \
+    device_type##_control_handle[name].device.mutex.lock = NULL;                    \
+    device_type##_control_handle[name].device.mutex.unlock = NULL;                  \
+    device_type##_control_handle[name].device.mutex.trylock = NULL;                 \
+    device_type##_control_handle[name].device.device_id = name;                     \
+    device_type##_control_handle[name].device.read = read_f;                        \
+    device_type##_control_handle[name].device.write = write_f;                      \
+    device_type##_control_handle[name].device.read_async = read_async_f;            \
+    device_type##_control_handle[name].device.write_async = write_async_f;          \
+    device_type##_control_handle[name].device.rx_sema = sugar_sema_create(0, 1);    \
+    RTE_ASSERT(device_type##_control_handle[name].device.rx_sema);                  \
+    device_type##_control_handle[name].device.tx_sema = sugar_sema_create(0, 1);    \
     RTE_ASSERT(device_type##_control_handle[name].device.tx_sema);                  \
     device_type##_control_handle[name].device.op_callback = NULL;                   \
     device_type##_control_handle[name].device.user_arg = NULL;                      \

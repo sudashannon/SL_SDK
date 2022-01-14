@@ -25,7 +25,7 @@
         left_time -= consumed_time
 
 static ds_hashtable_t hal_device_table = NULL;
-#if RTE_USE_OS
+#if RTE_USE_EXTERNAL_OS
 static rte_mutex_t ht_chain_mutex_instance = {NULL};
 static rte_mutex_t ht_bucket_mutex_instance = {NULL};
 #endif
@@ -37,7 +37,7 @@ void *hal_get_device_table(void)
 
 rte_error_t hal_init(void)
 {
-#if RTE_USE_OS
+#if RTE_USE_EXTERNAL_OS
     ht_chain_mutex_instance.mutex = (void *)osMutexNew(NULL);
     ht_chain_mutex_instance.lock = rte_mutex_lock;
     ht_chain_mutex_instance.unlock = rte_mutex_unlock;
@@ -89,7 +89,7 @@ rte_error_t hal_init(void)
 rte_error_t hal_deinit(void)
 {
     ht_destroy(hal_device_table);
-#if RTE_USE_OS
+#if RTE_USE_EXTERNAL_OS
     osMutexDelete(ht_chain_mutex_instance.mutex);
     osMutexDelete(ht_bucket_mutex_instance.mutex);
 #endif
@@ -193,7 +193,7 @@ rte_error_t hal_device_write_async(char *device_name, uint8_t *src_buf,
     return retval;
 }
 
-#if RTE_USE_OS == 0
+#if RTE_USE_EXTERNAL_OS == 0 && RTE_USE_SUGAR_KERNEL == 0
 rte_error_t hal_device_wait_rx_ready(hal_device_t *device, tick_unit_t timeout_tick)
 {
     tick_unit_t start_time = rte_get_tick();

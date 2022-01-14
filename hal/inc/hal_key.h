@@ -14,6 +14,7 @@
 
 #include "stm32h7xx.h"
 #include "hal.h"
+#include "hal_gpio.h"
 
 /**
  * @brief Module configuration.
@@ -58,7 +59,6 @@ typedef struct {
  *
  */
 typedef struct {
-    uint8_t timer_index;
     uint8_t gpio_name;
     uint8_t pressed_value;
 #if KEY_LONGPRESS_ENABLE
@@ -66,6 +66,7 @@ typedef struct {
 #endif
     key_state_t state_machine;
     key_fifo_t fifo;
+    timer_impl_t *timer;
 } key_handle_t;
 
 rte_error_t key_create(gpio_name_t gpio_name, uint8_t pressed_value, key_handle_t **key_handle);
@@ -73,4 +74,5 @@ rte_error_t key_destroy(key_handle_t **key_handle);
 bool key_read_io(key_handle_t *key);
 key_value_t key_read_value(key_handle_t *key);
 rte_error_t key_change_mode(key_handle_t *key, uint8_t pressed_value);
+
 #endif

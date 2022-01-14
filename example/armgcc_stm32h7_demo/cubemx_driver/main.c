@@ -55,6 +55,7 @@ void SystemClock_Config(void);
 static void MPU_Config(void);
 /* USER CODE BEGIN PFP */
 sugar_tcb_t *main_thread_tcb = NULL;
+sugar_tcb_t *shell_thread_tcb = NULL;
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -65,17 +66,20 @@ static size_t rte_data_out(uint8_t *data, size_t length)
     return length;
 }
 
+int shell_getc(char *ch)
+{
+    uint32_t read_size = 1;
+    if (hal_device_read_async("com_0", (uint8_t *)ch, &read_size, 1000) != RTE_SUCCESS) {
+        return 0;
+    }
+    return 1;
+}
+
 static void main_thread(void *arg)
 {
-    // char data = 0;
-    // uint32_t read_size = 1;
-    // if (hal_device_read_async("com_0", (uint8_t *)&data, &read_size, 100) == RTE_SUCCESS) {
-    //     shell_react(data);
-    // }
     while (1) {
       gpio_toggle(GPIO_LED0);
-      OS_LOGI("READY TO DELAY!");
-      sugar_delay_tick(1000);
+      sugar_delay_tick(500);
     }
 }
 /* USER CODE END 0 */
@@ -133,17 +137,22 @@ int main(void)
   log_control(LOG_CMD_SET_OUTPUT, rte_data_out);
   shell_printf("\r\r\r");
   RTE_LOGI("System boots at clk: %d", SystemCoreClock);
-  shell_puts(CONFIG_SHELL_BOOT_INFO);
-  shell_puts(CONFIG_SHELL_PROMPT);
-    /* Init sugar kernel */
-    sugar_kernel_init(NULL, 512, false);
   /* Create the main thread */
-  sugar_thread_create(
+  main_thread_tcb = sugar_thread_create(
     10,
     main_thread,
     NULL,
     NULL,
     1024,
+    false
+  );
+  /* Create the shell thread */
+  shell_thread_tcb = sugar_thread_create(
+    8,
+    shell_task,
+    NULL,
+    NULL,
+    10240,
     false
   );
   /* Start the sugar kernel */

@@ -117,7 +117,7 @@ int gui_thread(void *param)
     timer_configuration_t timer_config = TIMER_CONFIG_INITIALIZER;
     timer_config.repeat_period_tick = 10;
     timer_config.timer_callback = sensor_thread;
-    timer_id_t sensor_timer;
+    timer_impl_t *sensor_timer;
     timer_create_new(rte_get_main_timergroup(), &timer_config, &sensor_timer);
     for (;;) {
         /* Periodically call the lv_task handler.

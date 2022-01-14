@@ -27,16 +27,24 @@ extern "C" {
 #define SUGAR_TCB_FIFO_CAPABILITY     64
 #define SUGAR_TIMER_GROUP             0
 
-#define THIS_MODULE LOG_STR(SUGAR)
-#define OS_LOGF(...) LOG_FATAL(THIS_MODULE, __VA_ARGS__)
-#define OS_LOGE(...) LOG_ERROR(THIS_MODULE, __VA_ARGS__)
-#define OS_LOGI(...) LOG_INFO(THIS_MODULE, __VA_ARGS__)
-#define OS_LOGW(...) LOG_WARN(THIS_MODULE, __VA_ARGS__)
-#define OS_LOGD(...) LOG_DEBUG(THIS_MODULE, __VA_ARGS__)
-#define OS_LOGV(...) LOG_VERBOSE(THIS_MODULE, __VA_ARGS__)
-#define OS_ASSERT(v) LOG_ASSERT(THIS_MODULE, v)
+#define OS_LOGF(...) LOG_FATAL(LOG_STR(SUGAR), __VA_ARGS__)
+#define OS_LOGE(...) LOG_ERROR(LOG_STR(SUGAR), __VA_ARGS__)
+#define OS_LOGI(...) LOG_INFO(LOG_STR(SUGAR), __VA_ARGS__)
+#define OS_LOGW(...) LOG_WARN(LOG_STR(SUGAR), __VA_ARGS__)
+#define OS_LOGD(...) LOG_DEBUG(LOG_STR(SUGAR), __VA_ARGS__)
+#define OS_LOGV(...) LOG_VERBOSE(LOG_STR(SUGAR), __VA_ARGS__)
+#define OS_ASSERT(v) LOG_ASSERT(LOG_STR(SUGAR), v)
 
 #define SUGAR_STACK_ALIGN(p, a)     (typeof(p))((typeof(a))(p) & ~((a) - 1))
+
+typedef int8_t sugar_suspend_state_t;
+#define SUGAR_SUSPEND_INVALID_STATE         -1
+#define SUGAR_SUSPEND_OK_STATE              0
+#define SUGAR_SUSPEND_DELETED_STATE         1
+#define SUGAR_SUSPEND_TIMEOUT_STATE         2
+
+#define SUGAR_WAIT_FOREVER                  TIME_MAX_DELAY
+#define SUGAR_WAIT_NONE                     0
 
 typedef struct sugar_tcb
 {
@@ -52,24 +60,20 @@ typedef struct sugar_tcb
     /* Thread entry point and parameter */
     void (*entry_point)(void *);
     void *user_param;
-    /* Suspension data */
-    bool if_suspended;              /* TRUE if task is currently suspended */
-    bool if_terminated;             /* TRUE if task is being terminated (run to completion) */
-    uint8_t suspend_wake_status;    /* Status returned to woken suspend calls */
-    /* Thread priority (0-255) */
-    uint8_t priority;
+    /* Suspension timer */
+    timer_impl_t *suspend_timer;
     /* Details used if thread stack-checking is required */
 #if SUGAR_ENABLE_STACK_CHECKING
     uintptr_t stack_bottom;         /* Pointer to bottom of stack allocation */
     uint32_t stack_size;            /* Size of stack allocation in bytes */
 #endif
-    timer_id_t timer_id;
+    /* Suspension data */
+    bool if_suspended;              /* TRUE if task is currently suspended */
+    bool if_terminated;             /* TRUE if task is being terminated (run to completion) */
+    sugar_suspend_state_t suspend_wake_status;    /* Status returned to woken suspend calls */
+    /* Thread priority (0-255) */
+    uint8_t priority;
 } sugar_tcb_t;
-
-typedef struct sugar_queue {
-    rbt_t *tcb_rbt;
-    uint8_t highest_priority;
-} sugar_queue_impl_t;
 
 typedef struct sugar_kernel {
     /**
@@ -91,7 +95,7 @@ typedef struct sugar_kernel {
      * on some OS primitive if no longer ready (e.g. on the suspended TCB queue
      * for a semaphore, or in the timer list if suspended on a timer delay).
      */
-    sugar_queue_impl_t *ready_queue;
+    void *ready_queue;
     /** This is a pointer to the TCB for the currently-running thread */
     sugar_tcb_t *current_tcb;
     /** Storage for the idle thread's TCB */

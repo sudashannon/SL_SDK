@@ -47,7 +47,7 @@ static inline uint32_t port_mask_interrupts(uint32_t mask)
 #define arch_critical_exit()        (void) port_mask_interrupts(__irq_flags)
 
 /**
- * When using newlib, define port private field in atom_tcb to be a
+ * When using newlib, define port private field in sugar_tcb_t to be a
  * struct _reent.
  */
 #if defined(__NEWLIB__)

@@ -12,6 +12,8 @@
 #include "../../inc/middle_layer/rte_timer.h"
 #include "../../inc/middle_layer/rte_memory.h"
 #include "../../inc/middle_layer/rte_log.h"
+#include "../../inc/sugar/sugar_kernel.h"
+#include "../../inc/sugar/sugar_scheduler.h"
 #include "../../inc/data_structure/ds_vector.h"
 
 #define THIS_MODULE LOG_STR(TIMER)
@@ -22,20 +24,6 @@
 #define TIMER_LOGD(...) LOG_DEBUG(THIS_MODULE, __VA_ARGS__)
 #define TIMER_LOGV(...) LOG_VERBOSE(THIS_MODULE, __VA_ARGS__)
 #define TIMER_ASSERT(v) LOG_ASSERT(THIS_MODULE, v)
-typedef struct
-{
-    struct {
-        uint8_t AREN:1;  		/*!< Auto-reload enabled */
-        uint8_t CNTEN:1; 		/*!< Count enabled */
-        uint8_t reserved:6;
-    } config;
-    timer_id_t index;			    /*!< Timer ID */
-    timer_group_id_t group_id;	    /*!< Group ID */
-    volatile tick_unit_t ARR;       /*!< Auto reload value */
-    volatile tick_unit_t CNT;       /*!< Counter value, counter counts down */
-    rte_callback_f callback;	    /*!< Callback which will be called when timer reaches zero */
-    void* parameter;           		/*!< Pointer to user parameters used for callback function */
-} timer_impl_t;
 
 typedef struct
 {
@@ -45,8 +33,6 @@ typedef struct
 
 typedef struct
 {
-    uint8_t if_with_external_os:1;
-    uint8_t reserved:7;
     uint8_t group_capability;
     uint8_t group_count;
     timer_group_t *timer_group;
@@ -65,10 +51,9 @@ static void single_timer_free_cb(void *timer, uint32_t index)
  * @brief Init the timer module with excepted group count and os configration.
  *
  * @param max_group_num
- * @param if_with_external_os
  * @return rte_error_t
  */
-rte_error_t timer_init(uint8_t max_group_num, bool if_with_external_os)
+rte_error_t timer_init(uint8_t max_group_num)
 {
     timer_handle_instance.timer_group = rte_calloc(
                                         sizeof(timer_group_t) * max_group_num);
@@ -77,7 +62,6 @@ rte_error_t timer_init(uint8_t max_group_num, bool if_with_external_os)
     timer_handle_instance.group_count = 0;
     timer_handle_instance.group_capability = max_group_num;
     timer_handle_instance.tick_count = 0;
-    timer_handle_instance.if_with_external_os = if_with_external_os;
     return RTE_SUCCESS;
 }
 /**
@@ -133,14 +117,14 @@ rte_error_t timer_deinit(void)
  *
  * @param group_id
  * @param config
- * @param timer_id
+ * @param timer
  * @return rte_error_t
  */
-rte_error_t timer_create_new(timer_group_id_t group_id, timer_configuration_t *config, timer_id_t *timer_id)
+rte_error_t timer_create_new(timer_group_id_t group_id, timer_configuration_t *config, timer_impl_t **timer)
 {
     if (RTE_UNLIKELY(group_id > timer_handle_instance.group_count) ||
         RTE_UNLIKELY(config == NULL) ||
-        RTE_UNLIKELY(timer_id == NULL)) {
+        RTE_UNLIKELY(timer == NULL)) {
         return RTE_ERR_PARAM;
     }
     TIMER_ASSERT(timer_handle_instance.timer_group[group_id].timer_table);
@@ -160,7 +144,7 @@ rte_error_t timer_create_new(timer_group_id_t group_id, timer_configuration_t *c
     if (result != RTE_SUCCESS) {
         rte_free(v);
     } else {
-        *timer_id = v->index;
+        *timer = v;
     }
     ds_vector_unlock(timer_handle_instance.timer_group[group_id].timer_table);
     return result;
@@ -178,7 +162,18 @@ rte_error_t timer_delete(timer_group_id_t group_id, timer_id_t timer_id)
         return RTE_ERR_PARAM;
     }
     TIMER_ASSERT(timer_handle_instance.timer_group[group_id].timer_table);
-    return ds_vector_remove_by_index(timer_handle_instance.timer_group[group_id].timer_table, timer_id);
+    /* Delete the element */
+    ds_vector_lock(timer_handle_instance.timer_group[group_id].timer_table);
+    ds_vector_remove_by_index(timer_handle_instance.timer_group[group_id].timer_table, timer_id);
+    /* Update id */
+    uint32_t timer_count = ds_vector_length(timer_handle_instance.timer_group[group_id].timer_table);
+    for (uint32_t i = timer_id; i < timer_count; i++) {
+        timer_impl_t *element = ds_vector_at(timer_handle_instance.timer_group[group_id].timer_table, i);
+        TIMER_ASSERT(element->index == i + 1);
+        element->index--;
+    }
+    ds_vector_unlock(timer_handle_instance.timer_group[group_id].timer_table);
+    return RTE_SUCCESS;
 }
 
 inline static void timer_check(timer_impl_t *timer)
@@ -288,11 +283,18 @@ void timer_tick_handle(tick_unit_t delta_tick)
         }
         ds_vector_unlock(timer_handle_instance.timer_group[i].timer_table);
     }
-    if (timer_handle_instance.if_with_external_os) {
-        timer_group_poll(0);
-    } else {
-        timer_handle_instance.tick_count += delta_tick;
+#if RTE_USE_EXTERNAL_OS
+    timer_group_poll(SUGAR_TIMER_GROUP);
+#else
+    timer_handle_instance.tick_count += delta_tick;
+#if RTE_USE_SUGAR_KERNEL
+    if (sugar_kernel_handle.if_started) {
+        sugar_interrupt_enter();
+        timer_group_poll(sugar_kernel_handle.timer_group);
+        sugar_interrupt_exit(true);
     }
+#endif
+#endif
 }
 /**
  * @brief Return current time in milliseconds

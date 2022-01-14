@@ -24,16 +24,13 @@ static int walk_fun(rbt_t *rbt, void *key, size_t ksize, void *value, void *priv
 void test_sugar_queue(void)
 {
     memory_pool(BANK_OS, NULL, os_buffer, sizeof(os_buffer));
-    sugar_queue_impl_t *queue = sugar_tcb_queue_init();
+    sugar_pri_vec_t queue = sugar_prior_vector_create();
     sugar_tcb_t *first_tcb = memory_calloc(BANK_OS, sizeof(sugar_tcb_t));
     first_tcb->priority = SUGAR_IDLE_THREAD_PRIORITY;
-    sugar_tcb_ready_queue_push_priority(queue, first_tcb);
-    rbt_walk(queue->tcb_rbt, walk_fun, NULL);
+    sugar_prior_vector_push(queue, first_tcb);
     sugar_tcb_t *second_tcb = memory_calloc(BANK_OS, sizeof(sugar_tcb_t));
     second_tcb->priority = 10;
-    sugar_tcb_ready_queue_push_priority(queue, second_tcb);
-    rbt_walk(queue->tcb_rbt, walk_fun, NULL);
-    sugar_tcb_t *ready_one = sugar_tcb_ready_queue_pop_next(queue);
+    sugar_prior_vector_push(queue, second_tcb);
+    sugar_tcb_t *ready_one = sugar_prior_vector_pop_highest(queue);
     OS_LOGI("ready tcb is %p", ready_one);
-    rbt_walk(queue->tcb_rbt, walk_fun, NULL);
 }

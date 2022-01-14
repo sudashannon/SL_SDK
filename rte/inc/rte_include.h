@@ -15,7 +15,8 @@
 #include "image_process/image_process.h"
 #include "sugar/sugar_kernel.h"
 #include "sugar/sugar_scheduler.h"
-#include "sugar/sugar_queue.h"
+#include "sugar/sugar_prior_vector.h"
+#include "sugar/sugar_sema.h"
 
 #define COMMON_MODULE LOG_STR(RTE)
 #define RTE_LOGF(...) LOG_FATAL(COMMON_MODULE, __VA_ARGS__)
@@ -58,5 +59,10 @@ extern rte_error_t rte_mutex_trylock(void *mutex, uint32_t timeout_ms);
  * @return rte_error_t
  */
 extern rte_error_t rte_mutex_unlock(void *mutex);
-
+/**
+ * @brief Wrapper for system delay, which is adapted for CMSIS-RTOS2.
+ *
+ * @return uint32_t
+ */
+extern void rte_delay_ms(uint32_t ms);
 #endif

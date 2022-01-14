@@ -10,7 +10,7 @@
  */
 
 #include "../../inc/sugar/sugar_scheduler.h"
-#include "../../inc/sugar/sugar_queue.h"
+#include "../../inc/sugar/sugar_prior_vector.h"
 #include "../../inc/data_structure/ds_vector.h"
 #include "../../inc/middle_layer/rte_memory.h"
 #include "../../inc/middle_layer/rte_log.h"
@@ -132,7 +132,7 @@ void sugar_scheduler(bool if_in_tickhandle)
          * actually be the suspending thread if it was unsuspended
          * before the scheduler was called.
          */
-        new_tcb = sugar_tcb_ready_queue_pop_next(sugar_kernel_handle.ready_queue);
+        new_tcb = sugar_prior_vector_pop_highest(sugar_kernel_handle.ready_queue);
         /**
          * Don't need to add the current thread to any queue because
          * it was suspended by another OS mechanism and will be
@@ -151,7 +151,7 @@ void sugar_scheduler(bool if_in_tickhandle)
     else
     {
         /* Check if a reschedule is allowed */
-        new_tcb = sugar_tcb_ready_queue_pop_next(sugar_kernel_handle.ready_queue);
+        new_tcb = sugar_prior_vector_pop_highest(sugar_kernel_handle.ready_queue);
         if (new_tcb != NULL) {
             if (new_tcb != sugar_kernel_handle.current_tcb) {
                 if (if_in_tickhandle == true) {
@@ -159,23 +159,23 @@ void sugar_scheduler(bool if_in_tickhandle)
                     if (new_tcb->priority <= sugar_kernel_handle.current_tcb->priority) {
                         goto preempt;
                     }
-                    (void)sugar_tcb_ready_queue_push_priority(sugar_kernel_handle.ready_queue, new_tcb);
+                    (void)sugar_prior_vector_push(sugar_kernel_handle.ready_queue, new_tcb);
                     goto no_scheduler;
                 } else {
                     /* Only higher priority threads can preempt */
                     if (new_tcb->priority < sugar_kernel_handle.current_tcb->priority) {
                         goto preempt;
                     }
-                    (void)sugar_tcb_ready_queue_push_priority(sugar_kernel_handle.ready_queue, new_tcb);
+                    (void)sugar_prior_vector_push(sugar_kernel_handle.ready_queue, new_tcb);
                     goto no_scheduler;
                 }
             }
-            (void)sugar_tcb_ready_queue_push_priority(sugar_kernel_handle.ready_queue, new_tcb);
+            (void)sugar_prior_vector_push(sugar_kernel_handle.ready_queue, new_tcb);
         }
         goto no_scheduler;
 preempt:
         /* Add the current thread to the ready queue */
-        (void)sugar_tcb_ready_queue_push_priority(sugar_kernel_handle.ready_queue, sugar_kernel_handle.current_tcb);
+        (void)sugar_prior_vector_push(sugar_kernel_handle.ready_queue, sugar_kernel_handle.current_tcb);
         /* Switch to the new thread */
         sugar_context_switch (sugar_kernel_handle.current_tcb, new_tcb);
     }
@@ -243,9 +243,9 @@ static void sugar_tcb_scheduler_timer(void *user_param)
         arch_critical_store();
         /* Enter critical region */
         arch_critical_enter();
-        tcb_ptr->timer_id = -1;
+        tcb_ptr->suspend_timer = NULL;
         /* Put the thread on the ready queue */
-        (void)sugar_tcb_ready_queue_push_priority(sugar_kernel_handle.ready_queue, tcb_ptr);
+        (void)sugar_prior_vector_push(sugar_kernel_handle.ready_queue, tcb_ptr);
         /* Exit critical region */
         arch_critical_exit();
         /**
@@ -312,11 +312,10 @@ rte_error_t sugar_delay_tick(tick_unit_t ticks)
         config.parameter = current_tcb;
         config.if_reload = false;
         /* Store the timeout callback details, though we don't use it */
-        status = timer_create_new(sugar_kernel_handle.timer_group, &config, &(current_tcb->timer_id));
-
+        status = timer_create_new(sugar_kernel_handle.timer_group, &config, &(current_tcb->suspend_timer));
         /* Register the callback */
         if (status != RTE_SUCCESS ||
-            current_tcb->timer_id < 0) {
+            current_tcb->suspend_timer == NULL) {
             /* Exit critical region */
             arch_critical_exit ();
             /* Timer registration didn't work, won't get a callback */

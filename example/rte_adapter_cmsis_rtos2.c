@@ -12,6 +12,7 @@
 #include "rte_include.h"
 #include "stm32h7xx.h"
 #include "cmsis_os2.h"
+#include "RTX_Config.h"
 #include "hal_com.h"
 
 /**
@@ -111,7 +112,16 @@ void HAL_Delay(uint32_t Delay)
  */
 void rte_delay_ms(uint32_t ms)
 {
-    osDelay(ms);
+    osDelay(ms * 1000/OS_TICK_FREQ);
+}
+/**
+ * @brief Wrapper for system delay, which is adapted for CMSIS-RTOS2.
+ *
+ * @return uint32_t
+ */
+void rte_delay_tick(uint32_t tick)
+{
+    osDelay(tick);
 }
 /**
  * @brief Wrapper for system delay, which is adapted for cortex-M.
@@ -186,7 +196,7 @@ void rte_init(void)
     log_mutex_instance.unlock = rte_mutex_unlock;
     log_mutex_instance.trylock = NULL;
     log_init(&log_mutex_instance, NULL, rte_get_tick);
-    timer_init(4, true);
+    timer_init(4);
     timer_create_group(&rte_timer_group, NULL, 8);
     shell_init();
     rte_ready = true;

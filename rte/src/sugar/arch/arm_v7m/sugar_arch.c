@@ -10,7 +10,7 @@
  */
 
 #include "../../../../inc/sugar/sugar_kernel.h"
-#include "../../../../inc/sugar/sugar_queue.h"
+#include "../../../../inc/sugar/sugar_prior_vector.h"
 #include "../../../../inc/sugar/sugar_scheduler.h"
 #include "../../../../inc/middle_layer/rte_memory.h"
 #include "../../../../inc/middle_layer/rte_log.h"

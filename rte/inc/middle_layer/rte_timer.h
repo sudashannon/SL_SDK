@@ -31,14 +31,28 @@ typedef struct {
     .parameter = NULL,                                     \
 }
 
+typedef struct
+{
+    struct {
+        uint8_t AREN:1;  		/*!< Auto-reload enabled */
+        uint8_t CNTEN:1; 		/*!< Count enabled */
+        uint8_t reserved:6;
+    } config;
+    timer_id_t index;			    /*!< Timer ID */
+    timer_group_id_t group_id;	    /*!< Group ID */
+    volatile tick_unit_t ARR;       /*!< Auto reload value */
+    volatile tick_unit_t CNT;       /*!< Counter value, counter counts down */
+    rte_callback_f callback;	    /*!< Callback which will be called when timer reaches zero */
+    void* parameter;           		/*!< Pointer to user parameters used for callback function */
+} timer_impl_t;
+
 /**
  * @brief Init the timer module with excepted group count and os configration.
  *
  * @param max_group_num
- * @param if_with_external_os
  * @return rte_error_t
  */
-extern rte_error_t timer_init(uint8_t max_group_num, bool if_with_external_os);
+extern rte_error_t timer_init(uint8_t max_group_num);
 /**
  * @brief Add a new timer group into this timer handle.
  *        NOTE: this api isn't thread-safe.
@@ -61,10 +75,10 @@ extern rte_error_t timer_deinit(void);
  *
  * @param group_id
  * @param config
- * @param timer_id
+ * @param timer
  * @return rte_error_t
  */
-extern rte_error_t timer_create_new(timer_group_id_t group_id, timer_configuration_t *config, timer_id_t *timer_id);
+extern rte_error_t timer_create_new(timer_group_id_t group_id, timer_configuration_t *config, timer_impl_t **timer);
 /**
  * @brief Delete an existed timer in the select timer group.
  *
