@@ -5,8 +5,6 @@
 
 #if RTE_SHELL_ENABLE == 1
 
-/******************************* readline configuration ****************************/
-
 /* command line input buffer size(byte) */
 #define CONFIG_SHELL_INPUT_BUFFSIZE (127U)
 
@@ -18,9 +16,6 @@
  * the maximum number of history records depends on the average length of the input.
  */
 #define CONFIG_SHELL_HIST_MIN_RECORD (5U)
-
-/* shell provides a built-in help command, set 0 to disable it */
-#define CONFIG_SHELL_CMD_BUILTIN_HELP 1
 
 /* config the max number of arguments, must be no less than 1. */
 #define CONFIG_SHELL_CMD_MAX_ARGC (10U)
@@ -51,7 +46,6 @@
  *
  */
 extern void shell_putc(char ch);
-
 
 /**
  * @brief send string...
@@ -97,7 +91,6 @@ extern int shell_getc(char *ch);
  */
 extern void shell_task(void *argument);
 
-
 /**
  * @brief shell non-block interface, just react to the input character.
  * It is non-blocked (unless there is an infinite loop in your command function)
@@ -121,14 +114,13 @@ struct _shell_cmd_s;
 /**
  * @brief this is the implementation function of the command.
  *
- * @param pCmdt: pointer of the structure.
  * @param argc: the count of arguments.
  * @param argv: argument vector.
  * @return 0 if succeed, else non-zero. (return value is not used in ver1.0)
  *
  * @note the command name is the first argument, argv[0], so argc is always at least 1.
  */
-typedef  int (*shell_cmd_cb_t)(const struct _shell_cmd_s *cmd, int argc, char *const argv[]);
+typedef  int (*shell_cmd_cb_t)(int argc, char *const argv[]);
 
 // shell command structure
 typedef struct _shell_cmd_s {
@@ -156,81 +148,6 @@ typedef struct _shell_cmd_s {
 
 #define SHELL_ADD_EXE_CMD(_name, _exitf, _func, _brief, _help) \
     _shell_entry_declare(shell_cmd_t, _name) = _shell_cmd_initializar(1, _name, _exitf, _func, _brief, _help)
-
-#if CONFIG_SHELL_CMD_BUILTIN_HELP
-    #define _shell_help_subcmd_entry(_name) \
-        SHELL_SUBCMD_ENTRY(help, _name ## _subcmd_help, \
-                        "help [pattern ...]", \
-                        "    Print information about subcommands of " # _name ".\r\n" \
-                        "\r\n" \
-                        "    If PATTERN is specified, gives detailed help on all commands\r\n" \
-                        "    matching PATTERN, otherwise print the list of all available commands.\r\n" \
-                        "\r\n" \
-                        "    Arguments:\r\n" \
-                        "        PATTERN: specifiying the help topic\r\n"),
-    #define _shell_help_subcmd_declare(_name) \
-        static int _name ## _subcmd_help(const shell_cmd_t* pCmd, int argc, char* const argv[]);
-    #define _shell_help_subcmd_define(_name) \
-        static int _name ## _subcmd_help(const shell_cmd_t* pCmd, int argc, char* const argv[]) \
-        { \
-        const unsigned int subcommands_count = sizeof(_name ## _subcommands)/sizeof(shell_cmd_t); \
-        return shell_help_generic( \
-                        argc, argv, \
-                        "Help for " #_name, \
-                        _name ## _subcommands, subcommands_count); \
-        }
-#else
-    #define _shell_help_subcmd_entry(_name)
-    #define _shell_help_subcmd_declare(_name)
-    #define _shell_help_subcmd_define(_name)
-#endif  /* CONFIG_SHELL_CMD_BUILTIN_HELP */
-
-/**
- * @brief Add a sub command in a group of sub-command
- *
- * To be used as the last arguments of @ref SHELL_DEFINE_SUBCMDS()
- * The syntax is similar to @ref SHELL_ADD_CMD()
- *
- * @param _name: name of the command. Note: THIS IS NOT a string.
- * @param _func: function pointer: (*cmd)(const shell_cmd_t *, int, int, char *const[]).
- * @param _brief: brief summaries of the command. This is a string.
- * @param _help: detailed help information of the command. This is a string.
- */
-#define SHELL_SUBCMD_ENTRY(_name, _func, _brief, _help) _shell_cmd_complete(_name, _func, _brief, _help)
-
-/**
- * @brief Get the name of the function implementing a sub-command group in shell
- *
- * @param _name name of the group of sub-commands
- *
- * @note this macro is to be used for the @c _func parameter of @ref SHELL_ADD_CMD() or @c _func parameter of @ref SHELL_SUBCMD_ENTRY()
- */
-#define SHELL_SUBCMDS_FCT(_name) _name ## _shell_cmd
-
-/**
- * @brief Define a group of sub-commands in shell
- *
- * @param _name name of the group of sub-commands
- * @param fallback_fct: function that will be run if no subcommand can be found (either @c argc is 1 or argv[1] is not found in @c subcommand)
- * @param ... A list of @ref SHELL_SUBCMD_ENTRY() that define the list of sub-commands
- */
-#define SHELL_DEFINE_SUBCMDS(_name, fallback_fct, ...) \
-    _shell_help_subcmd_declare(_name) \
-    static  const shell_cmd_t _name ## _subcommands[] = { \
-            _shell_help_subcmd_entry(_name) \
-            __VA_ARGS__ }; \
-    _shell_help_subcmd_define(_name) \
-    int SHELL_SUBCMDS_FCT(_name)(const shell_cmd_t* pCmd, int argc, char* const argv[]) \
-    { \
-        const unsigned int subcommands_count = sizeof(_name ## _subcommands)/sizeof(shell_cmd_t); \
-        return shell_run_subcmd_implem(pCmd, argc, argv, \
-        fallback_fct, _name ## _subcommands, subcommands_count); \
-    }
-
-extern int shell_run_subcmd_implem(const shell_cmd_t* pCmdt,
-                int argc, char* const argv[],
-                shell_cmd_cb_t fallback_fct,
-                const shell_cmd_t* subcommands, unsigned int  subcommands_count);
 
 extern void shell_init(void);
 

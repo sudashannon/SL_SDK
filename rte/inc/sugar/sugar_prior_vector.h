@@ -31,4 +31,4 @@ extern rte_error_t sugar_prior_vector_push(sugar_pri_vec_t queue, sugar_tcb_t *t
 }
 #endif
 
-#endif /* __SUGAR_QUEUE_H */
+#endif /* __SUGAR_PRIOR_VECTOR_H */

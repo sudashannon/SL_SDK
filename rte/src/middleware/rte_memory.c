@@ -1494,7 +1494,7 @@ static void ent_trunc(mem_entry_t * e, uint32_t size)
 
 #if RTE_SHELL_ENABLE == 1
 
-int shell_cmd_mem(const shell_cmd_t *pcmd, int argc, char *const argv[])
+int shell_cmd_mem(int argc, char *const argv[])
 {
     if (argc == 2) {
         mem_bank_t bank = atoi(argv[1]);

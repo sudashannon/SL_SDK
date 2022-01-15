@@ -346,3 +346,8 @@ __attribute__((weak)) void rte_yield(void)
 {
 
 }
+
+#if RTE_SHELL_ENABLE
+
+
+#endif

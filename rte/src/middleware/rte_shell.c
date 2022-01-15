@@ -504,20 +504,6 @@ static const shell_cmd_t *shell_find_cmd(const char *cmd_name)
     return NULL;
 }
 
-static const shell_cmd_t *shell_find_sub_cmd(const char *cmd_name, const shell_cmd_t *start, uint16_t count)
-{
-    if (cmd_name == NULL) {
-        return NULL;
-    }
-    for (uint16_t i = 0; i < count; i++) {
-        const shell_cmd_t *tmp = start + i;
-        if (strcmp(cmd_name, tmp->name) == 0) {
-            return tmp;
-        }
-    }
-    return NULL;
-}
-
 static void shell_print_cmd_list(void)
 {
     for (uint16_t i = 0; i < shell_handle.command_num; i++) {
@@ -538,11 +524,9 @@ static void shell_print_cmd_help(const char *cmd_name)
     }
 }
 
-static int shell_help_generic(int argc, char *const argv[],
-            const char* preamble)
+static int shell_cmd_help(int argc, char *const argv[])
 {
     if (argc == 1) {
-        shell_puts(preamble);
         shell_puts("\r\n"
                 "Type `help name' to find out more about the function `name'.\r\n"
                 "\r\n");
@@ -554,11 +538,6 @@ static int shell_help_generic(int argc, char *const argv[],
         }
     }
     return 0;
-}
-
-static int shell_cmd_help(const shell_cmd_t *pcmd, int argc, char *const argv[])
-{
-    return shell_help_generic(argc, argv, "");
 }
 
 SHELL_ADD_CMD(help, shell_cmd_help,
@@ -671,7 +650,7 @@ void shell_task(void *argument)
             } else if (argc > 0) {
                 const shell_cmd_t *cmd = shell_find_cmd(argv[0]);
                 if (cmd) {
-                    int ret = cmd->callback(cmd, argc, argv);
+                    int ret = cmd->callback(argc, argv);
                     if (ret != 0) {
                         shell_printf("  %s: command exits with %d.\r\n", cmd->name, ret);
                     }
@@ -682,9 +661,11 @@ void shell_task(void *argument)
                 }
             }
         } else {
-            int ret = last_cmd->exit(last_cmd, argc, argv);
-            if (ret != 0) {
-                shell_printf("  %s: command exits with %d.\r\n", last_cmd->name, ret);
+            if (last_cmd->exit) {
+                int ret = last_cmd->exit(argc, argv);
+                if (ret != 0) {
+                    shell_printf("  %s: command exits with %d.\r\n", last_cmd->name, ret);
+                }
             }
             last_cmd = NULL;
         }
@@ -720,7 +701,7 @@ void shell_react(char ch)
             if (argc > 0) {
                 const shell_cmd_t *cmd = shell_find_cmd(argv[0]);
                 if (cmd) {
-                    int ret = cmd->callback(cmd, argc, argv);
+                    int ret = cmd->callback(argc, argv);
                     if (ret != 0) {
                         shell_printf("  %s: command exits with %d.\r\n", cmd->name, ret);
                     }
@@ -734,28 +715,6 @@ void shell_react(char ch)
             shell_puts(CONFIG_SHELL_PROMPT);
         }
     }
-}
-
-int shell_run_subcmd_implem(const shell_cmd_t* pCmdt,
-                int argc, char* const argv[],
-                shell_cmd_cb_t fallback_fct,
-                const shell_cmd_t* subcommands, unsigned int subcommands_count)
-{
-    if (argc > 1) {
-        const shell_cmd_t* sub_cmd = shell_find_sub_cmd(argv[1], subcommands, subcommands_count);
-
-        if (sub_cmd) {
-            return sub_cmd->callback(sub_cmd, argc - 1, argv + 1);
-        } else if(fallback_fct) {
-            return fallback_fct(pCmdt, argc, argv);
-        } else {
-            shell_printf("  %s: sub-command not found.\r\n", argv[1]);
-        }
-    } else if(fallback_fct) {
-        return fallback_fct(pCmdt, argc, argv);
-    }
-
-    return -1;
 }
 
 void shell_init(void)
