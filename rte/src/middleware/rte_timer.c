@@ -271,7 +271,7 @@ rte_error_t timer_resume(uint8_t group_id, uint8_t timer_id)
  *        or in the timer thread when with OS.
  *
  */
-void timer_tick_handle(tick_unit_t delta_tick)
+void timer_tick_handle(void)
 {
     // Loop through each group in the group table.
     for(uint8_t i = 0; i < timer_handle_instance.group_count; i++) {
@@ -284,7 +284,7 @@ void timer_tick_handle(tick_unit_t delta_tick)
             if (timer->config.CNTEN) {
                 /* Decrease counter if needed */
                 if (timer->CNT) {
-                    timer->CNT -= delta_tick;
+                    timer->CNT--;
                 }
             }
         }
@@ -293,7 +293,7 @@ void timer_tick_handle(tick_unit_t delta_tick)
 #if RTE_USE_EXTERNAL_OS
     timer_group_poll(SUGAR_TIMER_GROUP);
 #else
-    timer_handle_instance.tick_count += delta_tick;
+    timer_handle_instance.tick_count++;
 #if RTE_USE_SUGAR_KERNEL
     if (sugar_kernel_handle.if_started) {
         sugar_interrupt_enter();

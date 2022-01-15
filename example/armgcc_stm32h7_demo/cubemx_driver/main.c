@@ -69,7 +69,7 @@ static size_t rte_data_out(uint8_t *data, size_t length)
 int shell_getc(char *ch)
 {
     uint32_t read_size = 1;
-    if (hal_device_read_async("com_0", (uint8_t *)ch, &read_size, 1000) != RTE_SUCCESS) {
+    if (hal_device_read_async("com_0", (uint8_t *)ch, &read_size, SUGAR_WAIT_FOREVER) != RTE_SUCCESS) {
         return 0;
     }
     return 1;
@@ -79,7 +79,7 @@ static void main_thread(void *arg)
 {
     while (1) {
       gpio_toggle(GPIO_LED0);
-      sugar_delay_tick(500);
+      sugar_delay_tick(50);
     }
 }
 /* USER CODE END 0 */

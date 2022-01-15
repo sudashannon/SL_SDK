@@ -114,7 +114,7 @@ extern rte_error_t timer_resume(uint8_t group_id, uint8_t timer_id);
  *        or in the timer thread when with OS.
  *
  */
-extern void timer_tick_handle(tick_unit_t delta_tick);
+extern void timer_tick_handle(void);
 /**
  * @brief Return current time in tick count.
  *
