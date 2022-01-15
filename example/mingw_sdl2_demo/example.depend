@@ -4514,7 +4514,7 @@
 1634630391 f:\01work\03sl_sdk\rte\src\utils\lvgl\src\misc\lv_utils.h
 	<stdint.h>
 
-1642054875 f:\01work\03sl_sdk\rte\inc\rte_include.h
+1642157624 f:\01work\03sl_sdk\rte\inc\rte_include.h
 	"middle_layer/rte.h"
 	"middle_layer/rte_log.h"
 	"middle_layer/rte_memory.h"
@@ -4529,9 +4529,10 @@
 	"image_process/image_process.h"
 	"sugar/sugar_kernel.h"
 	"sugar/sugar_scheduler.h"
-	"sugar/sugar_queue.h"
+	"sugar/sugar_prior_vector.h"
+	"sugar/sugar_sema.h"
 
-1642054843 f:\01work\03sl_sdk\rte\inc\middle_layer\rte.h
+1642157624 f:\01work\03sl_sdk\rte\inc\middle_layer\rte.h
 	<stdarg.h>
 	<stdint.h>
 	<stddef.h>
@@ -4543,7 +4544,7 @@
 	<float.h>
 	<limits.h>
 
-1642071108 f:\01work\03sl_sdk\rte\inc\middle_layer\rte_log.h
+1642157621 f:\01work\03sl_sdk\rte\inc\middle_layer\rte_log.h
 	"rte.h"
 
 1641973839 f:\01work\03sl_sdk\rte\inc\middle_layer\rte_memory.h
@@ -4551,10 +4552,10 @@
 
 1639840717 f:\01work\03sl_sdk\rte\inc\middle_layer\rte_atomic.h
 
-1642054589 f:\01work\03sl_sdk\rte\inc\middle_layer\rte_timer.h
+1642245724 f:\01work\03sl_sdk\rte\inc\middle_layer\rte_timer.h
 	"rte.h"
 
-1641893262 f:\01work\03sl_sdk\rte\inc\middle_layer\rte_shell.h
+1642236302 f:\01work\03sl_sdk\rte\inc\middle_layer\rte_shell.h
 	"rte.h"
 
 1639840717 f:\01work\03sl_sdk\rte\inc\data_structure\ds_vector.h
@@ -4988,7 +4989,7 @@
 	"../../inc/middle_layer/rte_timer.h"
 	"../../inc/middle_layer/rte_memory.h"
 
-1639840717 source:f:\01work\03sl_sdk\rte\src\data_structure\ds_linklist.c
+1642157624 source:f:\01work\03sl_sdk\rte\src\data_structure\ds_linklist.c
 	"../../inc/data_structure/ds_linklist.h"
 	"../../inc/middle_layer/rte_memory.h"
 
@@ -5000,7 +5001,7 @@
 	"../../inc/data_structure/ds_vector.h"
 	"../../inc/middle_layer/rte_memory.h"
 
-1642054802 source:f:\01work\03sl_sdk\rte\src\middleware\rte_log.c
+1642157621 source:f:\01work\03sl_sdk\rte\src\middleware\rte_log.c
 	"../../inc/middle_layer/rte_log.h"
 	<stdio.h>
 	<string.h>
@@ -5008,13 +5009,13 @@
 	<stdlib.h>
 	<stdbool.h>
 
-1641123010 source:f:\01work\03sl_sdk\rte\src\middleware\rte_memory.c
+1642243945 source:f:\01work\03sl_sdk\rte\src\middleware\rte_memory.c
 	"../../inc/middle_layer/rte_memory.h"
 	"../../inc/middle_layer/rte_log.h"
 	"../../inc/middle_layer/rte_shell.h"
 	<cmsis_compiler.h>
 
-1641965483 source:f:\01work\03sl_sdk\rte\src\middleware\rte_shell.c
+1642240913 source:f:\01work\03sl_sdk\rte\src\middleware\rte_shell.c
 	"../../inc/middle_layer/rte_shell.h"
 	"../../inc/middle_layer/rte_log.h"
 	"../../inc/middle_layer/rte_timer.h"
@@ -5022,10 +5023,13 @@
 	<string.h>
 	<stdarg.h>
 
-1642056056 source:f:\01work\03sl_sdk\rte\src\middleware\rte_timer.c
+1642248314 source:f:\01work\03sl_sdk\rte\src\middleware\rte_timer.c
 	"../../inc/middle_layer/rte_timer.h"
 	"../../inc/middle_layer/rte_memory.h"
 	"../../inc/middle_layer/rte_log.h"
+	"../../inc/middle_layer/rte_shell.h"
+	"../../inc/sugar/sugar_kernel.h"
+	"../../inc/sugar/sugar_scheduler.h"
 	"../../inc/data_structure/ds_vector.h"
 
 1637732797 source:f:\01work\03sl_sdk\rte\src\softbus\softbus.c
@@ -5679,7 +5683,7 @@
 	"begin_code.h"
 	"close_code.h"
 
-1637732796 source:f:\01work\03sl_sdk\example\test_linklist.c
+1642157624 source:f:\01work\03sl_sdk\example\test_linklist.c
 	<stdio.h>
 	<pthread.h>
 	<unistd.h>
@@ -5734,7 +5738,7 @@
 1634630110 source:f:\01work\03sl_sdk\example\mingw_sdl2_demo\mousewheel.c
 	"mousewheel.h"
 
-1642061821 source:f:\01work\03sl_sdk\example\rte_adapter_sdl2.c
+1642157624 source:f:\01work\03sl_sdk\example\rte_adapter_sdl2.c
 	"rte_include.h"
 	<stdio.h>
 	"SDL.h"
@@ -5752,7 +5756,7 @@
 	"rte_include.h"
 	"SDL.h"
 
-1642061780 source:f:\01work\03sl_sdk\example\mingw_sdl2_demo\gui_thread.c
+1642157624 source:f:\01work\03sl_sdk\example\mingw_sdl2_demo\gui_thread.c
 	"SDL.h"
 	"monitor.h"
 	"lvgl.h"
@@ -7362,16 +7366,17 @@
 	"rte_include.h"
 	"SDL.h"
 
-1642070488 f:\01work\03sl_sdk\rte\inc\sugar\sugar_kernel.h
+1642241516 f:\01work\03sl_sdk\rte\inc\sugar\sugar_kernel.h
 	"../middle_layer/rte.h"
 	"../middle_layer/rte_timer.h"
 	"../data_structure/ds_rbtree.h"
 	"sugar_arch_include.h"
 
-1642061868 f:\01work\03sl_sdk\rte\inc\sugar\sugar_arch_include.h
+1642157624 f:\01work\03sl_sdk\rte\inc\sugar\sugar_arch_include.h
+	"../middle_layer/rte.h"
 	"arch/arm_v7m/sugar_arch.h"
 
-1642058791 f:\01work\03sl_sdk\rte\inc\sugar\arch\arm_v7m\sugar_arch.h
+1642157624 f:\01work\03sl_sdk\rte\inc\sugar\arch\arm_v7m\sugar_arch.h
 	"stm32h7xx_hal.h"
 	"sugar_offset.h"
 
@@ -7385,7 +7390,7 @@
 	"../middle_layer/rte.h"
 	"sugar_kernel.h"
 
-1642061913 source:f:\01work\03sl_sdk\example\test_sugar_queue.c
+1642157624 source:f:\01work\03sl_sdk\example\test_sugar_queue.c
 	<stdio.h>
 	"rte_include.h"
 	"SDL.h"
@@ -9603,4 +9608,20 @@
 
 1642125471 source:c:\users\shannon\desktop\sl_sdk\example\mingw_sdl2_demo\mousewheel.c
 	"mousewheel.h"
+
+1642236302 f:\01work\03sl_sdk\rte\inc\sugar\sugar_prior_vector.h
+	"../middle_layer/rte.h"
+	"sugar_kernel.h"
+
+1642157624 f:\01work\03sl_sdk\rte\inc\sugar\sugar_sema.h
+	"../middle_layer/rte.h"
+	"sugar_kernel.h"
+
+1642241686 source:f:\01work\03sl_sdk\rte\src\sugar\sugar_prior_vector.c
+	"../../inc/sugar/sugar_prior_vector.h"
+	"../../inc/middle_layer/rte_memory.h"
+	"../../inc/middle_layer/rte_log.h"
+	"../../inc/middle_layer/rte_atomic.h"
+	"../../inc/data_structure/ds_rbtree.h"
+	"../../inc/data_structure/ds_vector.h"
 

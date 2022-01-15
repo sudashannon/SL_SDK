@@ -490,7 +490,7 @@ __exit_upgrade:
 
 #if RTE_SHELL_ENABLE == 1
 
-int shell_cmd_fota(const shell_cmd_t *pcmd, int argc, char *const argv[])
+int shell_cmd_fota(int argc, char *const argv[])
 {
 	char put_buf[24];
 	char paname[2][FAL_DEV_NAME_MAX] = {

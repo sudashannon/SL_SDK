@@ -75,7 +75,7 @@ static bool upgrade_status_get(void)
     return upgrade_status;
 }
 
-int shell_upgrade_cmd(const shell_cmd_t *pcmd, int argc, char *const argv[])
+int shell_upgrade_cmd(int argc, char *const argv[])
 {
     if (argc < 2) {
         shell_printf("You must input upgrade way!\r\n");

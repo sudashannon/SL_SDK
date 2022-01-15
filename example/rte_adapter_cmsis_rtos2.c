@@ -103,7 +103,7 @@ uint32_t rte_get_tick(void)
  */
 void HAL_Delay(uint32_t Delay)
 {
-    osDelay(Delay);
+    osDelay(Delay * 1000/OS_TICK_FREQ);
 }
 /**
  * @brief Wrapper for system delay, which is adapted for CMSIS-RTOS2.

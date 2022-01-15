@@ -1857,7 +1857,7 @@ uint8_t w25qxx_spi_test(void)
     return 0;
 }
 
-int shell_cmd_qspitest(const shell_cmd_t *pcmd, int argc, char *const argv[])
+int shell_cmd_qspitest(int argc, char *const argv[])
 {
     if (argc == 1) {
         w25qxx_qspi_test();
@@ -1870,7 +1870,7 @@ int shell_cmd_qspitest(const shell_cmd_t *pcmd, int argc, char *const argv[])
 SHELL_ADD_CMD(qspitest, shell_cmd_qspitest,
                     "test w25qxx exe flash with qspi interface.","\r\r\n");
 
-int shell_cmd_spitest(const shell_cmd_t *pcmd, int argc, char *const argv[])
+int shell_cmd_spitest(int argc, char *const argv[])
 {
     if (argc == 1) {
         w25qxx_spi_test();

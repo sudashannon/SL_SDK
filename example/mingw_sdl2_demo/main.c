@@ -26,19 +26,18 @@ void end_main_loop(void)
 static int main_thread(void *param)
 {
     rte_init();
- /*   memory_demon(BANK_DEFAULT);
+    memory_demon(BANK_DEFAULT);
     test_log();
     test_vector();
     test_ringbuffer();
     test_hashmap();
     test_linklist();
     test_rbtree();
-    memory_demon(BANK_DEFAULT);*/
-    test_sugar_queue();
+    memory_demon(BANK_DEFAULT);
     RTE_LOGI("Hello world!");
     SDL_Thread *gui_thread_handle = SDL_CreateThread(gui_thread, "gui_thread", NULL);
     while(running_flag) {
-        timer_tick_handle(1);
+        timer_tick_handle();
         SDL_Delay(1);
     }
     rte_deinit();
