@@ -283,7 +283,7 @@ rte_error_t sugar_sema_acquire(sugar_semaphore_t sem, tick_unit_t timeout)
                         goto end;
                     } else {
                         /* Set suspended status for the current thread */
-                        curr_tcb_ptr->if_suspended = true;
+                        curr_tcb_ptr->thread_state = SUGAR_THREAD_SUSPEND_STATE;
                         /* Track errors */
                         status = RTE_SUCCESS;
                         /* Register a timer callback if requested */
@@ -309,7 +309,7 @@ rte_error_t sugar_sema_acquire(sugar_semaphore_t sem, tick_unit_t timeout)
                                 /* Timer registration failed */
                                 /* Clean up and return to the caller */
                                 OS_ASSERT(list_pop_tail_value (semaphore_impl->wait_thread_list) == curr_tcb_ptr);
-                                curr_tcb_ptr->if_suspended = false;
+                                curr_tcb_ptr->thread_state = SUGAR_THREAD_RUNNING_STATE;
                                 curr_tcb_ptr->suspend_timer = NULL;
                                 arch_critical_exit();
                                 goto end;

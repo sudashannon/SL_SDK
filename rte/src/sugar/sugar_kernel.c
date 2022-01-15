@@ -12,9 +12,11 @@
 #include "../../inc/sugar/sugar_kernel.h"
 #include "../../inc/sugar/sugar_prior_vector.h"
 #include "../../inc/sugar/sugar_scheduler.h"
+#include "../../inc/data_structure/ds_linklist.h"
 #include "../../inc/middle_layer/rte_memory.h"
 #include "../../inc/middle_layer/rte_log.h"
 #include "../../inc/middle_layer/rte_atomic.h"
+#include "../../inc/middle_layer/rte_shell.h"
 
 /** Bytecode to fill thread stacks with for stack-checking purposes */
 #define STACK_CHECK_BYTE    0x5A
@@ -96,12 +98,22 @@ rte_error_t sugar_kernel_init(void *idle_thread_stack_bottom, uint32_t idle_thre
         idle_thread_stack_bottom = memory_calloc(BANK_OS, idle_thread_stack_size);
         OS_ASSERT(idle_thread_stack_bottom);
     }
+    sugar_kernel_handle.thread_list = list_create(NULL);
+    if (sugar_kernel_handle.thread_list == NULL) {
+        if (idle_thread_stack_bottom == NULL &&
+            idle_thread_stack_size) {
+            memory_free(BANK_OS, idle_thread_stack_bottom);
+        }
+        retval = RTE_ERR_NO_RSRC;
+        goto end;
+    }
     sugar_kernel_handle.ready_queue = sugar_prior_vector_create();
     if (sugar_kernel_handle.ready_queue == NULL) {
         if (idle_thread_stack_bottom == NULL &&
             idle_thread_stack_size) {
             memory_free(BANK_OS, idle_thread_stack_bottom);
         }
+        list_destroy(sugar_kernel_handle.thread_list);
         retval = RTE_ERR_NO_RSRC;
         goto end;
     }
@@ -225,7 +237,7 @@ sugar_tcb_t *sugar_thread_create(uint8_t priority,
     uint8_t *stack_top = NULL;
     sugar_tcb_t *tcb_ptr = NULL;
 #if SUGAR_ENABLE_STACK_CHECKING
-	int32_t count;
+	int32_t count = 0;
 #endif
     tcb_ptr = memory_calloc(BANK_OS, sizeof(sugar_tcb_t));
     if (tcb_ptr == NULL) {
@@ -242,10 +254,8 @@ sugar_tcb_t *sugar_thread_create(uint8_t priority,
         if (stack_bottom == NULL) {
             stack_bottom = memory_calloc(BANK_OS, stack_size);
         }
-        OS_LOGI("Thread stack bottom %p", stack_bottom);
         /* Set up the TCB initial values */
-        tcb_ptr->if_suspended = false;
-        tcb_ptr->if_terminated = false;
+        tcb_ptr->thread_state = SUGAR_THREAD_INVALID_STATE;
         tcb_ptr->priority = priority;
         tcb_ptr->suspend_timer = NULL;
         tcb_ptr->suspend_wake_status = SUGAR_SUSPEND_INVALID_STATE;
@@ -263,7 +273,6 @@ sugar_tcb_t *sugar_thread_create(uint8_t priority,
          * stack size is not a multiple of the stack entry/alignment size.
          */
         stack_top = (uint8_t *)stack_bottom + (stack_size & ~(ARCH_STACK_ALIGN_SIZE - 1)) - ARCH_STACK_ALIGN_SIZE;
-        OS_LOGI("Thread stack top %p, start at %p, end at %p", stack_top, stack_bottom, stack_bottom + stack_size);
         /**
          * Additional processing only required if stack-checking is
          * enabled. Incurs a slight overhead on each thread creation
@@ -279,7 +288,7 @@ sugar_tcb_t *sugar_thread_create(uint8_t priority,
 
             /**
              * Prefill the stack with a known value. This is used later in
-             * calls to atomThreadStackCheck() to get an indication of how
+             * calls to sugar_thread_check_stack() to get an indication of how
              * much stack has been used during runtime.
              */
             count = (int32_t)stack_size;
@@ -315,6 +324,8 @@ sugar_tcb_t *sugar_thread_create(uint8_t priority,
             /* Queue-related error */
             return NULL;
         } else {
+            /* Push the thread into the thread list */
+            list_push_tail_value(sugar_kernel_handle.thread_list, tcb_ptr);
             /* Exit critical region */
             arch_critical_exit();
             /**
@@ -328,7 +339,6 @@ sugar_tcb_t *sugar_thread_create(uint8_t priority,
             /* Success */
         }
     }
-    OS_LOGI("Create new task %p, body is at %p, stack top is at %p", tcb_ptr, tcb_ptr->entry_point, tcb_ptr->stack_ptr);
 end:
     return tcb_ptr;
 }
@@ -369,8 +379,7 @@ rte_error_t sugar_thread_check_stack(sugar_tcb_t *tcb_ptr, uint32_t *used_bytes,
     uint8_t *stack_ptr;
     int i;
 
-    if ((tcb_ptr == NULL) || (used_bytes == NULL) || (free_bytes == NULL))
-    {
+    if ((tcb_ptr == NULL) || (used_bytes == NULL) || (free_bytes == NULL)) {
         /* Bad parameters */
         status = RTE_ERR_PARAM;
     } else {
@@ -396,3 +405,51 @@ rte_error_t sugar_thread_check_stack(sugar_tcb_t *tcb_ptr, uint32_t *used_bytes,
     return (status);
 }
 #endif /* SUGAR_ENABLE_STACK_CHECKING */
+
+#if RTE_SHELL_ENABLE
+
+int thread_iterator_callback(void *item, size_t idx, void *user)
+{
+    sugar_tcb_t *task = (sugar_tcb_t *)item;
+    uint32_t used_bytes = 0, free_bytes = 0;
+    sugar_thread_check_stack(task, &used_bytes, &free_bytes);
+    shell_printf("thread [%03d] entry 0x%08p param 0x%08p\r\n"
+                "---stack: used %d free %d start address 0x%08p\r\n"
+                "---status: %d\r\n"
+                "---priority: %d\r\n",
+                idx, task->entry_point, task->user_param,
+                used_bytes, free_bytes, task->stack_bottom,
+                task->thread_state, task->priority);
+    return 1;
+}
+
+static int shell_cmd_sugar(int argc, char *const argv[])
+{
+    if (argc == 2) {
+        arch_critical_store();
+        arch_critical_enter();
+        if (strcmp(argv[1], "timer") == 0) {
+            timer_group_demon(sugar_kernel_handle.timer_group);
+        } else if (strcmp(argv[1], "memory") == 0) {
+            memory_demon(BANK_OS);
+        } else if (strcmp(argv[1], "thread") == 0) {
+            shell_printf("The sugar kernel has %d threads now.\r\n", list_count(sugar_kernel_handle.thread_list));
+            list_foreach_value(sugar_kernel_handle.thread_list, thread_iterator_callback, NULL);
+        } else {
+            shell_printf("Can't recognize command %s\r\n", argv[1]);
+        }
+        arch_critical_exit();
+        return 0;
+    }
+    return -1;
+}
+
+SHELL_ADD_CMD(sugar, shell_cmd_sugar,
+            "sugar [pattern ...]    This command is used for sugar kernel monitor and debug.",
+            "\r\n"
+            "    Now sugar command can be used to monitor and debug following sub modules:\r\n"
+            "    ----timer: The running timer's detail in sugar kernel.\r\n"
+            "    ----memory: The running kernel's memory usage.\r\n"
+            "    ----thread: The running kernel's all thread information.\r\n");
+
+#endif

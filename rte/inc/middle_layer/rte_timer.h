@@ -140,5 +140,11 @@ extern void rte_block_tick(tick_unit_t delay_tick);
  * @param void
  */
 extern void rte_yield(void);
-
+/**
+ * @brief Demon a selected timer group.
+ *
+ * @param group_id
+ * @return void
+ */
+extern void timer_group_demon(timer_group_id_t group_id);
 #endif

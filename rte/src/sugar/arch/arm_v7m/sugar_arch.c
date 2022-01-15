@@ -131,7 +131,7 @@ void arch_thread_context_init(sugar_tcb_t *tcb_ptr, void *stack_top,
      * the thread's real entry point and param, so the thread shell knows
      * what function to call.
      */
-    tcb_ptr->stack_ptr = (uintptr_t)tsk_ctx;
+    tcb_ptr->initial_stack_top = (uintptr_t)tsk_ctx;
     tcb_ptr->entry_point = entry_point;
     tcb_ptr->user_param = user_param;
 

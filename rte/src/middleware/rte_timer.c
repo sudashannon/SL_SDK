@@ -12,6 +12,7 @@
 #include "../../inc/middle_layer/rte_timer.h"
 #include "../../inc/middle_layer/rte_memory.h"
 #include "../../inc/middle_layer/rte_log.h"
+#include "../../inc/middle_layer/rte_shell.h"
 #include "../../inc/sugar/sugar_kernel.h"
 #include "../../inc/sugar/sugar_scheduler.h"
 #include "../../inc/data_structure/ds_vector.h"
@@ -24,6 +25,12 @@
 #define TIMER_LOGD(...) LOG_DEBUG(THIS_MODULE, __VA_ARGS__)
 #define TIMER_LOGV(...) LOG_VERBOSE(THIS_MODULE, __VA_ARGS__)
 #define TIMER_ASSERT(v) LOG_ASSERT(THIS_MODULE, v)
+
+#if RTE_SHELL_ENABLE == 1
+    #define timer_print_wapper shell_printf
+#else
+    #define timer_print_wapper TIMER_LOGI
+#endif
 
 typedef struct
 {
@@ -346,8 +353,29 @@ __attribute__((weak)) void rte_yield(void)
 {
 
 }
-
-#if RTE_SHELL_ENABLE
-
-
-#endif
+/**
+ * @brief Demon a selected timer group.
+ *
+ * @param group_id
+ * @return void
+ */
+void timer_group_demon(timer_group_id_t group_id)
+{
+    if(group_id >= timer_handle_instance.group_count)
+        return;
+    ds_vector_lock(timer_handle_instance.timer_group[group_id].timer_table);
+    timer_print_wapper("The timer group %d has %d timer now.\r\n",
+                group_id, ds_vector_length(timer_handle_instance.timer_group[group_id].timer_table));
+    uint8_t i = 0;
+    timer_impl_t *timer = NULL;
+    // Loop through each task in the task table.
+    VECTOR_FOR_EACH_SAFELY(i, timer, timer_handle_instance.timer_group[group_id].timer_table) {
+        timer_print_wapper("timer [%03d] entry 0x%08p param 0x%08p\r\n"
+                    "---ARR: %d\r\n"
+                    "---CNT: %d\r\n"
+                    "---index: %d\r\n",
+                    i, timer->callback, timer->parameter,
+                    timer->ARR, timer->CNT, timer->index);
+    }
+    ds_vector_unlock(timer_handle_instance.timer_group[group_id].timer_table);
+}

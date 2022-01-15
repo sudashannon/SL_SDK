@@ -66,7 +66,8 @@ static void sugar_context_switch(sugar_tcb_t *old_tcb, sugar_tcb_t *new_tcb)
      * new thread is now ready to run so clear its suspend status in
      * preparation for it waking up.
      */
-    new_tcb->if_suspended = false;
+    old_tcb->thread_state = SUGAR_THREAD_READY_STATE;
+    new_tcb->thread_state = SUGAR_THREAD_RUNNING_STATE;
     /**
      * Check if the new thread is actually the current one, in which
      * case we don't need to do any context switch. This can happen
@@ -124,8 +125,7 @@ void sugar_scheduler(bool if_in_tickhandle)
      * terminated (run to completion), then unconditionally dequeue
      * the next thread for execution.
      */
-    if ((sugar_kernel_handle.current_tcb->if_suspended == true) ||
-        (sugar_kernel_handle.current_tcb->if_terminated == true)) {
+    if ((sugar_kernel_handle.current_tcb->thread_state == SUGAR_THREAD_SUSPEND_STATE)) {
         /**
          * Dequeue the next ready to run thread. There will always be
          * at least the idle thread waiting. Note that this could
@@ -302,7 +302,7 @@ rte_error_t sugar_delay_tick(tick_unit_t ticks)
         arch_critical_enter();
 
         /* Set suspended status for the current thread */
-        current_tcb->if_suspended = true;
+        current_tcb->thread_state = SUGAR_THREAD_SUSPEND_STATE;
 
         /* Register the timer callback */
         /* Fill out the data and the timer callback request structure needed by the callback to wake us up */

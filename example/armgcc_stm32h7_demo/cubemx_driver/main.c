@@ -144,7 +144,7 @@ int main(void)
     NULL,
     NULL,
     1024,
-    false
+    true
   );
   /* Create the shell thread */
   shell_thread_tcb = sugar_thread_create(
@@ -153,7 +153,7 @@ int main(void)
     NULL,
     NULL,
     10240,
-    false
+    true
   );
   /* Start the sugar kernel */
   sugar_kernel_start();

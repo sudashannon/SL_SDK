@@ -38,7 +38,7 @@ void rte_init(void)
     log_init(NULL, NULL, rte_get_tick);
     timer_init(RTE_MAX_TIMER_GROUP_SIZE);
     /* Init sugar kernel */
-    sugar_kernel_init(NULL, 512, false);
+    sugar_kernel_init(NULL, 512, true);
     shell_init();
 }
 

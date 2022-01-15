@@ -541,8 +541,7 @@ static int shell_cmd_help(int argc, char *const argv[])
 }
 
 SHELL_ADD_CMD(help, shell_cmd_help,
-            "help [pattern ...]",
-            "    Print information about builtin commands.\r\n"
+            "help [command_name]    Print information about builtin commands.",
             "\r\n"
             "    If PATTERN is specified, gives detailed help on all commands\r\n"
             "    matching PATTERN, otherwise print the list of all available commands.\r\n"

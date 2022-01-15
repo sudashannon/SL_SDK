@@ -261,7 +261,7 @@ rte_error_t sugar_prior_vector_push(sugar_pri_vec_t pri_vec, sugar_tcb_t *tcb)
             if (element->priority <= queue_impl->highest_priority) {
                 queue_impl->highest_priority = element->priority;
             }
-            OS_LOGI("Try to add task's array %p with pro %d, now highest pro %d", element, element->priority, queue_impl->highest_priority);
+            tcb->thread_state = SUGAR_THREAD_READY_STATE;
         }
     }
 end:

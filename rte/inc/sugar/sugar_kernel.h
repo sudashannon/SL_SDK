@@ -23,7 +23,7 @@ extern "C" {
 
 /* Idle thread priority (lowest) */
 #define SUGAR_IDLE_THREAD_PRIORITY    255
-#define SUGAR_ENABLE_STACK_CHECKING   0
+#define SUGAR_ENABLE_STACK_CHECKING   1
 #define SUGAR_TCB_FIFO_CAPABILITY     64
 #define SUGAR_TIMER_GROUP             0
 
@@ -38,10 +38,16 @@ extern "C" {
 #define SUGAR_STACK_ALIGN(p, a)     (typeof(p))((typeof(a))(p) & ~((a) - 1))
 
 typedef int8_t sugar_suspend_state_t;
-#define SUGAR_SUSPEND_INVALID_STATE         -1
+#define SUGAR_SUSPEND_INVALID_STATE        -1
 #define SUGAR_SUSPEND_OK_STATE              0
 #define SUGAR_SUSPEND_DELETED_STATE         1
 #define SUGAR_SUSPEND_TIMEOUT_STATE         2
+
+typedef int8_t sugar_thread_state_t;
+#define SUGAR_THREAD_INVALID_STATE         -1
+#define SUGAR_THREAD_READY_STATE            0
+#define SUGAR_THREAD_RUNNING_STATE          1
+#define SUGAR_THREAD_SUSPEND_STATE          2
 
 #define SUGAR_WAIT_FOREVER                  TIME_MAX_DELAY
 #define SUGAR_WAIT_NONE                     0
@@ -52,7 +58,7 @@ typedef struct sugar_tcb
      * Thread's current stack pointer. When a thread is scheduled
      * out the architecture port can save its stack pointer here.
      */
-    uintptr_t stack_ptr;
+    uintptr_t initial_stack_top;
     /* Thread's port specific private data */
 #if defined (ARCH_PRIV_STRUCT_DEFINE)
     ARCH_PRIV_STRUCT_DEFINE;
@@ -67,15 +73,15 @@ typedef struct sugar_tcb
     uintptr_t stack_bottom;         /* Pointer to bottom of stack allocation */
     uint32_t stack_size;            /* Size of stack allocation in bytes */
 #endif
-    /* Suspension data */
-    bool if_suspended;              /* TRUE if task is currently suspended */
-    bool if_terminated;             /* TRUE if task is being terminated (run to completion) */
+    /* Status flag for the thread */
+    sugar_thread_state_t thread_state;
     sugar_suspend_state_t suspend_wake_status;    /* Status returned to woken suspend calls */
     /* Thread priority (0-255) */
     uint8_t priority;
 } sugar_tcb_t;
 
 typedef struct sugar_kernel {
+    void *thread_list;
     /**
      * This is the head of the queue of threads that are ready to run. It is
      * ordered by priority, with the higher priority threads coming first. Where
