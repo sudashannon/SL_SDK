@@ -57,9 +57,12 @@ typedef struct sugar_tcb
     /*
      * Thread's current stack pointer. When a thread is scheduled
      * out the architecture port can save its stack pointer here.
+     * NOTE: Should never be modified offset.
      */
     uintptr_t initial_stack_top;
-    /* Thread's port specific private data */
+    /* Thread's port specific private data
+     * NOTE: Should never be modified offset.
+     */
 #if defined (ARCH_PRIV_STRUCT_DEFINE)
     ARCH_PRIV_STRUCT_DEFINE;
 #endif

@@ -272,7 +272,7 @@ sugar_tcb_t *sugar_thread_create(uint8_t priority,
          * for the architecture. This may discard the top few bytes if the
          * stack size is not a multiple of the stack entry/alignment size.
          */
-        stack_top = (uint8_t *)stack_bottom + (stack_size & ~(ARCH_STACK_ALIGN_SIZE - 1)) - ARCH_STACK_ALIGN_SIZE;
+        stack_top = (uint8_t *)MEM_MODIFY_ALIGN_DOWN((uintptr_t)((uint8_t *)stack_bottom + stack_size), ARCH_STACK_ALIGN_SIZE);
         /**
          * Additional processing only required if stack-checking is
          * enabled. Incurs a slight overhead on each thread creation

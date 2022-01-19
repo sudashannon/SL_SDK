@@ -27,15 +27,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "../../../../inc/sugar/arch/arm_v7m/sugar_offset.h"
+#include "../../../../inc/sugar/arch/arm_cortex-m/sugar_arch_define.h"
 
 .syntax unified
-
-/**
- * Create more readable defines for usable intruction set and FPU
- */
-#define THUMB_2
-#define WITH_FPU
 
 /**
  * Extern variables needed for context switching and first thread restore
@@ -193,6 +187,7 @@ asm_arch_first_thread_restore:
 .size   asm_arch_first_thread_restore, . - asm_arch_first_thread_restore
 .endfunc
 
+
 .global PendSV_Handler
 .func   PendSV_Handler
 .type   PendSV_Handler,%function
@@ -238,12 +233,12 @@ PendSV_Handler:
      */
     mrs     r3,         PSP
 
-#if defined(THUMB_2)
+#if ARCH_CORTEX_M >= 0x03
     /**
      * Save old thread's context on Cortex-M[34]
      */
 
-#if defined(WITH_FPU)
+#if ARCH_WITH_FPU
     /* Check if FPU was used by thread and store registers if necessary */
     tst     lr,         FPU_USED
     it      eq
@@ -254,7 +249,8 @@ PendSV_Handler:
      * fault handler to store the FPU registers if another thread
      * tries using it
      */
-#endif // WITH_FPU
+
+#endif // ARCH_WITH_FPU
 
     /* Push running thread's remaining registers on stack */
     stmdb   r3!,        {r4-r11, lr}
@@ -291,7 +287,7 @@ PendSV_Handler:
 
     /* Re-adjust r3 to point at top of stack */
     subs    r3,         r3, #32
-#endif // !THUMB_2
+#endif // !ARCH_CORTEX_M
     /**
      * Address of running TCB still in r1. Store thread's current stack top
      * into its sp_save_ptr, which is the struct's first element.
@@ -320,12 +316,12 @@ PendSV_Handler:
      */
     ldr     r3,         [r2, #0]
 
-#if defined(THUMB_2)
+#if ARCH_CORTEX_M >= 0x03
 
     /* Cortex-M[34], restore thread's task stack frame */
     ldmia   r3!,        {r4-r11, lr}
 
-#if defined(WITH_FPU)
+#if ARCH_WITH_FPU
     /**
      * Check if FPU was used by new thread and restore registers if necessary.
      */
@@ -337,8 +333,8 @@ PendSV_Handler:
      * TODO: only restore FPU registers if FPU was used by another thread
      * between this thread being scheduled out and now.
      */
-#endif // WITH_FPU
-#else // !THUMB_2
+#endif // ARCH_WITH_FPU
+#else // !ARCH_CORTEX_M
 
     /**
      * Thread restore for Cortex-M0
@@ -366,7 +362,7 @@ PendSV_Handler:
      */
     ldmia   r3!,        {r4-r7}
     adds    r3,         r3, #20
-#endif // !THUMB_2
+#endif // !ARCH_CORTEX_M
 
     /* Set process stack pointer to new thread's stack*/
     msr     PSP,        r3

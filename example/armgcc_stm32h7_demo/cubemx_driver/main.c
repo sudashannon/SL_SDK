@@ -62,7 +62,7 @@ sugar_tcb_t *shell_thread_tcb = NULL;
 /* USER CODE BEGIN 0 */
 static size_t rte_data_out(uint8_t *data, size_t length)
 {
-    hal_device_write_sync("com_0", data, length, HAL_MAX_DELAY);
+    HAL_UART_Transmit(&huart1, data, length, HAL_MAX_DELAY);
     return length;
 }
 

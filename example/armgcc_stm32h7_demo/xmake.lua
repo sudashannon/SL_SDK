@@ -23,8 +23,8 @@ target("stm32h7_demo")
                 "../../rte/utils/segger_hardfault_handle/SEGGER_HardFaultHandler.c",
                 "../../rte/utils/segger_hardfault_handle/HardFaultHandler.S")
     if is_arch("armv7-m") then
-        add_files("../../rte/src/sugar/arch/arm_v7m/*.c")
-        add_files("../../rte/src/sugar/arch/arm_v7m/*.S")
+        add_files("../../rte/src/sugar/arch/arm_cortex-m/*.c")
+        add_files("../../rte/src/sugar/arch/arm_cortex-m/*.S")
     end
     add_files("../../sis/cmsis/device/stm32h7/src/gcc/startup_stm32h750xx.s",
                 "../../sis/cmsis/device/stm32h7/src/system_stm32h7xx.c",
@@ -49,15 +49,17 @@ target("stm32h7_demo")
                     "../../rte/inc",
                     "../../hal/inc")
     add_cxflags("-DSTM32H750xx", "-DUSE_HAL_DRIVER",
-                "-mcpu=cortex-m7", "-mthumb", "-mfpu=fpv5-d16",
+                "-mcpu=cortex-m7", "-mthumb", "-mfpu=fpv5-d16", "-mfloat-abi=hard",
                 "-O0",
-                "-Wall", "-fdata-sections", "-ffunction-sections")
+                "-Wall", "-fdata-sections", "-ffunction-sections",
+                {force = true})
     add_asflags("-D__NEWLIB__",
-                "-mcpu=cortex-m7", "-mthumb", "-mfpu=fpv5-d16",
+                "-mcpu=cortex-m7", "-mthumb", "-mfpu=fpv5-d16", "-mfloat-abi=hard",
                 "-O0",
-                "-Wall", "-fdata-sections", "-ffunction-sections")
+                "-Wall", "-fdata-sections", "-ffunction-sections",
+                {force = true})
     -- set ld configurations
-    add_ldflags("-mcpu=cortex-m7", "-mthumb", "-mfpu=fpv5-d16",
+    add_ldflags("-mcpu=cortex-m7", "-mthumb", "-mfpu=fpv5-d16", "-mfloat-abi=hard",
                 "-Tdefault.ld",
                 "-specs=nano.specs",
                 "-specs=nosys.specs",

@@ -125,7 +125,9 @@ typedef int8_t  rte_error_t;
 #define RTE_UNUSED(x)                           (void)x
 #endif
 /* Typedef for memory align */
-#define MEM_BLOCK_ALIGN         (sizeof(void *) * 2)
+#define MEM_MODIFY_ALIGN_UP(ptr, n)             (((ptr) + ((n) - 1)) & ~((n) - 1))
+#define MEM_MODIFY_ALIGN_DOWN(ptr, n)           ((ptr) & ~((n) - 1))
+#define MEM_BLOCK_ALIGN                         (sizeof(void *) * 2)
 #define MEM_ALIGN_BYTES (buf)    buf __attribute__((aligned(MEM_BLOCK_ALIGN)))
 #define MEM_ALIGN_NBYTES(buf, n) buf __attribute__((aligned(n)))
 /* Typedef for array's size */

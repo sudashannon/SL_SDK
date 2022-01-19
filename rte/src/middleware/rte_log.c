@@ -321,6 +321,7 @@ again:
                     if_long = true;
                     if_float = true;
                     if_dot_output = false;
+                    base = 10;
                     float_value = va_arg(arg, double);
                     if (float_value < 0) {
                         if_neg = 1;
@@ -347,15 +348,13 @@ convert:
                         for(index = 1;
                             (((index * base) <= ui64value) &&
                             (((index * base) / base) == index));
-                            index *= base) {
-                            if (width) width--;
+                            index *= base, width--) {
                         }
                     } else {
                         for(index = 1;
                             (((index * base) <= ui32value) &&
                             (((index * base) / base) == index));
-                            index *= base) {
-                            if (width) width--;
+                            index *= base, width--) {
                         }
                     }
                     // If the value is negative, reduce the count of padding
@@ -376,11 +375,13 @@ convert:
                     if ((width > 1) &&
                         (width < sizeof(temp_buf)) &&
                         if_dot_output == false) {
-                        for(uint32_t temp_pos = width; width; width--) {
-                            if (if_left_align) {
+                        if (if_left_align) {
+                            for(uint32_t temp_pos = width; width; width--) {
                                 temp_buf[temp_pos--] = fill_char;
                                 extra_pos++;
-                            } else {
+                            }
+                        } else {
+                            for(width--; width; width--) {
                                 temp_buf[pos++] = fill_char;
                             }
                         }

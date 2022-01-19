@@ -12,10 +12,7 @@
 #define __SUGAR_ARCH_H
 
 #include "stm32h7xx_hal.h"
-#include "sugar_offset.h"
-
-/* Size of each stack entry / stack alignment size (4 bytes on Cortex-M without FPU) */
-#define ARCH_STACK_ALIGN_SIZE    sizeof(uint32_t)
+#include "sugar_arch_define.h"
 
 /** @brief Cortex M Mask interrupts
  *

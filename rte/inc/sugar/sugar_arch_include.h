@@ -16,9 +16,10 @@
 
 #if RTE_USE_SUGAR_KERNEL
 #if defined(__arm__)
-    #if ((defined (__ARM_ARCH_7M__      ) && (__ARM_ARCH_7M__      == 1)) || \
+    #if ((defined (__ARM_ARCH_6M__      ) && (__ARM_ARCH_6M__      == 1)) || \
+        (defined (__ARM_ARCH_7M__      ) && (__ARM_ARCH_7M__      == 1)) || \
         (defined (__ARM_ARCH_7EM__     ) && (__ARM_ARCH_7EM__     == 1)))
-        #include "arch/arm_v7m/sugar_arch.h"
+        #include "arch/arm_cortex-m/sugar_arch.h"
     #endif
 #else
     #error "Does not support this arch!"

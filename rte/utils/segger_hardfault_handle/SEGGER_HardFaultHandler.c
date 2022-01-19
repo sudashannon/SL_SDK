@@ -93,7 +93,6 @@ void HardFaultHandler(unsigned int* pStack);
 *
 **********************************************************************
 */
-static volatile unsigned int _Continue;  // Set this variable to 1 to run further
 
 static struct {
   struct {
@@ -232,6 +231,7 @@ static struct {
 *    function HardFault_Handler
 */
 void HardFaultHandler(unsigned int* pStack) {
+  extern void shell_printf(const char * restrict format, ...);
   //
   // In case we received a hard fault because of a breakpoint instruction, we return.
   // This may happen when using semihosting for printf outputs and no debugger is connected,
@@ -242,6 +242,7 @@ void HardFaultHandler(unsigned int* pStack) {
     *(pStack + 6u) += 2u;         // PC is located on stack at SP + 24 bytes. Increment PC by 2 to skip break instruction.
     return;                       // Return to interrupted application
   }
+  shell_printf("hard fault happens!");
   //
   // Read NVIC registers
   //
@@ -253,12 +254,8 @@ void HardFaultHandler(unsigned int* pStack) {
   HardFaultRegs.hfsr.word     = SCB_HFSR;   // Hard Fault Status Register
   HardFaultRegs.dfsr.word     = SCB_DFSR;   // Debug Fault Status Register
   HardFaultRegs.afsr          = SCB_AFSR;   // Auxiliary Fault Status Register
-  //
-  // Halt execution
-  // If NVIC registers indicate readable memory, change the variable value to != 0 to continue execution.
-  //
-  _Continue = 0u;
-  while (_Continue == 0u) {
+  if (HardFaultRegs.mmfsr.byte) {
+    while(1);
   }
   //
   // Read saved registers from the stack.
@@ -273,11 +270,8 @@ void HardFaultHandler(unsigned int* pStack) {
   HardFaultRegs.SavedRegs.psr.word = pStack[7];  // Program status word PSR
   //
   // Halt execution
-  // To step out of the HardFaultHandler, change the variable value to != 0.
   //
-  _Continue = 0u;
-  while (_Continue == 0u) {
-  }
+  while(1);
 }
 
 /*************************** End of file ****************************/
