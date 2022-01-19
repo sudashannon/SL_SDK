@@ -34,16 +34,8 @@
 /**
  * Create more readable defines for usable intruction set and FPU
  */
-#undef THUMB_2
-#undef WITH_FPU
-
-#if defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_7EM__)
 #define THUMB_2
-#endif
-
-#if defined(__VFP_FP__) && !defined(__SOFTFP__)
 #define WITH_FPU
-#endif
 
 /**
  * Extern variables needed for context switching and first thread restore

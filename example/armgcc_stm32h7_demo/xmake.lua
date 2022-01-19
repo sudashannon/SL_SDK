@@ -50,11 +50,11 @@ target("stm32h7_demo")
                     "../../hal/inc")
     add_cxflags("-DSTM32H750xx", "-DUSE_HAL_DRIVER",
                 "-mcpu=cortex-m7", "-mthumb", "-mfpu=fpv5-d16",
-                "-Og",
+                "-O0",
                 "-Wall", "-fdata-sections", "-ffunction-sections")
     add_asflags("-D__NEWLIB__",
                 "-mcpu=cortex-m7", "-mthumb", "-mfpu=fpv5-d16",
-                "-Og",
+                "-O0",
                 "-Wall", "-fdata-sections", "-ffunction-sections")
     -- set ld configurations
     add_ldflags("-mcpu=cortex-m7", "-mthumb", "-mfpu=fpv5-d16",

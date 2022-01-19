@@ -42,7 +42,22 @@
 #endif
 #endif
 
+#ifndef RTE_USE_LOG
 #define RTE_USE_LOG                 1
+#endif
+
+#ifndef RTE_LOG_CFG_SUPPORT_LONG_LONG
+#define RTE_LOG_CFG_SUPPORT_LONG_LONG              1
+#endif
+
+#ifndef RTE_LOG_CFG_SUPPORT_TYPE_FLOAT
+#define RTE_LOG_CFG_SUPPORT_TYPE_FLOAT             1
+#endif
+
+#ifndef RTE_LOG_CFG_FLOAT_DEFAULT_PRECISION
+#define RTE_LOG_CFG_FLOAT_DEFAULT_PRECISION        6
+#endif
+
 // Recommended when ram is smaller than 16KB, and use
 // first-fit method when enabled. If disabled,
 // the mempool will use tlsf method */
