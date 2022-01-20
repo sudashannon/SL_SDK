@@ -139,9 +139,9 @@ static int db_fal_read(long offset, uint8_t *buf, size_t size)
     uint32_t addr = nor_flash1.addr + offset;
 
 
-    RTE_LOCK(&db_flash_mutex_instance);
+    rte_lock(&db_flash_mutex_instance);
     ret = w25qxx_fast_read(&db_flash_handle, addr, buf, size);
-    RTE_UNLOCK(&db_flash_mutex_instance);
+    rte_unlock(&db_flash_mutex_instance);
 
     return (ret == 0) ? size : ret;
 }
@@ -151,9 +151,9 @@ static int db_fal_write(long offset, const uint8_t *buf, size_t size)
     int32_t ret;
     uint32_t addr = nor_flash1.addr + offset;
 
-    RTE_LOCK(&db_flash_mutex_instance);
+    rte_lock(&db_flash_mutex_instance);
     ret = w25qxx_write(&db_flash_handle, addr, (uint8_t *)buf, size);
-    RTE_UNLOCK(&db_flash_mutex_instance);
+    rte_unlock(&db_flash_mutex_instance);
 
     return (ret == 0) ? size : ret;
 }
@@ -165,10 +165,10 @@ static int db_fal_erase(long offset, size_t size)
 
     int32_t erase_size = ((size - 1) / FLASH_ERASE_MIN_SIZE) + 1;
 
-    RTE_LOCK(&db_flash_mutex_instance);
+    rte_lock(&db_flash_mutex_instance);
     for (int32_t i = 0; i < erase_size; i++)
         ret = w25qxx_sector_erase_4k(&db_flash_handle, addr);
-    RTE_UNLOCK(&db_flash_mutex_instance);
+    rte_unlock(&db_flash_mutex_instance);
 
     return (ret == 0) ? erase_size : ret;
 }
@@ -180,9 +180,9 @@ static int ex_fal_read(long offset, uint8_t *buf, size_t size)
     uint32_t addr = nor_flash0.addr + offset;
 
 
-    RTE_LOCK(&ex_flash_mutex_instance);
+    rte_lock(&ex_flash_mutex_instance);
     ret = w25qxx_fast_read(&ex_flash_handle, addr, buf, size);
-    RTE_UNLOCK(&ex_flash_mutex_instance);
+    rte_unlock(&ex_flash_mutex_instance);
 
     return (ret == 0) ? size : ret;
 }
@@ -192,9 +192,9 @@ static int ex_fal_write(long offset, const uint8_t *buf, size_t size)
     int32_t ret;
     uint32_t addr = nor_flash0.addr + offset;
 
-    RTE_LOCK(&ex_flash_mutex_instance);
+    rte_lock(&ex_flash_mutex_instance);
     ret = w25qxx_write(&ex_flash_handle, addr, (uint8_t *)buf, size);
-    RTE_UNLOCK(&ex_flash_mutex_instance);
+    rte_unlock(&ex_flash_mutex_instance);
 
     return (ret == 0) ? size : ret;
 }
@@ -206,10 +206,10 @@ static int ex_fal_erase(long offset, size_t size)
 
     int32_t erase_size = ((size - 1) / FLASH_ERASE_MIN_SIZE) + 1;
 
-    RTE_LOCK(&ex_flash_mutex_instance);
+    rte_lock(&ex_flash_mutex_instance);
     for (int32_t i = 0; i < erase_size; i++)
         ret = w25qxx_sector_erase_4k(&ex_flash_handle, addr);
-    RTE_UNLOCK(&ex_flash_mutex_instance);
+    rte_unlock(&ex_flash_mutex_instance);
 
     return (ret == 0) ? erase_size : ret;
 }

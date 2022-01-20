@@ -83,7 +83,7 @@ sugar_tcb_t *sugar_prior_vector_pop_highest(sugar_pri_vec_t pri_vec)
     sugar_pri_vec_impl_t *queue_impl = (sugar_pri_vec_impl_t *)pri_vec;
     sugar_pri_vec_rbt_element_t *element = NULL;
     sugar_tcb_t *retval = NULL;
-    if (RTE_UNLIKELY(queue_impl == NULL)) {
+    if (rte_unlikely(queue_impl == NULL)) {
         goto end;
     }
     rbt_find(queue_impl->tcb_rbt, &(queue_impl->highest_priority), sizeof(uint8_t), (void **)&element);
@@ -131,7 +131,7 @@ sugar_tcb_t *sugar_prior_vector_pop_as_priority(sugar_pri_vec_t pri_vec, uint8_t
     sugar_pri_vec_rbt_element_t *element = NULL;
     sugar_pri_vec_impl_t *queue_impl = (sugar_pri_vec_impl_t *)pri_vec;
     sugar_tcb_t *retval = NULL;
-    if (RTE_UNLIKELY(queue_impl == NULL)) {
+    if (rte_unlikely(queue_impl == NULL)) {
         goto end;
     }
     rbt_find(queue_impl->tcb_rbt, &(priority), sizeof(uint8_t), (void **)&element);
@@ -175,7 +175,7 @@ sugar_tcb_t *sugar_prior_vector_pop(sugar_pri_vec_t pri_vec, sugar_tcb_t *tcb_pt
     sugar_pri_vec_impl_t *queue_impl = (sugar_pri_vec_impl_t *)pri_vec;
     sugar_tcb_t *retval = NULL;
     rte_error_t result = RTE_ERR_UNDEFINE;
-    if (RTE_UNLIKELY(queue_impl == NULL)) {
+    if (rte_unlikely(queue_impl == NULL)) {
         goto end;
     }
     rbt_find(queue_impl->tcb_rbt, &(tcb_ptr->priority), sizeof(uint8_t), (void **)&element);
@@ -222,8 +222,8 @@ rte_error_t sugar_prior_vector_push(sugar_pri_vec_t pri_vec, sugar_tcb_t *tcb)
     sugar_pri_vec_rbt_element_t *element = NULL;
     sugar_pri_vec_impl_t *queue_impl = (sugar_pri_vec_impl_t *)pri_vec;
     rte_error_t retval = RTE_ERR_UNDEFINE;
-    if (RTE_UNLIKELY(queue_impl == NULL) ||
-        RTE_UNLIKELY(tcb == NULL)) {
+    if (rte_unlikely(queue_impl == NULL) ||
+        rte_unlikely(tcb == NULL)) {
         retval = RTE_ERR_PARAM;
         goto end;
     }

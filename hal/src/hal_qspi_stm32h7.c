@@ -94,7 +94,7 @@ static rte_error_t qspi_recv_async(hal_device_t *device, uint8_t *buffer, uint32
         //                     qspi_control_handle[qspi_name].capacity);
         // if (osSemaphoreAcquire(qspi_control_handle[qspi_name].rx_sema, timeout_ms) == osOK) {
         //     HAL_RAM_CLEAN_AFTER_REC(qspi_control_handle[qspi_name].buffer, qspi_control_handle[qspi_name].recv_length);
-        //     *size = RTE_MIN(qspi_control_handle[qspi_name].recv_length, *size);
+        //     *size = rte_min(qspi_control_handle[qspi_name].recv_length, *size);
         //     memcpy(buffer, qspi_control_handle[qspi_name].buffer, *size);
         //     return RTE_SUCCESS;
         // }

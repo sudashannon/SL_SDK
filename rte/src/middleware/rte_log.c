@@ -72,8 +72,8 @@ static log_handle_impl_t log_config_handle = {
     .get_tick_func = NULL,
 };
 
-#define LOG_LOCK(bank)   RTE_LOCK(log_config_handle.mutex)
-#define LOG_UNLOCK(bank) RTE_UNLOCK(log_config_handle.mutex)
+#define LOG_LOCK(bank)   rte_lock(log_config_handle.mutex)
+#define LOG_UNLOCK(bank) rte_unlock(log_config_handle.mutex)
 #define CHAR_IS_NUM(x)   ((x) >= '0' && (x) <= '9')
 #define CHAR_TO_NUM(x)   ((x) - '0')
 

@@ -83,7 +83,7 @@ rte_error_t timer_init(uint8_t max_group_num)
  */
 rte_error_t timer_create_group(timer_group_id_t *group_id, rte_mutex_t *mutex, uint32_t capacity)
 {
-    if (RTE_UNLIKELY(group_id == NULL)) {
+    if (rte_unlikely(group_id == NULL)) {
         return RTE_ERR_PARAM;
     }
     if (timer_handle_instance.group_count >= timer_handle_instance.group_capability - 1) {
@@ -129,9 +129,9 @@ rte_error_t timer_deinit(void)
  */
 rte_error_t timer_create_new(timer_group_id_t group_id, timer_configuration_t *config, timer_impl_t **timer)
 {
-    if (RTE_UNLIKELY(group_id > timer_handle_instance.group_count) ||
-        RTE_UNLIKELY(config == NULL) ||
-        RTE_UNLIKELY(timer == NULL)) {
+    if (rte_unlikely(group_id > timer_handle_instance.group_count) ||
+        rte_unlikely(config == NULL) ||
+        rte_unlikely(timer == NULL)) {
         return RTE_ERR_PARAM;
     }
     TIMER_ASSERT(timer_handle_instance.timer_group[group_id].timer_table);
@@ -165,7 +165,7 @@ rte_error_t timer_create_new(timer_group_id_t group_id, timer_configuration_t *c
  */
 rte_error_t timer_delete(timer_group_id_t group_id, timer_id_t timer_id)
 {
-    if (RTE_UNLIKELY(group_id > timer_handle_instance.group_count)) {
+    if (rte_unlikely(group_id > timer_handle_instance.group_count)) {
         return RTE_ERR_PARAM;
     }
     TIMER_ASSERT(timer_handle_instance.timer_group[group_id].timer_table);
@@ -225,7 +225,7 @@ void timer_group_poll(timer_group_id_t group_id)
  */
 rte_error_t timer_pause(uint8_t group_id, uint8_t timer_id)
 {
-    if (RTE_UNLIKELY(group_id > timer_handle_instance.group_count)) {
+    if (rte_unlikely(group_id > timer_handle_instance.group_count)) {
         return RTE_ERR_PARAM;
     }
     ds_vector_t this_timer_table = timer_handle_instance.timer_group[group_id].timer_table;
@@ -250,7 +250,7 @@ rte_error_t timer_pause(uint8_t group_id, uint8_t timer_id)
  */
 rte_error_t timer_resume(uint8_t group_id, uint8_t timer_id)
 {
-    if (RTE_UNLIKELY(group_id > timer_handle_instance.group_count)) {
+    if (rte_unlikely(group_id > timer_handle_instance.group_count)) {
         return RTE_ERR_PARAM;
     }
     ds_vector_t this_timer_table = timer_handle_instance.timer_group[group_id].timer_table;

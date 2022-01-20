@@ -130,30 +130,30 @@ size_t
 list_count(linked_list_t *l)
 {
     size_t len;
-    RTE_LOCK(l->lock);
+    rte_lock(l->lock);
     len = l->length;
-    RTE_UNLOCK(l->lock);
+    rte_unlock(l->lock);
     return len;
 }
 
 void
 list_set_free_value_callback(linked_list_t *list, free_value_callback_t free_value_cb)
 {
-    RTE_LOCK(list->lock);
+    rte_lock(list->lock);
     list->free_value_cb = free_value_cb;
-    RTE_UNLOCK(list->lock);
+    rte_unlock(list->lock);
 }
 
 void
 list_lock(linked_list_t *list)
 {
-    RTE_LOCK(list->lock);
+    rte_lock(list->lock);
 }
 
 void
 list_unlock(linked_list_t *list)
 {
-    RTE_UNLOCK(list->lock);
+    rte_unlock(list->lock);
 }
 
 /*
@@ -202,7 +202,7 @@ static inline
 list_entry_t *pop_tail_entry(linked_list_t *list)
 {
     list_entry_t *entry;
-    RTE_LOCK(list->lock);
+    rte_lock(list->lock);
 
     entry = list->tail;
     if(entry)
@@ -222,7 +222,7 @@ list_entry_t *pop_tail_entry(linked_list_t *list)
     if(list->length == 0)
         list->head = list->tail = NULL;
 
-    RTE_UNLOCK(list->lock);
+    rte_unlock(list->lock);
     return entry;
 }
 
@@ -234,7 +234,7 @@ static inline
 list_entry_t *pop_head_entry(linked_list_t *list)
 {
     list_entry_t *entry;
-    RTE_LOCK(list->lock);
+    rte_lock(list->lock);
 
     entry = list->head;
     if(entry)
@@ -254,7 +254,7 @@ list_entry_t *pop_head_entry(linked_list_t *list)
     if(list->length == 0)
         list->head = list->tail = NULL;
 
-    RTE_UNLOCK(list->lock);
+    rte_unlock(list->lock);
     return entry;
 }
 
@@ -267,7 +267,7 @@ push_tail_entry(linked_list_t *list, list_entry_t *entry)
     list_entry_t *p;
     if(!entry)
         return -1;
-    RTE_LOCK(list->lock);
+    rte_lock(list->lock);
     if(list->length == 0)
     {
         list->head = list->tail = entry;
@@ -282,7 +282,7 @@ push_tail_entry(linked_list_t *list, list_entry_t *entry)
     }
     list->length++;
     entry->list = list;
-    RTE_UNLOCK(list->lock);
+    rte_unlock(list->lock);
     return 0;
 }
 
@@ -295,7 +295,7 @@ push_head_entry(linked_list_t *list, list_entry_t *entry)
     list_entry_t *p;
     if(!entry)
         return -1;
-    RTE_LOCK(list->lock);
+    rte_lock(list->lock);
     if(list->length == 0)
     {
         list->head = list->tail = entry;
@@ -310,7 +310,7 @@ push_head_entry(linked_list_t *list, list_entry_t *entry)
     }
     list->length++;
     entry->list = list;
-    RTE_UNLOCK(list->lock);
+    rte_unlock(list->lock);
     return 0;
 }
 
@@ -322,7 +322,7 @@ static inline
 list_entry_t *shift_entry(linked_list_t *list)
 {
     list_entry_t *entry;
-    RTE_LOCK(list->lock);
+    rte_lock(list->lock);
     entry = list->head;
     if(entry)
     {
@@ -342,7 +342,7 @@ list_entry_t *shift_entry(linked_list_t *list)
     }
     if(list->length == 0)
         list->head = list->tail = NULL;
-    RTE_UNLOCK(list->lock);
+    rte_unlock(list->lock);
     return entry;
 }
 
@@ -356,7 +356,7 @@ unshift_entry(linked_list_t *list, list_entry_t *entry)
     list_entry_t *p;
     if(!entry)
         return -1;
-    RTE_LOCK(list->lock);
+    rte_lock(list->lock);
     if(list->length == 0)
     {
         list->head = list->tail = entry;
@@ -373,7 +373,7 @@ unshift_entry(linked_list_t *list, list_entry_t *entry)
     entry->list = list;
     if (list->cur)
         list->pos++;
-    RTE_UNLOCK(list->lock);
+    rte_unlock(list->lock);
     return 0;
 }
 
@@ -385,7 +385,7 @@ insert_entry(linked_list_t *list, list_entry_t *entry, size_t pos)
 {
     list_entry_t *prev, *next;
     int ret = -1;
-    RTE_LOCK(list->lock);
+    rte_lock(list->lock);
     if(pos == 0) {
         ret = unshift_entry(list, entry);
     } else if(pos == list->length) {
@@ -398,7 +398,7 @@ insert_entry(linked_list_t *list, list_entry_t *entry, size_t pos)
             {
                 if (emptyEntry)
                     destroy_entry(emptyEntry);
-                RTE_UNLOCK(list->lock);
+                rte_unlock(list->lock);
                 return -1;
             }
         }
@@ -406,7 +406,7 @@ insert_entry(linked_list_t *list, list_entry_t *entry, size_t pos)
     }
 
     if (ret == 0) {
-        RTE_UNLOCK(list->lock);
+        rte_unlock(list->lock);
         return ret;
     }
 
@@ -422,7 +422,7 @@ insert_entry(linked_list_t *list, list_entry_t *entry, size_t pos)
         list->length++;
         ret = 0;
     }
-    RTE_UNLOCK(list->lock);
+    rte_unlock(list->lock);
     return ret;
 }
 
@@ -435,10 +435,10 @@ list_entry_t *pick_entry(linked_list_t *list, size_t pos)
     unsigned int i;
     list_entry_t *entry;
 
-    RTE_LOCK(list->lock);
+    rte_lock(list->lock);
 
     if(list->length <= pos) {
-        RTE_UNLOCK(list->lock);
+        rte_unlock(list->lock);
         return NULL;
     }
 
@@ -478,7 +478,7 @@ list_entry_t *pick_entry(linked_list_t *list, size_t pos)
         list->cur = entry;
     }
 
-    RTE_UNLOCK(list->lock);
+    rte_unlock(list->lock);
     return entry;
 }
 
@@ -554,16 +554,16 @@ list_entry_t *subst_entry(linked_list_t *list, size_t pos, list_entry_t *entry)
 {
     list_entry_t *old;
 
-    RTE_LOCK(list->lock);
+    rte_lock(list->lock);
 
     old = fetch_entry(list,  pos);
     if(!old) {
-        RTE_UNLOCK(list->lock);
+        rte_unlock(list->lock);
         return NULL;
     }
     insert_entry(list, entry, pos);
 
-    RTE_UNLOCK(list->lock);
+    rte_unlock(list->lock);
     /* XXX - NO CHECK ON INSERTION */
     return old;
 }
@@ -574,7 +574,7 @@ list_entry_t *remove_entry(linked_list_t *list, size_t pos)
 {
     list_entry_t *next, *prev;
     list_entry_t *entry = pick_entry(list, pos);
-    RTE_LOCK(list->lock);
+    rte_lock(list->lock);
     if(entry)
     {
         prev = entry->prev;
@@ -600,10 +600,10 @@ list_entry_t *remove_entry(linked_list_t *list, size_t pos)
         } else if (list->pos > pos) {
             list->pos--;
         }
-        RTE_UNLOCK(list->lock);
+        rte_unlock(list->lock);
         return entry;
     }
-    RTE_UNLOCK(list->lock);
+    rte_unlock(list->lock);
     return NULL;
 }
 
@@ -620,21 +620,21 @@ get_entry_position(list_entry_t *entry)
     if (!list)
         return -1;
 
-    RTE_LOCK(list->lock);
+    rte_lock(list->lock);
     if(list)
     {
         p  = list->head;
         while(p)
         {
             if(p == entry) {
-                RTE_UNLOCK(list->lock);
+                rte_unlock(list->lock);
                 return i;
             }
             p = p->next;
             i++;
         }
     }
-    RTE_UNLOCK(list->lock);
+    rte_unlock(list->lock);
     return -1;
 }
 
@@ -766,7 +766,7 @@ void *
 list_set_value(linked_list_t *list, size_t pos, void *newval)
 {
     void *old_value = NULL;
-    RTE_LOCK(list->lock);
+    rte_lock(list->lock);
     list_entry_t *entry = pick_entry(list, pos);
     if (entry) {
         old_value = entry->value;
@@ -774,7 +774,7 @@ list_set_value(linked_list_t *list, size_t pos, void *newval)
     } else {
         list_insert_value(list, newval, pos);
     }
-    RTE_UNLOCK(list->lock);
+    rte_unlock(list->lock);
     return old_value;
 }
 
@@ -783,13 +783,13 @@ void *
 list_subst_value(linked_list_t *list, size_t pos, void *newval)
 {
     void *old_value = NULL;
-    RTE_LOCK(list->lock);
+    rte_lock(list->lock);
     list_entry_t *entry = pick_entry(list, pos);
     if (entry) {
         old_value = entry->value;
         entry->value = newval;
     }
-    RTE_UNLOCK(list->lock);
+    rte_unlock(list->lock);
     return old_value;
 }
 
@@ -802,13 +802,13 @@ list_swap_values(linked_list_t *list,  size_t pos1, size_t pos2)
 int
 list_foreach_value(linked_list_t *list, int (*item_handler)(void *item, size_t idx, void *user), void *user)
 {
-    RTE_LOCK(list->lock);
+    rte_lock(list->lock);
     slice_t slice = {
         .list = list,
         .offset = 0,
         .length = list->length
     };
-    RTE_UNLOCK(list->lock);
+    rte_unlock(list->lock);
     return slice_foreach_value(&slice, item_handler, user);
 }
 
@@ -822,7 +822,7 @@ list_create_tagged_value_nocopy(char *tag, void *val)
     }
 
     if(tag)
-        RTE_STRDUP(newval->tag, tag);
+        rte_strdup(newval->tag, tag);
     if (val)
         newval->value = val;
 
@@ -846,7 +846,7 @@ list_create_tagged_value(char *tag, void *val, size_t vlen)
     }
 
     if(tag)
-        RTE_STRDUP(newval->tag, tag);
+        rte_strdup(newval->tag, tag);
     if(val)
     {
         if(vlen)
@@ -867,7 +867,7 @@ list_create_tagged_value(char *tag, void *val, size_t vlen)
         }
         else
         {
-            RTE_STRDUP(newval->value, (char *)val);
+            rte_strdup(newval->value, (char *)val);
             newval->vlen = strlen((char *)val);
             newval->type = TV_TYPE_STRING;
         }
@@ -891,7 +891,7 @@ list_create_tagged_sublist(char *tag, linked_list_t *sublist)
     }
 
     if(tag)
-        RTE_STRDUP(newval->tag, tag);
+        rte_strdup(newval->tag, tag);
     newval->type = TV_TYPE_LIST;
     newval->value = sublist;
     return newval;
@@ -915,13 +915,13 @@ list_set_tagged_value(linked_list_t *list, char *tag, void *value, size_t len, i
     else
         tval = list_create_tagged_value_nocopy(tag, value);
 
-    RTE_LOCK(list->lock);
+    rte_lock(list->lock);
     for (i = 0; i < (int)list->length; i++) {
         tagged_value_t *tv = list_pick_tagged_value(list, i);
         if (tv && tv->tag && tv->tag[0] == tag[0] &&
             strcmp(tv->tag, tag) == 0)
         {
-            RTE_UNLOCK(list->lock);
+            rte_unlock(list->lock);
             if (!list_set_value(list, i, tval)) {
                 list_destroy_tagged_value(tval);
                 return NULL;
@@ -933,7 +933,7 @@ list_set_tagged_value(linked_list_t *list, char *tag, void *value, size_t len, i
         list_destroy_tagged_value(tval);
         tval = NULL;
     }
-    RTE_UNLOCK(list->lock);
+    rte_unlock(list->lock);
     return NULL;
 }
 
@@ -1218,12 +1218,12 @@ list_quick_sort(list_entry_t *head,
 void
 list_sort(linked_list_t *list, list_comparator_callback_t comparator)
 {
-    RTE_LOCK(list->lock);
+    rte_lock(list->lock);
     list_entry_t *pivot = pick_entry(list, (list->length/2) - 1);
     list_quick_sort(list->head, list->tail, pivot, list->length, comparator);
     list->cur = NULL;
     list->pos = 0;
-    RTE_UNLOCK(list->lock);
+    rte_unlock(list->lock);
 }
 
 slice_t *
@@ -1275,7 +1275,7 @@ int
 slice_foreach_value(slice_t *slice, int (*item_handler)(void *item, size_t idx, void *user), void *user)
 {
     linked_list_t *list = slice->list;
-    RTE_LOCK(list->lock);
+    rte_lock(list->lock);
     size_t idx = 0;
     list_entry_t *e = pick_entry(list, slice->offset);
     while(e && idx < slice->length) {
@@ -1312,7 +1312,7 @@ slice_foreach_value(slice_t *slice, int (*item_handler)(void *item, size_t idx, 
             e = e->next;
         }
     }
-    RTE_UNLOCK(list->lock);
+    rte_unlock(list->lock);
     return idx;
 }
 

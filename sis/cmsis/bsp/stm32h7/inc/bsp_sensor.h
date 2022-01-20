@@ -220,7 +220,7 @@ typedef struct _sensor {
     int  (*set_special_effect)  (sensor_t *sensor, sde_t sde);
     int  (*set_lens_correction) (sensor_t *sensor, int enable, int radi, int coef);
     int  (*ioctl)               (sensor_t *sensor, int request, va_list ap);
-    int  (*snapshot)            (sensor_t *sensor, image_t *pimage, uint32_t flags);
+    int  (*snapshot)            (sensor_t *sensor, uint8_t **pimage, uint32_t flags);
 } sensor_t;
 
 extern sensor_t sensor;
@@ -326,7 +326,7 @@ int sensor_set_lens_correction(int enable, int radi, int coef);
 int sensor_ioctl(int request, ...);
 
 // Default snapshot function.
-int sensor_snapshot(sensor_t *sensor, image_t *image, uint32_t timeout_ms);
+int sensor_snapshot(sensor_t *sensor, uint8_t *pimage, uint32_t timeout_ms);
 
 // Convert sensor error codes to strings.
 const char *sensor_strerror(int error);

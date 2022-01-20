@@ -29,8 +29,8 @@ typedef struct _ds_ringbuffer {
     rte_mutex_t *mutex;
 } ds_ringbuffer_impl_t;
 
-#define BUFFER_LOCK(buffer)           RTE_LOCK(buffer->mutex)
-#define BUFFER_UNLOCK(buffer)         RTE_UNLOCK(buffer->mutex)
+#define BUFFER_LOCK(buffer)           rte_lock(buffer->mutex)
+#define BUFFER_UNLOCK(buffer)         rte_unlock(buffer->mutex)
 
 /**
  * @brief Create a fix size buffer.
@@ -42,8 +42,8 @@ typedef struct _ds_ringbuffer {
  */
 rte_error_t ds_ringbuffer_create(uint32_t capacity, rte_mutex_t *mutex, ds_ringbuffer_t *handle)
 {
-    if (RTE_UNLIKELY(handle == NULL) ||
-        RTE_UNLIKELY(capacity == 0)) {
+    if (rte_unlikely(handle == NULL) ||
+        rte_unlikely(capacity == 0)) {
         return RTE_ERR_PARAM;
     }
     ds_ringbuffer_impl_t *buffer = NULL;
@@ -74,7 +74,7 @@ rte_error_t ds_ringbuffer_create(uint32_t capacity, rte_mutex_t *mutex, ds_ringb
 rte_error_t ds_ringbuffer_destroy(ds_ringbuffer_t handle)
 {
     ds_ringbuffer_impl_t *buffer = (ds_ringbuffer_impl_t *)handle;
-    if (RTE_UNLIKELY(buffer == NULL)) {
+    if (rte_unlikely(buffer == NULL)) {
         return RTE_ERR_PARAM;
     }
     BUFFER_LOCK(buffer);
@@ -83,7 +83,7 @@ rte_error_t ds_ringbuffer_destroy(ds_ringbuffer_t handle)
     // Record this mutex cause its owner will be released in the free api.
     rte_mutex_t *buffer_mutex = buffer->mutex;
     rte_free(buffer);
-    RTE_UNLOCK(buffer_mutex);
+    rte_unlock(buffer_mutex);
     return RTE_SUCCESS;
 }
 
@@ -105,8 +105,8 @@ static inline uint32_t ds_ringbuffer_free_size(ds_ringbuffer_impl_t *buffer)
 rte_error_t ds_ringbuffer_write(ds_ringbuffer_t handle, uint8_t *data, uint32_t size)
 {
     ds_ringbuffer_impl_t *buffer = (ds_ringbuffer_impl_t *)handle;
-    if (RTE_UNLIKELY(buffer == NULL) ||
-        RTE_UNLIKELY(data == NULL)) {
+    if (rte_unlikely(buffer == NULL) ||
+        rte_unlikely(data == NULL)) {
         return RTE_ERR_PARAM;
     }
     BUFFER_LOCK(buffer);
@@ -169,9 +169,9 @@ rte_error_t ds_ringbuffer_write(ds_ringbuffer_t handle, uint8_t *data, uint32_t 
 rte_error_t ds_ringbuffer_read(ds_ringbuffer_t handle, uint8_t *data, uint32_t *size)
 {
     ds_ringbuffer_impl_t *buffer = (ds_ringbuffer_impl_t *)handle;
-    if (RTE_UNLIKELY(buffer == NULL) ||
-        RTE_UNLIKELY(data == NULL) ||
-        RTE_UNLIKELY(size == NULL)) {
+    if (rte_unlikely(buffer == NULL) ||
+        rte_unlikely(data == NULL) ||
+        rte_unlikely(size == NULL)) {
         return RTE_ERR_PARAM;
     }
     BUFFER_LOCK(buffer);

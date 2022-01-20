@@ -731,11 +731,11 @@ const char *sensor_strerror(int error)
     }
 }
 
-int sensor_snapshot(sensor_t *sensor, image_t *image, uint32_t timeout_ms)
+int sensor_snapshot(sensor_t *sensor, uint8_t **pimage, uint32_t timeout_ms)
 {
     uint32_t length = 0;
-    if (RTE_UNLIKELY(sensor == NULL) ||
-        RTE_UNLIKELY(image == NULL)) {
+    if (rte_unlikely(sensor == NULL) ||
+        rte_unlikely(pimage == NULL)) {
         return SENSOR_ERROR_INVALID_ARGUMENT;
     }
     // We use the stored frame size to read the whole frame. Note that cropping is
@@ -744,9 +744,6 @@ int sensor_snapshot(sensor_t *sensor, image_t *image, uint32_t timeout_ms)
     uint32_t h = resolution[sensor->framesize][1];
     uint32_t pixel_count = w * h;
     uint8_t *framebuffer = NULL;
-    // Make sure the image's data is invalid before alloc new framebuffer.
-    if (image->data)
-        image_reuse(image);
     // Setup the size and address of the transfer
     switch (sensor->pixformat) {
         case PIXFORMAT_RGB565:
@@ -795,7 +792,7 @@ int sensor_snapshot(sensor_t *sensor, image_t *image, uint32_t timeout_ms)
 		}
         uint32_t end_tick = rte_get_tick_ms();
         RTE_LOGD("snap consume %d ms", end_tick - start_tick);
-        image->data = framebuffer;
+        *pimage = framebuffer;
         return 0;
     } else if(snap_result == osErrorTimeout){
         HAL_DCMI_Stop(sensor->dcmi);

@@ -21,8 +21,8 @@
 #define MEM_LOGD(...) LOG_DEBUG(THIS_MODULE, __VA_ARGS__)
 #define MEM_LOGV(...) LOG_VERBOSE(THIS_MODULE, __VA_ARGS__)
 #define MEM_ASSERT(v) LOG_ASSERT(THIS_MODULE, v)
-#define MEM_LOCK(bank)   RTE_LOCK(mem_handle[bank].mutex)
-#define MEM_UNLOCK(bank) RTE_UNLOCK(mem_handle[bank].mutex)
+#define MEM_LOCK(bank)   rte_lock(mem_handle[bank].mutex)
+#define MEM_UNLOCK(bank) rte_unlock(mem_handle[bank].mutex)
 
 #if RTE_SHELL_ENABLE == 1
     #define mem_print_wapper shell_printf
@@ -419,7 +419,7 @@ size_t adjust_request_size(size_t size, size_t align)
         /* aligned sized must not exceed block_size_max or we'll go out of bounds on sl_bitmap */
         if (aligned < block_size_max)
         {
-            adjust = RTE_MAX(aligned, block_size_min);
+            adjust = rte_max(aligned, block_size_min);
         }
     }
     return adjust;
@@ -844,7 +844,7 @@ void* memory_alloc_align_impl(mem_bank_t bank, size_t align, size_t size, const 
             /* If gap size is too small, offset to next aligned boundary. */
             if (gap && gap < gap_minimum) {
                 const size_t gap_remain = gap_minimum - gap;
-                const size_t offset = RTE_MAX(gap_remain, align);
+                const size_t offset = rte_max(gap_remain, align);
                 const void* next_aligned = mem_cast(void*,
                     mem_cast(memptr_t, aligned) + offset);
                 aligned = align_ptr(next_aligned, align);
@@ -929,7 +929,7 @@ void *memory_realloc_impl(mem_bank_t bank, void* ptr, size_t size, const char *f
         if (adjust > cursize && (!block_is_free(next) || adjust > combined)) {
             p = memory_alloc_impl(bank, size, func, line);
             if (p) {
-                const size_t minsize = RTE_MIN(cursize, size);
+                const size_t minsize = rte_min(cursize, size);
                 memcpy(p, ptr, minsize);
                 memory_free(bank, ptr);
             }

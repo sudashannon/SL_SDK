@@ -12,7 +12,6 @@
 #include "data_structure/ds_hashmap.h"
 #include "data_structure/ds_linklist.h"
 #include "data_structure/ds_rbtree.h"
-#include "image_process/image_process.h"
 #include "sugar/sugar_kernel.h"
 #include "sugar/sugar_scheduler.h"
 #include "sugar/sugar_prior_vector.h"
@@ -65,4 +64,5 @@ extern rte_error_t rte_mutex_unlock(void *mutex);
  * @return uint32_t
  */
 extern void rte_delay_ms(uint32_t ms);
+
 #endif

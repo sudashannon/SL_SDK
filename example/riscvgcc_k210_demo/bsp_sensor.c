@@ -603,12 +603,12 @@ const char *sensor_strerror(int error)
     }
 }
 
-int sensor_snapshot(sensor_t *sensor, image_t *image, uint32_t timeout_ms)
+int sensor_snapshot(sensor_t *sensor, uint8_t **simage, uint32_t timeout_ms)
 {
     g_dvp_finish_flag = 0;
     dvp_start_convert();
     while (g_dvp_finish_flag == 0);
-    image->data = (uint8_t *)sensor_buf;
+    *simage = (uint8_t *)sensor_buf;
 	// 	if (sensor->pixformat == PIXFORMAT_GRAYSCALE) {
     //         uint8_t *dst = image->data;
     //         uint8_t *src = image->data;

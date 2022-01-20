@@ -438,8 +438,8 @@ static int set_framesize(sensor_t *sensor, framesize_t framesize)
         ret |= sensor->write_byte(sensor,  sensor->slv_addr, regs[i][0], regs[i][1]);
     }
 
-    uint64_t tmp_div = RTE_MIN(sensor_w / w, sensor_h / h);
-    uint16_t log_div = RTE_MIN(RTE_LOG2(tmp_div) - 1, 3);
+    uint64_t tmp_div = rte_min(sensor_w / w, sensor_h / h);
+    uint16_t log_div = rte_min(log2(tmp_div) - 1, 3);
     uint16_t div = 1 << log_div;
     uint16_t w_mul = w * div;
     uint16_t h_mul = h * div;
@@ -571,15 +571,15 @@ static int set_auto_gain(sensor_t *sensor, int enable, float gain_db, float gain
     ret |= sensor->write_byte(sensor,  sensor->slv_addr, COM8, (reg & (~COM8_AGC_EN)) | ((enable != 0) ? COM8_AGC_EN : 0));
 
     if ((enable == 0) && (!__isnanf(gain_db)) && (!__isinff(gain_db))) {
-        float gain = RTE_MAX(RTE_MIN(expf((gain_db / 20.0) * log(10.0)), 32.0), 1.0);
+        float gain = rte_max(rte_min(expf((gain_db / 20.0) * log(10.0)), 32.0), 1.0);
 
-        int gain_temp = roundf(log2(RTE_MAX(gain / 2.0, 1.0)));
+        int gain_temp = roundf(log2(rte_max(gain / 2.0, 1.0)));
         int gain_hi = 0xF >> (4 - gain_temp);
-        int gain_lo = RTE_MIN(roundf(((gain / (1 << gain_temp)) - 1.0) * 16.0), 15);
+        int gain_lo = rte_min(roundf(((gain / (1 << gain_temp)) - 1.0) * 16.0), 15);
 
         ret |= sensor->write_byte(sensor,  sensor->slv_addr, GAIN, (gain_hi << 4) | (gain_lo << 0));
     } else if ((enable != 0) && (!__isnanf(gain_db_ceiling)) && (!__isinff(gain_db_ceiling))) {
-        float gain_ceiling = RTE_MAX(RTE_MIN(expf((gain_db_ceiling / 20.0) * log(10.0)), 128.0), 2.0);
+        float gain_ceiling = rte_max(rte_min(expf((gain_db_ceiling / 20.0) * log(10.0)), 128.0), 2.0);
 
         ret |= sensor->read_byte(sensor,  sensor->slv_addr, COM9, &reg);
         ret |= sensor->write_byte(sensor,  sensor->slv_addr, COM9, (reg & 0x1F) | ((int)(ceilf(log2(gain_ceiling)) - 1) << 5));
@@ -642,7 +642,7 @@ static int set_auto_exposure(sensor_t *sensor, int enable, int exposure_us)
         if (IMAGE_MODE_GET_FMT(reg) == IMAGE_MODE_RAW10) t_pclk = 1;
         if (IMAGE_MODE_GET_FMT(reg) == IMAGE_MODE_RGB565) t_pclk = 2;
 
-        int exposure = RTE_MAX(RTE_MIN(((exposure_us*(((SENSOR_XCLK_FREQUENCY/clk_rc)*pll_mult)/1000000))/t_pclk)/t_line,0xFFFF),0x0000);
+        int exposure = rte_max(rte_min(((exposure_us*(((SENSOR_XCLK_FREQUENCY/clk_rc)*pll_mult)/1000000))/t_pclk)/t_line,0xFFFF),0x0000);
 
         ret |= sensor->write_byte(sensor,  sensor->slv_addr, BANK_SEL, BANK_SEL_SENSOR);
 

@@ -73,21 +73,17 @@ void hardware_init(void)
     sysctl_set_spi0_dvp_data(1);
 }
 
-void refresh_disp_image(image_t *cap_image, void *disp_data)
+void refresh_disp_image(uint8_t *cap_data, uint32_t width, uint32_t height, void *disp_data)
 {
-    uint32_t w_ratio = ((uint32_t)cap_image->w << 16) / DISPLAY_WIDTH + 1;
-    uint32_t h_ratio = ((uint32_t)cap_image->h << 16) / DISPLAY_HEIGHT + 1;
+    uint32_t w_ratio = ((uint32_t)width << 16) / DISPLAY_WIDTH + 1;
+    uint32_t h_ratio = ((uint32_t)height << 16) / DISPLAY_HEIGHT + 1;
     uint16_t *dest_data = (uint16_t *)disp_data;
     uint32_t srcy = 0;
     for (uint16_t y = 0; y < DISPLAY_HEIGHT; y++) {
-        uint16_t *src_data = (uint16_t *)(cap_image->data + cap_image->w * cap_image->bpp * (srcy >> 16));
+        uint16_t *src_data = (uint16_t *)(cap_data + width * sizeof(uint16_t) * (srcy >> 16));
         uint32_t srcx = 0;
         for (uint16_t x = 0; x < DISPLAY_WIDTH; x++) {
-            // if (cap_image->bpp == IMAGE_BPP_GRAYSCALE) {
-            //     dest_data[x] = COLOR_GRAYSCALE_TO_RGB565(((uint8_t *)src_data)[srcx >> 16]);
-            // } else {
-                dest_data[x] =  src_data[srcx >> 16];
-            // }
+            dest_data[x] =  src_data[srcx >> 16];
             srcx += w_ratio;
         }
         srcy += h_ratio;
@@ -138,15 +134,11 @@ int main(void)
     printf("sensor_set_pixformat result: %d\r\n", result);
     result = sensor_set_framesize(FRAME_SIZE);
     printf("sensor_set_framesize result: %d\r\n", result);
-    image_t sensor_cap_image = {
-        .w = resolution[FRAME_SIZE][0],
-        .h = resolution[FRAME_SIZE][1],
-        .bpp = IMAGE_BPP_RGB565,
-    };
     display_buf =(uint32_t*)iomem_malloc(DISPLAY_WIDTH * DISPLAY_HEIGHT * 2);
     while (1) {
-        sensor_snapshot(&sensor, &sensor_cap_image, 150);
-        refresh_disp_image(&sensor_cap_image, (void *)display_buf);
+        uint8_t *cap_image = NULL;
+        sensor_snapshot(&sensor, &cap_image, 150);
+        refresh_disp_image(cap_image, resolution[FRAME_SIZE][0], resolution[FRAME_SIZE][1], (void *)display_buf);
         /* 显示画面 */
         lcd_draw_picture(0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT, display_buf);
     }

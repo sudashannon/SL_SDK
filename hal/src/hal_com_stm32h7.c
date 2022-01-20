@@ -112,7 +112,7 @@ static rte_error_t com_recv_async(hal_device_t *device, uint8_t *buffer, uint32_
                             com_control_handle[com_name].capacity);
         if (hal_device_wait_rx_ready(device, timeout_ms) == RTE_SUCCESS) {
             HAL_RAM_CLEAN_AFTER_REC(com_control_handle[com_name].buffer, com_control_handle[com_name].recv_length);
-            *size = RTE_MIN(com_control_handle[com_name].recv_length, *size);
+            *size = rte_min(com_control_handle[com_name].recv_length, *size);
             memcpy(buffer, com_control_handle[com_name].buffer, *size);
             return RTE_SUCCESS;
         }
@@ -134,7 +134,7 @@ static rte_error_t com_recv_async(hal_device_t *device, uint8_t *buffer, uint32_
 
 static rte_error_t com_create(com_name_t com_name, hal_device_t **device)
 {
-    if (RTE_UNLIKELY(device == NULL))
+    if (rte_unlikely(device == NULL))
         return RTE_ERR_PARAM;
     // Check if use rx dma
     if (com_control_handle[com_name].if_recv_enable_dma) {

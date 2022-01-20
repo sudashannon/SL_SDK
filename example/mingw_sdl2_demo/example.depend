@@ -4514,7 +4514,7 @@
 1634630391 f:\01work\03sl_sdk\rte\src\utils\lvgl\src\misc\lv_utils.h
 	<stdint.h>
 
-1642157624 f:\01work\03sl_sdk\rte\inc\rte_include.h
+1642592869 f:\01work\03sl_sdk\rte\inc\rte_include.h
 	"middle_layer/rte.h"
 	"middle_layer/rte_log.h"
 	"middle_layer/rte_memory.h"
@@ -4526,13 +4526,12 @@
 	"data_structure/ds_hashmap.h"
 	"data_structure/ds_linklist.h"
 	"data_structure/ds_rbtree.h"
-	"image_process/image_process.h"
 	"sugar/sugar_kernel.h"
 	"sugar/sugar_scheduler.h"
 	"sugar/sugar_prior_vector.h"
 	"sugar/sugar_sema.h"
 
-1642157624 f:\01work\03sl_sdk\rte\inc\middle_layer\rte.h
+1642643356 f:\01work\03sl_sdk\rte\inc\middle_layer\rte.h
 	<stdarg.h>
 	<stdint.h>
 	<stddef.h>
@@ -4544,7 +4543,7 @@
 	<float.h>
 	<limits.h>
 
-1642157621 f:\01work\03sl_sdk\rte\inc\middle_layer\rte_log.h
+1642496250 f:\01work\03sl_sdk\rte\inc\middle_layer\rte_log.h
 	"rte.h"
 
 1641973839 f:\01work\03sl_sdk\rte\inc\middle_layer\rte_memory.h
@@ -4552,7 +4551,7 @@
 
 1639840717 f:\01work\03sl_sdk\rte\inc\middle_layer\rte_atomic.h
 
-1642245724 f:\01work\03sl_sdk\rte\inc\middle_layer\rte_timer.h
+1642593285 f:\01work\03sl_sdk\rte\inc\middle_layer\rte_timer.h
 	"rte.h"
 
 1642236302 f:\01work\03sl_sdk\rte\inc\middle_layer\rte_shell.h
@@ -5748,7 +5747,7 @@
 	"rte_include.h"
 	"SDL.h"
 
-1642062148 source:f:\01work\03sl_sdk\example\mingw_sdl2_demo\main.c
+1642249147 source:f:\01work\03sl_sdk\example\mingw_sdl2_demo\main.c
 	<stdio.h>
 	<stdlib.h>
 	<unistd.h>
@@ -7366,15 +7365,15 @@
 	"rte_include.h"
 	"SDL.h"
 
-1642241516 f:\01work\03sl_sdk\rte\inc\sugar\sugar_kernel.h
+1642578884 f:\01work\03sl_sdk\rte\inc\sugar\sugar_kernel.h
 	"../middle_layer/rte.h"
 	"../middle_layer/rte_timer.h"
 	"../data_structure/ds_rbtree.h"
 	"sugar_arch_include.h"
 
-1642157624 f:\01work\03sl_sdk\rte\inc\sugar\sugar_arch_include.h
+1642582314 f:\01work\03sl_sdk\rte\inc\sugar\sugar_arch_include.h
 	"../middle_layer/rte.h"
-	"arch/arm_v7m/sugar_arch.h"
+	"arch/arm_cortex-m/sugar_arch.h"
 
 1642157624 f:\01work\03sl_sdk\rte\inc\sugar\arch\arm_v7m\sugar_arch.h
 	"stm32h7xx_hal.h"
@@ -9624,4 +9623,10 @@
 	"../../inc/middle_layer/rte_atomic.h"
 	"../../inc/data_structure/ds_rbtree.h"
 	"../../inc/data_structure/ds_vector.h"
+
+1642578843 f:\01work\03sl_sdk\rte\inc\sugar\arch\arm_cortex-m\sugar_arch.h
+	"stm32h7xx_hal.h"
+	"sugar_arch_define.h"
+
+1642578845 f:\01work\03sl_sdk\rte\inc\sugar\arch\arm_cortex-m\sugar_arch_define.h
 

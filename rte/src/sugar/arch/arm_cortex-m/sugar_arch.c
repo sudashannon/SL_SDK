@@ -51,7 +51,7 @@ void arch_first_thread_restore(sugar_tcb_t *new_tcb_ptr)
 void __attribute__((noinline))
 arch_context_switch(sugar_tcb_t *old_tcb_ptr __attribute__((unused)), sugar_tcb_t *new_tcb_ptr)
 {
-    if(RTE_LIKELY(ctx_switch_info.running_tcb != NULL)){
+    if(rte_likely(ctx_switch_info.running_tcb != NULL)){
         ctx_switch_info.next_tcb = new_tcb_ptr;
 #if defined(__NEWLIB__)
         ctx_switch_info.reent = &(new_tcb_ptr->port_priv.reent);

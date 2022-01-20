@@ -116,7 +116,7 @@ void sugar_scheduler(bool if_in_tickhandle)
      * sequence is followed there should be no calls here until the OS is
      * started, but we check to handle badly-behaved ports.
      */
-    if (RTE_UNLIKELY(sugar_kernel_handle.if_started == false)) {
+    if (rte_unlikely(sugar_kernel_handle.if_started == false)) {
         /* Don't schedule anything in until the OS is started */
         goto no_scheduler;
     }

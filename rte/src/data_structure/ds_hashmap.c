@@ -61,8 +61,8 @@ typedef struct hashtable_impl {
     rte_mutex_t *mutex;
 } hashtable_impl_t;
 
-#define HT_LOCK(hashtable)      RTE_LOCK(hashtable->mutex)
-#define HT_UNLOCK(hashtable)    RTE_UNLOCK(hashtable->mutex)
+#define HT_LOCK(hashtable)      rte_lock(hashtable->mutex)
+#define HT_UNLOCK(hashtable)    rte_unlock(hashtable->mutex)
 // Single chain's lock is the minimal lock of hashtable, we used cas lock here.
 #define CHAIN_LOCK(chain)       while(!ATOMIC_CASB(&(chain->status), CHAIN_STATUS_IDLE, CHAIN_STATUS_WRITE)) rte_yield();
 #define CHAIN_UNLOCK(chain)     ATOMIC_SET(&(chain->status), CHAIN_STATUS_IDLE)
@@ -133,8 +133,8 @@ static inline uint32_t ht_hash_function(hashtable_impl_t *table, const unsigned 
  */
 rte_error_t ht_create(hashtable_configuration_t *configuration, ds_hashtable_t *hashtable)
 {
-    if (RTE_UNLIKELY(hashtable == NULL)||
-        RTE_UNLIKELY(configuration == NULL))
+    if (rte_unlikely(hashtable == NULL)||
+        rte_unlikely(configuration == NULL))
         return RTE_ERR_PARAM;
     hashtable_impl_t *table = (hashtable_impl_t *)rte_calloc(sizeof(hashtable_impl_t));
     if (!table) {
@@ -176,8 +176,8 @@ rte_error_t ht_create(hashtable_configuration_t *configuration, ds_hashtable_t *
  */
 rte_error_t ht_clear(ds_hashtable_t ptable)
 {
-    hashtable_impl_t *table = RTE_CAST(hashtable_impl_t *, ptable);
-    if (RTE_UNLIKELY(table == NULL))
+    hashtable_impl_t *table = rte_cast(hashtable_impl_t *, ptable);
+    if (rte_unlikely(table == NULL))
         return RTE_ERR_PARAM;
     // Poll for each bucket
     HT_LOCK(table);
@@ -213,8 +213,8 @@ rte_error_t ht_clear(ds_hashtable_t ptable)
  */
 rte_error_t ht_destroy(ds_hashtable_t ptable)
 {
-    hashtable_impl_t *table = RTE_CAST(hashtable_impl_t *, ptable);
-    if (RTE_UNLIKELY(table == NULL))
+    hashtable_impl_t *table = rte_cast(hashtable_impl_t *, ptable);
+    if (rte_unlikely(table == NULL))
         return RTE_ERR_PARAM;
     ht_clear(ptable);
 
@@ -223,7 +223,7 @@ rte_error_t ht_destroy(ds_hashtable_t ptable)
     rte_free(table->buckets_array);
     ds_vector_destroy(table->chains_array);
     rte_free(table);
-    RTE_UNLOCK(tmp_mutex);
+    rte_unlock(tmp_mutex);
     return RTE_SUCCESS;
 }
 
@@ -298,8 +298,8 @@ static rte_error_t ht_set_internal(
 
     uint32_t hashvalue = ht_hash_function(table, key, klen);
     HT_LOCK(table);
-    if (RTE_UNLIKELY(table->buckets_array == NULL) ||
-        RTE_UNLIKELY(table->chains_array == NULL)) {
+    if (rte_unlikely(table->buckets_array == NULL) ||
+        rte_unlikely(table->chains_array == NULL)) {
         HT_UNLOCK(table);
         return RTE_ERR_PARAM;
     }
@@ -437,8 +437,8 @@ rte_error_t ht_set(
     void *key, uint32_t klen,
     void *data, uint32_t dlen)
 {
-    hashtable_impl_t *table = RTE_CAST(hashtable_impl_t *, ptable);
-    if (RTE_UNLIKELY(table == NULL))
+    hashtable_impl_t *table = rte_cast(hashtable_impl_t *, ptable);
+    if (rte_unlikely(table == NULL))
         return RTE_ERR_PARAM;
     return ht_set_internal(table, key, klen, data, dlen, NULL, NULL, false, false);
 }
@@ -456,8 +456,8 @@ rte_error_t ht_set_if_not_exists(
     void *key, uint32_t klen,
     void *data, uint32_t dlen)
 {
-    hashtable_impl_t *table = RTE_CAST(hashtable_impl_t *, ptable);
-    if (RTE_UNLIKELY(table == NULL))
+    hashtable_impl_t *table = rte_cast(hashtable_impl_t *, ptable);
+    if (rte_unlikely(table == NULL))
         return RTE_ERR_PARAM;
     return ht_set_internal(table, key, klen, data, dlen, NULL, NULL, false, true);
 }
@@ -479,8 +479,8 @@ rte_error_t ht_get_or_set(
     void *data, uint32_t dlen,
     void **cur_data, uint32_t *cur_len)
 {
-    hashtable_impl_t *table = RTE_CAST(hashtable_impl_t *, ptable);
-    if (RTE_UNLIKELY(table == NULL))
+    hashtable_impl_t *table = rte_cast(hashtable_impl_t *, ptable);
+    if (rte_unlikely(table == NULL))
         return RTE_ERR_PARAM;
     return ht_set_internal(table, key, klen, data, dlen, cur_data, cur_len, false, true);
 }
@@ -504,8 +504,8 @@ rte_error_t ht_get_and_set(
     void *data, uint32_t dlen,
     void **prev_data, uint32_t *prev_len)
 {
-    hashtable_impl_t *table = RTE_CAST(hashtable_impl_t *, ptable);
-    if (RTE_UNLIKELY(table == NULL))
+    hashtable_impl_t *table = rte_cast(hashtable_impl_t *, ptable);
+    if (rte_unlikely(table == NULL))
         return RTE_ERR_PARAM;
     return ht_set_internal(table, key, klen, data, dlen, prev_data, prev_len, false, false);
 }
@@ -532,8 +532,8 @@ rte_error_t ht_set_copy(
     void *data, uint32_t dlen,
     void **prev_data, uint32_t *prev_len)
 {
-    hashtable_impl_t *table = RTE_CAST(hashtable_impl_t *, ptable);
-    if (RTE_UNLIKELY(table == NULL))
+    hashtable_impl_t *table = rte_cast(hashtable_impl_t *, ptable);
+    if (rte_unlikely(table == NULL))
         return RTE_ERR_PARAM;
     return ht_set_internal(table, key, klen, data, dlen, prev_data, prev_len, true, false);
 }
@@ -547,8 +547,8 @@ static rte_error_t ht_call_internal(
     uint32_t hashvalue = ht_hash_function(table, key, klen);
 
     HT_LOCK(table);
-    if (RTE_UNLIKELY(table->buckets_array == NULL) ||
-        RTE_UNLIKELY(table->chains_array == NULL)) {
+    if (rte_unlikely(table->buckets_array == NULL) ||
+        rte_unlikely(table->chains_array == NULL)) {
         HT_UNLOCK(table);
         return RTE_ERR_PARAM;
     }
@@ -598,8 +598,8 @@ rte_error_t ht_call(
     hashtable_pair_cb_f cb,
     void *user)
 {
-    hashtable_impl_t *table = RTE_CAST(hashtable_impl_t *, ptable);
-    if (RTE_UNLIKELY(table == NULL))
+    hashtable_impl_t *table = rte_cast(hashtable_impl_t *, ptable);
+    if (rte_unlikely(table == NULL))
         return RTE_ERR_PARAM;
     return ht_call_internal(table, key, klen, cb, user);
 }
@@ -621,7 +621,7 @@ ht_set_if_equals_helper(
     uint32_t klen __attribute__ ((unused)),
     void **value, uint32_t *vlen, void *user)
 {
-    hashtable_impl_t *table = RTE_CAST(hashtable_impl_t *, ptable);
+    hashtable_impl_t *table = rte_cast(hashtable_impl_t *, ptable);
     ht_set_if_equals_helper_arg_t *arg = (ht_set_if_equals_helper_arg_t *)user;
 
     if (arg->prev_len)
@@ -670,8 +670,8 @@ rte_error_t ht_set_if_equals(
     if (!match && match_size == 0)
         return ht_set_if_not_exists(ptable, key, klen, data, dlen);
 
-    hashtable_impl_t *table = RTE_CAST(hashtable_impl_t *, ptable);
-    if (RTE_UNLIKELY(table == NULL))
+    hashtable_impl_t *table = rte_cast(hashtable_impl_t *, ptable);
+    if (rte_unlikely(table == NULL))
         return RTE_ERR_PARAM;
     ht_set_if_equals_helper_arg_t arg = {
         .data = data,
@@ -702,7 +702,7 @@ ht_delete_helper(
     uint32_t klen __attribute__ ((unused)),
     void **value, uint32_t *vlen, void *user)
 {
-    hashtable_impl_t *table = RTE_CAST(hashtable_impl_t *, ptable);
+    hashtable_impl_t *table = rte_cast(hashtable_impl_t *, ptable);
     ht_delete_helper_arg_t *arg = (ht_delete_helper_arg_t *)user;
 
     if (arg->match && (arg->match_size != *vlen ||
@@ -742,8 +742,8 @@ rte_error_t ht_unset(
     void *key, uint32_t klen,
     void **prev_data, uint32_t *prev_len)
 {
-    hashtable_impl_t *table = RTE_CAST(hashtable_impl_t *, ptable);
-    if (RTE_UNLIKELY(table == NULL))
+    hashtable_impl_t *table = rte_cast(hashtable_impl_t *, ptable);
+    if (rte_unlikely(table == NULL))
         return RTE_ERR_PARAM;
     ht_delete_helper_arg_t arg = {
         .if_unset = true,
@@ -773,8 +773,8 @@ rte_error_t ht_delete(
     void *key, uint32_t klen,
     void **prev_data, uint32_t *prev_len)
 {
-    hashtable_impl_t *table = RTE_CAST(hashtable_impl_t *, ptable);
-    if (RTE_UNLIKELY(table == NULL))
+    hashtable_impl_t *table = rte_cast(hashtable_impl_t *, ptable);
+    if (rte_unlikely(table == NULL))
         return RTE_ERR_PARAM;
     ht_delete_helper_arg_t arg = {
         .if_unset = false,
@@ -801,8 +801,8 @@ rte_error_t ht_delete_if_equals(
     void *key, uint32_t klen,
     void *match, uint32_t match_size)
 {
-    hashtable_impl_t *table = RTE_CAST(hashtable_impl_t *, ptable);
-    if (RTE_UNLIKELY(table == NULL))
+    hashtable_impl_t *table = rte_cast(hashtable_impl_t *, ptable);
+    if (rte_unlikely(table == NULL))
         return RTE_ERR_PARAM;
     ht_delete_helper_arg_t arg = {
         .if_unset = false,
@@ -824,8 +824,8 @@ rte_error_t ht_delete_if_equals(
  */
 rte_error_t ht_exists(ds_hashtable_t ptable, void *key, uint32_t klen)
 {
-    hashtable_impl_t *table = RTE_CAST(hashtable_impl_t *, ptable);
-    if (RTE_UNLIKELY(table == NULL))
+    hashtable_impl_t *table = rte_cast(hashtable_impl_t *, ptable);
+    if (rte_unlikely(table == NULL))
         return RTE_ERR_PARAM;
     return ht_call_internal(table, key, klen, NULL, NULL);
 }
@@ -876,8 +876,8 @@ ht_get_helper(
  */
 void *ht_get(ds_hashtable_t ptable, void *key, uint32_t klen, uint32_t *dlen)
 {
-   hashtable_impl_t *table = RTE_CAST(hashtable_impl_t *, ptable);
-    if (RTE_UNLIKELY(table == NULL))
+   hashtable_impl_t *table = rte_cast(hashtable_impl_t *, ptable);
+    if (rte_unlikely(table == NULL))
         return NULL;
     ht_get_helper_arg_t arg = {
         .data = NULL,
@@ -907,8 +907,8 @@ void *ht_get(ds_hashtable_t ptable, void *key, uint32_t klen, uint32_t *dlen)
  */
 void *ht_get_copy(ds_hashtable_t ptable, void *key, uint32_t klen, uint32_t *dlen)
 {
-   hashtable_impl_t *table = RTE_CAST(hashtable_impl_t *, ptable);
-    if (RTE_UNLIKELY(table == NULL))
+   hashtable_impl_t *table = rte_cast(hashtable_impl_t *, ptable);
+    if (rte_unlikely(table == NULL))
         return NULL;
     ht_get_helper_arg_t arg = {
         .data = NULL,
@@ -939,8 +939,8 @@ void *ht_get_deep_copy(
     ds_hashtable_t ptable, void *key, uint32_t klen,
     uint32_t *dlen, hashtable_deep_copy_cb_f copy_cb, void *user)
 {
-   hashtable_impl_t *table = RTE_CAST(hashtable_impl_t *, ptable);
-    if (RTE_UNLIKELY(table == NULL))
+   hashtable_impl_t *table = rte_cast(hashtable_impl_t *, ptable);
+    if (rte_unlikely(table == NULL))
         return NULL;
     ht_get_helper_arg_t arg = {
         .data = NULL,
@@ -962,13 +962,13 @@ void *ht_get_deep_copy(
 void ht_foreach_pair(
     ds_hashtable_t ptable, hashtable_pair_iterator_cb_f cb, void *user)
 {
-    hashtable_impl_t *table = RTE_CAST(hashtable_impl_t *, ptable);
-    if (RTE_UNLIKELY(table == NULL))
+    hashtable_impl_t *table = rte_cast(hashtable_impl_t *, ptable);
+    if (rte_unlikely(table == NULL))
         return;
 
     HT_LOCK(table);
-    if (RTE_UNLIKELY(table->buckets_array == NULL) ||
-        RTE_UNLIKELY(table->chains_array == NULL)) {
+    if (rte_unlikely(table->buckets_array == NULL) ||
+        rte_unlikely(table->chains_array == NULL)) {
         HT_UNLOCK(table);
         return;
     }
@@ -1067,8 +1067,8 @@ ht_foreach_value(ds_hashtable_t ptable, hashtable_value_iterator_cb_f cb, void *
  */
 uint32_t ht_count(ds_hashtable_t ptable)
 {
-    hashtable_impl_t *table = RTE_CAST(hashtable_impl_t *, ptable);
-    if (RTE_UNLIKELY(table == NULL))
+    hashtable_impl_t *table = rte_cast(hashtable_impl_t *, ptable);
+    if (rte_unlikely(table == NULL))
         return 0;
     return ATOMIC_READ(&table->element_count);
 }

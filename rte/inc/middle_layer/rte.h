@@ -26,6 +26,10 @@
 #include <float.h>
 #include <limits.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define RTE_VERSION                 "6.0.0"
 
 #ifndef RTE_USE_EXTERNAL_OS
@@ -46,25 +50,14 @@
 #define RTE_USE_LOG                 1
 #endif
 
-#ifndef RTE_LOG_CFG_SUPPORT_LONG_LONG
-#define RTE_LOG_CFG_SUPPORT_LONG_LONG              1
-#endif
-
-#ifndef RTE_LOG_CFG_SUPPORT_TYPE_FLOAT
-#define RTE_LOG_CFG_SUPPORT_TYPE_FLOAT             1
-#endif
-
-#ifndef RTE_LOG_CFG_FLOAT_DEFAULT_PRECISION
-#define RTE_LOG_CFG_FLOAT_DEFAULT_PRECISION        6
-#endif
-
 // Recommended when ram is smaller than 16KB, and use
 // first-fit method when enabled. If disabled,
 // the mempool will use tlsf method */
 #define RTE_USE_SIMPLY_MEMPOOL      0
 
 
-#define RTE_MAX_TIMER_GROUP_SIZE    2
+#define rte_max_TIMER_GROUP_SIZE    2
+
 #ifndef RTE_TIMER_TICK_UNIT
 #define tick_unit_t                 uint32_t
 #define TIME_MAX_DELAY              UINT32_MAX
@@ -128,115 +121,30 @@ typedef int8_t  rte_error_t;
 #define MEM_MODIFY_ALIGN_UP(ptr, n)             (((ptr) + ((n) - 1)) & ~((n) - 1))
 #define MEM_MODIFY_ALIGN_DOWN(ptr, n)           ((ptr) & ~((n) - 1))
 #define MEM_BLOCK_ALIGN                         (sizeof(void *) * 2)
-#define MEM_ALIGN_BYTES (buf)    buf __attribute__((aligned(MEM_BLOCK_ALIGN)))
-#define MEM_ALIGN_NBYTES(buf, n) buf __attribute__((aligned(n)))
+#define MEM_ALIGN_BYTES (buf)                   buf __attribute__((aligned(MEM_BLOCK_ALIGN)))
+#define MEM_ALIGN_NBYTES(buf, n)                buf __attribute__((aligned(n)))
+
 /* Typedef for array's size */
-#define ARRAY_SIZE(arr)         (sizeof(arr) / sizeof((arr)[0]))
+#define ARRAY_SIZE(arr)                         (sizeof(arr) / sizeof((arr)[0]))
 
-#define RTE_LIKELY(x)           __builtin_expect(!!(x), 1)
-#define RTE_UNLIKELY(x)         __builtin_expect(!!(x), 0)
+#define rte_likely(x)                           __builtin_expect(!!(x), 1)
+#define rte_unlikely(x)                         __builtin_expect(!!(x), 0)
 
-#define RTE_CONTAINER_OF(ptr, type, member) ({                      \
-        const typeof( ((type *)0)->member ) *__mptr = (ptr);        \
-        (type *)( (char *)__mptr - offsetof(type,member) );})
+#define rte_offset_of(type, member)             offsetof(type, member)
+#define rte_container_of(ptr, type, member)     ({const typeof( ((type *)0)->member ) *__mptr = (ptr);        \
+                                                    (type *)( (char *)__mptr - offsetof(type,member) );})
 
-#define RTE_OFFSET_OF(type, member) offsetof(type, member)
+#define rte_strdup(ptr, str)                    do{                                             \
+                                                    if (str) {                                  \
+                                                        ptr = rte_calloc(strlen(str) + 1);      \
+                                                        memcpy(ptr, str, strlen(str));          \
+                                                    }                                           \
+                                                } while(0)
 
-/* Typedef for mutex */
-#define RTE_LOCK(v)         do{                                                          \
-                                if((v) && ((v)->lock) && ((v)->mutex))                   \
-                                    (((v)->lock))((v)->mutex);                           \
-                            } while(0)
+#define rte_max(a,b)     ({ __typeof__ (a) _a = (a); __typeof__ (b) _b = (b); _a > _b ? _a : _b; })
+#define rte_min(a,b)     ({ __typeof__ (a) _a = (a); __typeof__ (b) _b = (b); _a < _b ? _a : _b; })
 
-#define RTE_TRYLOCK(v, t, retval)   if((v) && ((v)->trylock) && ((v)->mutex))            \
-                                        retval = (((v)->trylock))((v)->mutex, t);        \
-                                    else                                                 \
-                                        retval = RTE_SUCCESS;
-
-#define RTE_UNLOCK(v)       do{                                                          \
-                                if((v) && ((v)->unlock) && ((v)->mutex))                 \
-                                    (((v)->unlock))((v)->mutex);                         \
-                            } while(0)
-
-#define RTE_STRDUP(ptr, str)                                                             \
-do{                                                                                      \
-    if (str) {                                                                           \
-        ptr = rte_calloc(strlen(str) + 1);                                               \
-        memcpy(ptr, str, strlen(str));                                                   \
-    }                                                                                    \
-} while(0)
-
-#define RTE_MAX(a,b)     ({ __typeof__ (a) _a = (a); __typeof__ (b) _b = (b); _a > _b ? _a : _b; })
-#define RTE_MIN(a,b)     ({ __typeof__ (a) _a = (a); __typeof__ (b) _b = (b); _a < _b ? _a : _b; })
-#define RTE_DIV(a,b)     ({ __typeof__ (a) _a = (a); __typeof__ (b) _b = (b); _b ? (_a / _b) : 0; })
-#define RTE_MOD(a,b)     ({ __typeof__ (a) _a = (a); __typeof__ (b) _b = (b); _b ? (_a % _b) : 0; })
-
-#define RTE_LOG2_2(x)    (((x) &                0x2ULL) ? ( 2                        ) :             1) // NO ({ ... }) !
-#define RTE_LOG2_4(x)    (((x) &                0xCULL) ? ( 2 +  RTE_LOG2_2((x) >>  2)) :  RTE_LOG2_2(x)) // NO ({ ... }) !
-#define RTE_LOG2_8(x)    (((x) &               0xF0ULL) ? ( 4 +  RTE_LOG2_4((x) >>  4)) :  RTE_LOG2_4(x)) // NO ({ ... }) !
-#define RTE_LOG2_16(x)   (((x) &             0xFF00ULL) ? ( 8 +  RTE_LOG2_8((x) >>  8)) :  RTE_LOG2_8(x)) // NO ({ ... }) !
-#define RTE_LOG2_32(x)   (((x) &         0xFFFF0000ULL) ? (16 + RTE_LOG2_16((x) >> 16)) : RTE_LOG2_16(x)) // NO ({ ... }) !
-#define RTE_LOG2(x)      (((x) & 0xFFFFFFFF00000000ULL) ? (32 + RTE_LOG2_32((x) >> 32)) : RTE_LOG2_32(x)) // NO ({ ... }) !
-
-#define RTE_MAX(a,b)     ({ __typeof__ (a) _a = (a); __typeof__ (b) _b = (b); _a > _b ? _a : _b; })
-#define RTE_MIN(a,b)     ({ __typeof__ (a) _a = (a); __typeof__ (b) _b = (b); _a < _b ? _a : _b; })
-#define RTE_DIV(a,b)     ({ __typeof__ (a) _a = (a); __typeof__ (b) _b = (b); _b ? (_a / _b) : 0; })
-#define RTE_MOD(a,b)     ({ __typeof__ (a) _a = (a); __typeof__ (b) _b = (b); _b ? (_a % _b) : 0; })
-
-#define INT8_T_BITS     (sizeof(int8_t) * 8)
-#define INT8_T_MASK     (INT8_T_BITS - 1)
-#define INT8_T_SHIFT    RTE_LOG2(INT8_T_MASK)
-
-#define INT16_T_BITS    (sizeof(int16_t) * 8)
-#define INT16_T_MASK    (INT16_T_BITS - 1)
-#define INT16_T_SHIFT   RTE_LOG2(INT16_T_MASK)
-
-#define INT32_T_BITS    (sizeof(int32_t) * 8)
-#define INT32_T_MASK    (INT32_T_BITS - 1)
-#define INT32_T_SHIFT   RTE_LOG2(INT32_T_MASK)
-
-#define INT64_T_BITS    (sizeof(int64_t) * 8)
-#define INT64_T_MASK    (INT64_T_BITS - 1)
-#define INT64_T_SHIFT   RTE_LOG2(INT64_T_MASK)
-
-#define UINT8_T_BITS    (sizeof(uint8_t) * 8)
-#define UINT8_T_MASK    (UINT8_T_BITS - 1)
-#define UINT8_T_SHIFT   RTE_LOG2(UINT8_T_MASK)
-
-#define UINT16_T_BITS   (sizeof(uint16_t) * 8)
-#define UINT16_T_MASK   (UINT16_T_BITS - 1)
-#define UINT16_T_SHIFT  RTE_LOG2(UINT16_T_MASK)
-
-#define UINT32_T_BITS   (sizeof(uint32_t) * 8)
-#define UINT32_T_MASK   (UINT32_T_BITS - 1)
-#define UINT32_T_SHIFT  RTE_LOG2(UINT32_T_MASK)
-
-#define UINT64_T_BITS   (sizeof(uint64_t) * 8)
-#define UINT64_T_MASK   (UINT64_T_BITS - 1)
-#define UINT64_T_SHIFT  RTE_LOG2(UINT64_T_MASK)
-
-#ifndef M_PI
-#define M_PI 3.1415926f
-#endif
-#define RTE_DEG2RAD(x)   (((x)*M_PI)/180)
-#define RTE_RAD2DEG(x)   (((x)*180)/M_PI)
-
-typedef void (*rte_callback_f)(void *arg);
-
-static inline uint32_t rte_roundup_pow_of_two(uint32_t v) {
-    v--;
-    v |= v >> 1;
-    v |= v >> 2;
-    v |= v >> 4;
-    v |= v >> 8;
-    v |= v >> 16;
-    v++;
-    return v;
-}
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#define rte_cast(t, exp)    ((t)(exp))
 
 typedef void *ds_vector_t;
 typedef void *ds_ringbuffer_t;
@@ -247,12 +155,10 @@ typedef void *ds_linklist_t;
 typedef uint8_t timer_id_t;
 typedef uint8_t timer_group_id_t;
 
-#define RTE_CAST(t, exp)    ((t)(exp))
-
 typedef struct {
     void *mutex;
     rte_error_t (*lock)(void *mutex);
-    rte_error_t (*trylock)(void *mutex, uint32_t timeout_ms);
+    rte_error_t (*trylock)(void *mutex, tick_unit_t timeout);
     rte_error_t (*unlock)(void *mutex);
 } rte_mutex_t;
 
@@ -269,6 +175,38 @@ typedef struct {
     uint16_t msg_len;
     uint8_t msg_buf[0];
 } rte_msg_t;
+
+static inline uint32_t rte_roundup_pow_of_two(uint32_t v) {
+    v--;
+    v |= v >> 1;
+    v |= v >> 2;
+    v |= v >> 4;
+    v |= v >> 8;
+    v |= v >> 16;
+    v++;
+    return v;
+}
+
+static inline rte_error_t rte_lock(rte_mutex_t *instance)
+{
+    if(instance && (instance->lock) && (instance->mutex))
+        return (instance->lock)(instance->mutex);
+    return RTE_ERR_PARAM;
+}
+
+static inline rte_error_t rte_try_lock(rte_mutex_t *instance, tick_unit_t timeout)
+{
+    if(instance && (instance->trylock) && (instance->mutex))
+        return (instance->trylock)(instance->mutex, timeout);
+    return RTE_ERR_PARAM;
+}
+
+static inline rte_error_t rte_unlock(rte_mutex_t *instance)
+{
+    if(instance && (instance->unlock) && (instance->mutex))
+        return (instance->unlock)(instance->mutex);
+    return RTE_ERR_PARAM;
+}
 
 #ifdef __cplusplus
 }

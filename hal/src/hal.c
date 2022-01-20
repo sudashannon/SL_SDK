@@ -14,12 +14,12 @@
 
 #define HAL_DEVICE_TRY_LOCK(device, timeout_tick, retval)           \
         tick_unit_t start_time = rte_get_tick();                    \
-        RTE_TRYLOCK(&(device->mutex), timeout_tick, retval);        \
+        retval = rte_try_lock(&(device->mutex), timeout_tick);      \
         tick_unit_t consumed_time = rte_time_consume(start_time);   \
         if (retval != RTE_SUCCESS)                                  \
             return retval;                                          \
         if (consumed_time >= left_time) {                           \
-            RTE_UNLOCK(&(device->mutex));                           \
+            rte_unlock(&(device->mutex));                           \
             return RTE_ERR_TIMEOUT;                                 \
         }                                                           \
         left_time -= consumed_time
@@ -129,16 +129,16 @@ rte_error_t hal_device_read_sync(char *device_name, uint8_t *dest_buf,
                                 uint32_t *buf_size, tick_unit_t timeout_tick)
 {
     hal_device_t *device = hal_get_device(device_name);
-    if (RTE_UNLIKELY(device == NULL) ||
-        RTE_UNLIKELY(dest_buf == NULL) ||
-        RTE_UNLIKELY(device->read == NULL)) {
+    if (rte_unlikely(device == NULL) ||
+        rte_unlikely(dest_buf == NULL) ||
+        rte_unlikely(device->read == NULL)) {
         return RTE_ERR_PARAM;
     }
     rte_error_t retval = RTE_ERR_UNDEFINE;
     tick_unit_t left_time = timeout_tick;
     HAL_DEVICE_TRY_LOCK(device, left_time, retval);
     retval = device->read(device, dest_buf, buf_size, left_time);
-    RTE_UNLOCK(&device->mutex);
+    rte_unlock(&device->mutex);
     return retval;
 }
 
@@ -146,16 +146,16 @@ rte_error_t hal_device_write_sync(char *device_name, uint8_t *src_buf,
                                         uint32_t buf_size, tick_unit_t timeout_tick)
 {
     hal_device_t *device = hal_get_device(device_name);
-    if (RTE_UNLIKELY(device == NULL) ||
-        RTE_UNLIKELY(src_buf == NULL) ||
-        RTE_UNLIKELY(device->write == NULL)) {
+    if (rte_unlikely(device == NULL) ||
+        rte_unlikely(src_buf == NULL) ||
+        rte_unlikely(device->write == NULL)) {
         return RTE_ERR_PARAM;
     }
     rte_error_t retval = RTE_ERR_UNDEFINE;
     tick_unit_t left_time = timeout_tick;
     HAL_DEVICE_TRY_LOCK(device, left_time, retval);
     retval = device->write(device, src_buf, buf_size, left_time);
-    RTE_UNLOCK(&device->mutex);
+    rte_unlock(&device->mutex);
     return retval;
 }
 
@@ -163,16 +163,16 @@ rte_error_t hal_device_read_async(char *device_name, uint8_t *dest_buf,
                                         uint32_t *buf_size, tick_unit_t timeout_tick)
 {
     hal_device_t *device = hal_get_device(device_name);
-    if (RTE_UNLIKELY(device == NULL) ||
-        RTE_UNLIKELY(dest_buf == NULL) ||
-        RTE_UNLIKELY(device->read_async == NULL)) {
+    if (rte_unlikely(device == NULL) ||
+        rte_unlikely(dest_buf == NULL) ||
+        rte_unlikely(device->read_async == NULL)) {
         return RTE_ERR_PARAM;
     }
     rte_error_t retval = RTE_ERR_UNDEFINE;
     tick_unit_t left_time = timeout_tick;
     HAL_DEVICE_TRY_LOCK(device, left_time, retval);
     retval = device->read_async(device, dest_buf, buf_size, left_time);
-    RTE_UNLOCK(&device->mutex);
+    rte_unlock(&device->mutex);
     return retval;
 }
 
@@ -180,16 +180,16 @@ rte_error_t hal_device_write_async(char *device_name, uint8_t *src_buf,
                                         uint32_t buf_size, tick_unit_t timeout_tick)
 {
     hal_device_t *device = hal_get_device(device_name);
-    if (RTE_UNLIKELY(device == NULL) ||
-        RTE_UNLIKELY(src_buf == NULL) ||
-        RTE_UNLIKELY(device->write_async == NULL)) {
+    if (rte_unlikely(device == NULL) ||
+        rte_unlikely(src_buf == NULL) ||
+        rte_unlikely(device->write_async == NULL)) {
         return RTE_ERR_PARAM;
     }
     rte_error_t retval = RTE_ERR_UNDEFINE;
     tick_unit_t left_time = timeout_tick;
     HAL_DEVICE_TRY_LOCK(device, left_time, retval);
     retval = device->write_async(device, src_buf, buf_size, left_time);
-    RTE_UNLOCK(&device->mutex);
+    rte_unlock(&device->mutex);
     return retval;
 }
 

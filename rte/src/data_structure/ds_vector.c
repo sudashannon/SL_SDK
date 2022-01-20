@@ -34,8 +34,8 @@ typedef struct __ds_vector {
     rte_mutex_t *mutex;              // mutex for the whole vector.
 } ds_vector_impl_t;
 
-#define VECTOR_LOCK(vector)           RTE_LOCK(vector->mutex)
-#define VECTOR_UNLOCK(vector)         RTE_UNLOCK(vector->mutex)
+#define VECTOR_LOCK(vector)           rte_lock(vector->mutex)
+#define VECTOR_UNLOCK(vector)         rte_unlock(vector->mutex)
 
 /**
  * @brief Creat a vector with fixed capacity.
@@ -46,10 +46,10 @@ typedef struct __ds_vector {
  */
 rte_error_t ds_vector_create(vector_configuration_t *config, ds_vector_t *handle)
 {
-    if (RTE_UNLIKELY(handle == NULL) ||
-        RTE_UNLIKELY(config == NULL) ||
-        RTE_UNLIKELY(config->capacity == 0) ||
-        RTE_UNLIKELY(config->if_deep_copy && config->element_size == 0)) {
+    if (rte_unlikely(handle == NULL) ||
+        rte_unlikely(config == NULL) ||
+        rte_unlikely(config->capacity == 0) ||
+        rte_unlikely(config->if_deep_copy && config->element_size == 0)) {
         return RTE_ERR_PARAM;
     }
     ds_vector_impl_t *vector = NULL;
@@ -88,7 +88,7 @@ rte_error_t ds_vector_create(vector_configuration_t *config, ds_vector_t *handle
 rte_error_t ds_vector_clear(ds_vector_t handle)
 {
     ds_vector_impl_t *vector = (ds_vector_impl_t *)handle;
-    if (RTE_UNLIKELY(vector == NULL)) {
+    if (rte_unlikely(vector == NULL)) {
         return RTE_ERR_PARAM;
     }
     VECTOR_LOCK(vector);
@@ -116,7 +116,7 @@ rte_error_t ds_vector_clear(ds_vector_t handle)
 rte_error_t ds_vector_destroy(ds_vector_t handle)
 {
     ds_vector_impl_t *vector = (ds_vector_impl_t *)handle;
-    if (RTE_UNLIKELY(vector == NULL)) {
+    if (rte_unlikely(vector == NULL)) {
         return RTE_ERR_PARAM;
     }
     VECTOR_LOCK(vector);
@@ -135,7 +135,7 @@ rte_error_t ds_vector_destroy(ds_vector_t handle)
     // Record this mutex cause its owner will be released in the free api.
     rte_mutex_t *vector_mutex = vector->mutex;
     rte_free(vector);
-    RTE_UNLOCK(vector_mutex);
+    rte_unlock(vector_mutex);
     return RTE_SUCCESS;
 }
 /**
@@ -148,11 +148,11 @@ rte_error_t ds_vector_destroy(ds_vector_t handle)
 rte_error_t ds_vector_expand(ds_vector_t handle, uint32_t new_size)
 {
     ds_vector_impl_t *vector = (ds_vector_impl_t *)handle;
-    if (RTE_UNLIKELY(vector == NULL)) {
+    if (rte_unlikely(vector == NULL)) {
         return RTE_ERR_PARAM;
     }
     VECTOR_LOCK(vector);
-    if (RTE_UNLIKELY(vector->capacity >= new_size)) {
+    if (rte_unlikely(vector->capacity >= new_size)) {
         VECTOR_UNLOCK(vector);
         return RTE_ERR_PARAM;
     }
@@ -217,8 +217,8 @@ rte_error_t ds_vector_expand(ds_vector_t handle, uint32_t new_size)
 rte_error_t ds_vector_push(ds_vector_t handle, void *value)
 {
     ds_vector_impl_t *vector = (ds_vector_impl_t *)handle;
-    if (RTE_UNLIKELY(vector == NULL) ||
-        RTE_UNLIKELY(vector->if_deep_copy == true && value == NULL)) {
+    if (rte_unlikely(vector == NULL) ||
+        rte_unlikely(vector->if_deep_copy == true && value == NULL)) {
         return RTE_ERR_PARAM;
     }
     VECTOR_LOCK(vector);
@@ -255,13 +255,13 @@ rte_error_t ds_vector_push(ds_vector_t handle, void *value)
 rte_error_t ds_vector_pop(ds_vector_t handle, void *buffer)
 {
     ds_vector_impl_t *vector = (ds_vector_impl_t *)handle;
-    if (RTE_UNLIKELY(vector == NULL)||
-        RTE_UNLIKELY(buffer == NULL)) {
+    if (rte_unlikely(vector == NULL)||
+        rte_unlikely(buffer == NULL)) {
         return RTE_ERR_PARAM;
     }
     VECTOR_LOCK(vector);
-    if (RTE_UNLIKELY(vector->data == NULL) ||
-        RTE_UNLIKELY(vector->length == 0)) {
+    if (rte_unlikely(vector->data == NULL) ||
+        rte_unlikely(vector->length == 0)) {
         VECTOR_UNLOCK(vector);
         return RTE_ERR_NO_RSRC;
     }
@@ -299,8 +299,8 @@ uint32_t ds_vector_length(ds_vector_t handle)
 void *ds_vector_at(ds_vector_t handle, uint32_t index)
 {
     ds_vector_impl_t *vector = (ds_vector_impl_t *)handle;
-    if (RTE_UNLIKELY(vector == NULL) ||
-        RTE_UNLIKELY(index > vector->length)) {
+    if (rte_unlikely(vector == NULL) ||
+        rte_unlikely(index > vector->length)) {
         return NULL;
     }
     uint32_t real_index = (vector->head + index) & (vector->capacity - 1);
@@ -319,11 +319,11 @@ void *ds_vector_at(ds_vector_t handle, uint32_t index)
 rte_error_t ds_vector_remove_by_index(ds_vector_t handle, uint32_t index)
 {
     ds_vector_impl_t *vector = (ds_vector_impl_t *)handle;
-    if (RTE_UNLIKELY(vector == NULL)) {
+    if (rte_unlikely(vector == NULL)) {
         return RTE_ERR_PARAM;
     }
     VECTOR_LOCK(vector);
-    if (RTE_UNLIKELY(index >= vector->length)) {
+    if (rte_unlikely(index >= vector->length)) {
         VECTOR_UNLOCK(vector);
         return RTE_ERR_NO_RSRC;
     }
@@ -411,7 +411,7 @@ rte_error_t ds_vector_remove_by_index(ds_vector_t handle, uint32_t index)
 rte_error_t ds_vector_remove_by_pointer(ds_vector_t handle, void *pointer)
 {
     ds_vector_impl_t *vector = (ds_vector_impl_t *)handle;
-    if (RTE_UNLIKELY(vector == NULL)) {
+    if (rte_unlikely(vector == NULL)) {
         return RTE_ERR_PARAM;
     }
     VECTOR_LOCK(vector);

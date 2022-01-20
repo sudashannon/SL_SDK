@@ -102,7 +102,7 @@ static rte_error_t spi_recv_async(hal_device_t *device, uint8_t *buffer, uint32_
 
 static rte_error_t spi_create(spi_name_t spi_name, hal_device_t **device)
 {
-    if (RTE_UNLIKELY(device == NULL))
+    if (rte_unlikely(device == NULL))
         return RTE_ERR_PARAM;
 
     hal_device_initialize(spi, spi_name,

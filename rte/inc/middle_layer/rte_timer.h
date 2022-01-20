@@ -14,12 +14,14 @@
 
 #include "rte.h"
 
+typedef void (*timer_callback_f)(void *arg);
+
 typedef struct {
     uint8_t if_reload:1;
     uint8_t if_run_immediately:1;
     uint8_t reserved:6;
     tick_unit_t repeat_period_tick;
-    rte_callback_f timer_callback;
+    timer_callback_f timer_callback;
     void *parameter;
 } timer_configuration_t;
 
@@ -42,7 +44,7 @@ typedef struct
     timer_group_id_t group_id;	    /*!< Group ID */
     volatile tick_unit_t ARR;       /*!< Auto reload value */
     volatile tick_unit_t CNT;       /*!< Counter value, counter counts down */
-    rte_callback_f callback;	    /*!< Callback which will be called when timer reaches zero */
+    timer_callback_f callback;	    /*!< Callback which will be called when timer reaches zero */
     void* parameter;           		/*!< Pointer to user parameters used for callback function */
 } timer_impl_t;
 

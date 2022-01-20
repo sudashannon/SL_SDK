@@ -339,15 +339,15 @@ static int set_auto_gain(sensor_t *sensor, int enable, float gain_db, float gain
     ret |= cambus_writeb(sensor->bus, sensor->slv_addr, COM8, COM8_SET_AGC(reg, (enable != 0)));
 
     if ((enable == 0) && (!__ARM_isnanf(gain_db)) && (!__ARM_isinff(gain_db))) {
-        float gain = RTE_MAX(RTE_MIN(expf((gain_db / 20.0) * log(10.0)), 32.0), 1.0);
+        float gain = rte_max(rte_min(expf((gain_db / 20.0) * log(10.0)), 32.0), 1.0);
 
-        int gain_temp = roundf(log2(RTE_MAX(gain / 2.0, 1.0)));
+        int gain_temp = roundf(log2(rte_max(gain / 2.0, 1.0)));
         int gain_hi = 0xF >> (4 - gain_temp);
-        int gain_lo = RTE_MIN(roundf(((gain / (1 << gain_temp)) - 1.0) * 16.0), 15);
+        int gain_lo = rte_min(roundf(((gain / (1 << gain_temp)) - 1.0) * 16.0), 15);
 
         ret |= cambus_writeb(sensor->bus, sensor->slv_addr, GAIN, (gain_hi << 4) | (gain_lo << 0));
     } else if ((enable != 0) && (!__ARM_isnanf(gain_db_ceiling)) && (!__ARM_isinff(gain_db_ceiling))) {
-        float gain_ceiling = RTE_MAX(RTE_MIN(expf((gain_db_ceiling / 20.0) * log(10.0)), 32.0), 2.0);
+        float gain_ceiling = rte_max(rte_min(expf((gain_db_ceiling / 20.0) * log(10.0)), 32.0), 2.0);
 
         ret |= cambus_readb(sensor->bus, sensor->slv_addr, COM9, &reg);
         ret |= cambus_writeb(sensor->bus, sensor->slv_addr, COM9, (reg & 0x8F) | (((int)ceilf(log2(gain_ceiling)) - 1) << 4));
@@ -411,7 +411,7 @@ static int set_auto_exposure(sensor_t *sensor, int enable, int exposure_us)
             clk_rc = ((reg & CLKRC_PRESCALER) + 1) * 2;
         }
 
-        int exposure = RTE_MAX(RTE_MIN(((exposure_us*(((SENSOR_XCLK_FREQUENCY/clk_rc)*pll_mult)/1000000))/t_pclk)/t_line,0xFFFF),0x0000);
+        int exposure = rte_max(rte_min(((exposure_us*(((SENSOR_XCLK_FREQUENCY/clk_rc)*pll_mult)/1000000))/t_pclk)/t_line,0xFFFF),0x0000);
 
         ret |= cambus_writeb(sensor->bus, sensor->slv_addr, AEC, ((exposure >> 0) & 0xFF));
         ret |= cambus_writeb(sensor->bus, sensor->slv_addr, AECH, ((exposure >> 8) & 0xFF));
@@ -478,9 +478,9 @@ static int set_auto_whitebal(sensor_t *sensor, int enable, float r_gain_db, floa
         ret |= cambus_readb(sensor->bus, sensor->slv_addr, AWB_CTRL1, &reg);
         float gain_div = (reg & 0x2) ? 64.0 : 128.0;
 
-        int r_gain = RTE_MAX(RTE_MIN(roundf(expf((r_gain_db / 20.0) * log(10.0)) * gain_div), 255), 0);
-        int g_gain = RTE_MAX(RTE_MIN(roundf(expf((g_gain_db / 20.0) * log(10.0)) * gain_div), 255), 0);
-        int b_gain = RTE_MAX(RTE_MIN(roundf(expf((b_gain_db / 20.0) * log(10.0)) * gain_div), 255), 0);
+        int r_gain = rte_max(rte_min(roundf(expf((r_gain_db / 20.0) * log(10.0)) * gain_div), 255), 0);
+        int g_gain = rte_max(rte_min(roundf(expf((g_gain_db / 20.0) * log(10.0)) * gain_div), 255), 0);
+        int b_gain = rte_max(rte_min(roundf(expf((b_gain_db / 20.0) * log(10.0)) * gain_div), 255), 0);
 
         ret |= cambus_writeb(sensor->bus, sensor->slv_addr, BLUE, b_gain);
         ret |= cambus_writeb(sensor->bus, sensor->slv_addr, RED, r_gain);

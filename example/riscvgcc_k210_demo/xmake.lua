@@ -38,7 +38,8 @@ end
                 "CONFIG_LOG_ENABLE",
                 "CONFIG_LOG_COLORS",
                 "LOG_KERNEL",
-                "DEBUG_ON_QEMU=0")
+                "DEBUG_ON_QEMU=0",
+                "RTE_USE_SUGAR_KERNEL=0")
     add_cxflags("-march=rv64gc", "-mabi=lp64d", "-mcmodel=medany",
                 "-ffunction-sections", "-fdata-sections" ,"-fno-common",
                 "-fno-common", "-ffunction-sections", "-fdata-sections",
