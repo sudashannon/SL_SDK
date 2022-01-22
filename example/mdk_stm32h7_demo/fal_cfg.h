@@ -80,8 +80,10 @@ extern struct fal_flash_dev nor_flash1;
     {FAL_PART_MAGIC_WROD,    "fm_area",    "norflash0",                 2048 * 1024,      2048 * 1024, 0}, \
     {FAL_PART_MAGIC_WROD,    "df_area",    "norflash0",                 4096 * 1024,      2048 * 1024, 0}, \
     {FAL_PART_MAGIC_WORD,    "dc_area",    "norflash0",                 6144 * 1024,      2048 * 1024, 0}, \
-    {FAL_PART_MAGIC_WROD,    "user_kvdb",  "norflash1",                           0,      16 * 1024, 0}, \
-    {FAL_PART_MAGIC_WROD,    "user_tsdb",  "norflash1",                 4096 * 1024,      1024 * 1024, 0}, \
+    {FAL_PART_MAGIC_WROD,    "user_kvdb",  "norflash1",                           0,      2048 * 1024, 0}, \
+    {FAL_PART_MAGIC_WROD,    "user_tsdb",  "norflash1",                 2048 * 1024,      2048 * 1024, 0}, \
+    {FAL_PART_MAGIC_WROD,    "bk1_area",   "norflash1",                 4096 * 1024,      2048 * 1024, 0}, \
+    {FAL_PART_MAGIC_WROD,    "bk2_area",   "norflash1",                 6144 * 1024,      2048 * 1024, 0}, \
 }
 #endif /* FAL_PART_HAS_TABLE_CFG */
 

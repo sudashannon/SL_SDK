@@ -115,7 +115,7 @@ int shell_upgrade_cmd(int argc, char *const argv[])
                 upgrade_status_set(true);
                 shell_printf("Reset system and apply new firmware.\r\n");
                 osDelay(1000);
-                SCB->AIRCR = 0x05FA0004;
+                NVIC_SystemReset();
             } else {
                 shell_printf("Download firmware verify........[FAILED]\r\n");
             }

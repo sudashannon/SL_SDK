@@ -87,7 +87,7 @@ rte_error_t log_init(rte_mutex_t *mutex, log_output_f out_func, log_get_tick_f g
     return retval;
 }
 
-static inline size_t log_output_wrapper(log_buffer_output_t *buf_output, uint8_t *data, size_t length)
+static inline size_t log_output_wrapper(uint8_t *data, size_t length, log_buffer_output_t *buf_output)
 {
     if (buf_output == NULL) {
         return log_config_handle.ex_out_func(data, length);
@@ -122,12 +122,11 @@ static inline int log_format_parse_num(const char**format)
 static int log_format_output(const char *format, va_list arg, log_buffer_output_t *buf_output)
 {
     int converted_count = 0;
-    double float_value = 0.0;
-    bool if_neg = false, if_long = false, if_left_align = false,
-        if_float = false, if_dot_output = false;
-    uint32_t pos = 0, extra_pos = 0, width = 0, precision = 0, base = 0, ui32value = 0;
+    bool if_neg = false, if_long = false;
+    uint32_t pos = 0, count = 0, base = 0, ui32value = 0;
     uint64_t ui64value = 0, index = 0;
-    char *str_ptr, temp_buf[32], fill_char = ' ';
+    static const char * const ascii_map_table = "0123456789abcdef";
+    char *temp_str, temp_buf[16], cha_fill;
     // Loop while there are more characters in the string.
     while(*format) {
         // Find the first non-% character, or the end of the string.
@@ -136,121 +135,95 @@ static int log_format_output(const char *format, va_list arg, log_buffer_output_
             index++) {
         }
         // Write this portion of the string.
-        converted_count += log_output_wrapper(buf_output, (uint8_t *)format, index);
+        log_output_wrapper((uint8_t *)format, index, buf_output);
+        converted_count += index;
         // Skip the portion of the string that was written.
         format += index;
         // See if the next character is a %.
         if(*format == '%') {
+            // Skip the %.
+            format++;
+            // Set the digit count to zero, and the fill character to space
+            // (in other words, to the defaults).
+            count = 0;
+            cha_fill = ' ';
+            // It may be necessary to get back here to process more characters.
+            // Goto's aren't pretty, but effective.  I feel extremely dirty for
+            // using not one but two of the beasts.
 again:
-            // Skip the % or the -.
-            format++;
-            /* %[flags][width][.precision][length]type */
-            // Check [flags]
-            switch (*format) {
-                case '-':
-                    if_left_align = true;
-                    goto again;
-                case ' ':
-                    fill_char = ' ';
-                    break;
-                case '0':
-                    fill_char = '0';
-                    break;
-                default:
-                    format--;
-                    break;
-            }
-            format++;
-
-            // Check [width]
-            width = 0;
-            if (CHAR_IS_NUM(*format)) {
-                width = log_format_parse_num(&format);
-            } else if (*format == '*') {
-                const int w = (int)va_arg(arg, int);
-                if (w < 0) {
-                    if_left_align = true;      /* Negative width means left aligned */
-                    width = -w;
-                } else {
-                    width = w;
-                }
-                ++format;
-            }
-            if (width > sizeof(temp_buf))
-                width = sizeof(temp_buf);
-            // Check [.precision]
-            precision = 0;
-            if (*format == '.') {                      /* Precision flag is detected */
-                format++;
-                if (CHAR_IS_NUM(*format)) {       /* Directly in the string */
-                    precision = log_format_parse_num(&format);
-                } else if (*format == '*') {                /* Variable check */
-                    const int pr = (int)va_arg(arg, int);
-                    precision = pr > 0 ? pr : 0;
-                    format++;
-                }
-            }
-            // Check [length]
-            switch (*format) {
-                case 'l' :
-                    if_long = true;
-                    format++;
-                    break;
-                default:
-                    break;
-            }
             // Determine how to handle the next character.
             switch(*format++) {
                 // Handle the %% command.
                 case '%': {
                     // Simply write a single %.
-                    converted_count += log_output_wrapper(buf_output, (uint8_t *)format - 1, 1);
+                    log_output_wrapper((uint8_t *)format - 1, 1, buf_output);
+                    converted_count += 1;
                     // This command has been handled.
                     break;
                 }
                 // Handle the %c command.
                 case 'c': {
                     // Get the value from the varargs.
-                    ui32value = va_arg(arg, int);
+                    ui32value = va_arg(arg, uint32_t);
                     // Print out the character.
-                    converted_count += log_output_wrapper(buf_output, (uint8_t *)&ui32value, 1);
+                    log_output_wrapper((uint8_t *)&ui32value, 1, buf_output);
+                    converted_count += 1;
                     // This command has been handled.
                     break;
                 }
                 // Handle the %s command.
                 case 's': {
                     // Get the string pointer from the varargs.
-                    str_ptr = va_arg(arg, char *);
+                    temp_str = va_arg(arg, char *);
                     // Determine the length of the string.
-                    for(index = 0; str_ptr[index] != '\0'; index++);
-                    // Write any required padding spaces
-                    if (width > index &&
-                        if_left_align == true) {
-                        width -= index;
-                        while(width--) {
-                            log_output_wrapper(buf_output, (uint8_t *)&fill_char, 1);
-                        }
+                    for(index = 0; temp_str[index] != '\0'; index++) {
                     }
                     // Write the string.
-                    log_output_wrapper(buf_output, (uint8_t *)str_ptr, index);
+                    log_output_wrapper((uint8_t *)temp_str, index, buf_output);
                     // Write any required padding spaces
-                    if(width > index &&
-                        if_left_align == false) {
-                        width -= index;
-                        while(width--) {
-                            log_output_wrapper(buf_output, (uint8_t *)&fill_char, 1);
+                    if(count > index) {
+                        count -= index;
+                        while(count--) {
+                            log_output_wrapper((uint8_t *)" ", 1, buf_output);
                         }
                     }
                     converted_count += index;
                     // This command has been handled.
                     break;
                 }
+                // Handle the digit characters.
+                case '0':
+                case '1':
+                case '2':
+                case '3':
+                case '4':
+                case '5':
+                case '6':
+                case '7':
+                case '8':
+                case '9': {
+                    // If this is a zero, and it is the first digit, then the
+                    // fill character is a zero instead of a space.
+                    if((format[-1] == '0') && (count == 0)) {
+                        cha_fill = '0';
+                    }
+                    // Update the digit count.
+                    count *= 10;
+                    count += format[-1] - '0';
+                    // Get the next character.
+                    goto again;
+                }
+                // Handle the %l[] commands.
+                case 'l': {
+                    if_long = true;
+                    goto again;
+                }
                 // Handle the %d and %i commands.
                 case 'd':
                 case 'i': {
                     if (if_long) {
                         // Get the value from the varargs.
-                        ui64value = va_arg(arg, unsigned long int);
+                        ui64value = va_arg(arg, uint64_t);
                         // If the value is negative, make it positive and indicate
                         // that a minus sign is needed.
                         if((int64_t)ui64value < 0) {
@@ -265,7 +238,7 @@ again:
                         }
                     } else {
                         // Get the value from the varargs.
-                        ui32value = va_arg(arg, unsigned int);
+                        ui32value = va_arg(arg, uint32_t);
                         // If the value is negative, make it positive and indicate
                         // that a minus sign is needed.
                         if((int32_t)ui32value < 0) {
@@ -281,109 +254,85 @@ again:
                     }
                     // Reset the buffer position.
                     pos = 0;
-                    extra_pos = 0;
                     // Set the base to 10.
                     base = 10;
                     // Convert the value to ASCII.
                     goto convert;
                 }
                 // Handle the %u command.
+                case 'u': {
+                    if (if_long) {
+                        // Get the value from the varargs.
+                        ui64value = va_arg(arg, uint64_t);
+                    } else {
+                        // Get the value from the varargs.
+                        ui32value = va_arg(arg, uint32_t);
+                    }
+                    // Reset the buffer position.
+                    pos = 0;
+                    // Set the base to 10.
+                    base = 10;
+                    // Indicate that the value is positive so that a minus sign
+                    // isn't inserted.
+                    if_neg = 0;
+                    // Convert the value to ASCII.
+                    goto convert;
+                }
                 // Handle the %x and %X commands.  Note that they are treated
                 // identically; in other words, %X will use lower case letters
                 // for a-f instead of the upper case letters it should use.  We
                 // also alias %p to %x.
-                case 'u':
                 case 'x':
                 case 'X':
                 case 'p': {
                     if (if_long) {
                         // Get the value from the varargs.
-                        ui64value = va_arg(arg, unsigned long int);
+                        ui64value = va_arg(arg, uint64_t);
                     } else {
                         // Get the value from the varargs.
-                        ui32value = va_arg(arg, unsigned int);
+                        ui32value = va_arg(arg, uint32_t);
                     }
                     // Reset the buffer position.
                     pos = 0;
-                    extra_pos = 0;
-                    // Set the base
-                    if (*(format - 1) == 'u') {
-                        base = 10;
-                    } else if (*(format - 1) == 'x' || *(format - 1) == 'X' || *(format - 1) == 'p') {
-                        base = 16;
-                    }
+                    // Set the base to 16.
+                    base = 16;
                     // Indicate that the value is positive so that a minus sign
                     // isn't inserted.
                     if_neg = 0;
-                    goto convert;
-                }
-                case 'f': {
-                    if_long = true;
-                    if_float = true;
-                    if_dot_output = false;
-                    base = 10;
-                    float_value = va_arg(arg, double);
-                    if (float_value < 0) {
-                        if_neg = 1;
-                        float_value = -float_value;
-                    }
-                    // Default precision
-                    if (precision == 0) {
-                        precision = 6;
-                    }
-float_again:
-                    pos = 0;
-                    extra_pos = 0;
-                    if (if_dot_output == true) {
-                        if_neg = 0;
-                        float_value -= ui64value;
-                        float_value *= pow(10, precision);
-                    }
-                    ui64value = (uint64_t)float_value;
-convert:
-                    memset(temp_buf, 0, sizeof(temp_buf));
                     // Determine the number of digits in the string version of
                     // the value.
+convert:
                     if (if_long) {
                         for(index = 1;
                             (((index * base) <= ui64value) &&
                             (((index * base) / base) == index));
-                            index *= base, width--) {
+                            index *= base, count--) {
                         }
                     } else {
                         for(index = 1;
                             (((index * base) <= ui32value) &&
                             (((index * base) / base) == index));
-                            index *= base, width--) {
+                            index *= base, count--) {
                         }
                     }
                     // If the value is negative, reduce the count of padding
                     // characters needed.
                     if(if_neg)
-                        if (width) width--;
+                        count--;
                     // If the value is negative and the value is padded with
                     // zeros, then place the minus sign before the padding.
-                    if(if_neg && (fill_char == '0')) {
+                    if(if_neg && (cha_fill == '0')) {
                         // Place the minus sign in the output buffer.
                         temp_buf[pos++] = '-';
                         // The minus sign has been placed, so turn off the
                         // negative flag.
-                        if_neg = false;
+                        if_neg = 0;
                     }
                     // Provide additional padding at the beginning of the
                     // string conversion if needed.
-                    if ((width > 1) &&
-                        (width < sizeof(temp_buf)) &&
-                        if_dot_output == false) {
-                        if (if_left_align) {
-                            for(uint32_t temp_pos = width; width; width--) {
-                                temp_buf[temp_pos--] = fill_char;
-                                extra_pos++;
-                            }
-                        } else {
-                            for(width--; width; width--) {
-                                temp_buf[pos++] = fill_char;
-                            }
+                    if((count > 1) && (count < 16)) {
+                        for(count--; count; count--) {
+                            temp_buf[pos++] = cha_fill;
                         }
                     }
                     // If the value is negative, then place the minus sign
@@ -401,21 +350,16 @@ convert:
                         }
                     }
                     // Write the string.
-                    converted_count += log_output_wrapper(buf_output, (uint8_t *)temp_buf, pos + extra_pos);
-                    // Judge if it has other part to output when is float
-                    if (if_float && if_dot_output == false) {
-                        char dot = '.';
-                        converted_count += log_output_wrapper(buf_output, (uint8_t *)&dot, 1);
-                        if_dot_output = true;
-                        goto float_again;
-                    }
+                    log_output_wrapper((uint8_t *)temp_buf, pos, buf_output);
+                    converted_count += pos;
                     // This command has been handled.
                     break;
                 }
                 // Handle all other commands.
                 default: {
                     // Indicate an error.
-                    converted_count += log_output_wrapper(buf_output, (uint8_t *)"ERROR", 5);
+                    log_output_wrapper((uint8_t *)"ERROR", 5, buf_output);
+                    converted_count += 5;
                     // This command has been handled.
                     break;
                 }
