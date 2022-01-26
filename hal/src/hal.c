@@ -15,9 +15,10 @@
 #define HAL_DEVICE_TRY_LOCK(device, timeout_tick, retval)           \
         tick_unit_t start_time = rte_get_tick();                    \
         retval = rte_try_lock(&(device->mutex), timeout_tick);      \
-        tick_unit_t consumed_time = rte_time_consume(start_time);   \
-        if (retval != RTE_SUCCESS)                                  \
+        if (retval != RTE_SUCCESS &&                                \
+            retval != RTE_ERR_PARAM)                                \
             return retval;                                          \
+        tick_unit_t consumed_time = rte_time_consume(start_time);   \
         if (consumed_time >= left_time) {                           \
             rte_unlock(&(device->mutex));                           \
             return RTE_ERR_TIMEOUT;                                 \

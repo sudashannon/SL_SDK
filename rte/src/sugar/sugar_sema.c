@@ -1,10 +1,8 @@
 /**
  * @file sugar_sema.c
  * @author Leon Shan (813475603@qq.com)
- * @brief FIXME: We use link list to store the wating thread and don't care about
- *               the priority which will cause the priority reverse problems.
- *               Make up a new data structure named prior_linklist to fix this problem.
- * @version 1.0.0
+ * @brief
+ * @version 1.1.0
  * @date 2022-01-14
  *
  * @copyright Copyright (c) 2022
@@ -14,13 +12,13 @@
 #include "../../inc/sugar/sugar_sema.h"
 #include "../../inc/sugar/sugar_prior_vector.h"
 #include "../../inc/sugar/sugar_scheduler.h"
-#include "../../inc/data_structure/ds_linklist.h"
+#include "../../inc/sugar/sugar_prior_llist.h"
 #include "../../inc/middle_layer/rte_memory.h"
 #include "../../inc/middle_layer/rte_log.h"
 #include "../../inc/middle_layer/rte_atomic.h"
 
 typedef struct sugar_sema {
-    linked_list_t *wait_thread_list;
+    sugar_pri_llist_t wait_thread_list;
     uint8_t count_value;
     uint8_t max_count;
 } sugar_sema_impl_t;
@@ -30,7 +28,6 @@ typedef struct sem_timer_arg
 {
     sugar_tcb_t *tcb_ptr;  /* Thread which is suspended with timeout */
     sugar_sema_impl_t *sem_ptr;  /* Semaphore the thread is suspended on */
-    size_t position_in_list;
 } sem_timer_arg_t;
 
 /**
@@ -54,7 +51,7 @@ sugar_semaphore_t sugar_sema_create(uint8_t initial_count, uint8_t max_count)
     if (semaphore == NULL)
         goto end;
     semaphore->count_value = initial_count;
-    semaphore->wait_thread_list = list_create(NULL);
+    semaphore->wait_thread_list = sugar_prior_llist_create();
     if (max_count)
         semaphore->max_count = max_count;
     else
@@ -107,7 +104,7 @@ rte_error_t sugar_sema_destroy(sugar_semaphore_t sem)
             /* Enter critical region */
             arch_critical_enter();
             /* Check if any threads are suspended, first waits first responses */
-            tcb_ptr = list_pop_head_value(semaphore_impl->wait_thread_list);
+            tcb_ptr = sugar_prior_llist_pop_highest(semaphore_impl->wait_thread_list);
             /* A thread is suspended on the semaphore */
             if (tcb_ptr) {
                 /* Return error status to the waiting thread */
@@ -144,7 +141,7 @@ rte_error_t sugar_sema_destroy(sugar_semaphore_t sem)
             }
         }
         /* Release allocated memory */
-        list_destroy(semaphore_impl->wait_thread_list);
+        sugar_prior_llist_destroy(semaphore_impl->wait_thread_list);
         memory_free(BANK_OS, semaphore_impl);
         /* Call scheduler if any threads were woken up */
         if (if_woken_thread == true) {
@@ -190,10 +187,11 @@ static void sugar_sema_timer(void *user_param)
         /* Flag as no timeout registered */
         timer_data_ptr->tcb_ptr->suspend_timer = NULL;
         /* Remove this thread from the semaphore's suspend list */
-        OS_ASSERT(list_fetch_value(timer_data_ptr->sem_ptr->wait_thread_list,
-                                    timer_data_ptr->position_in_list) == timer_data_ptr->tcb_ptr);
+        sugar_prior_llist_remove(timer_data_ptr->sem_ptr->wait_thread_list, timer_data_ptr->tcb_ptr);
         /* Put the thread on the ready queue */
-        (void)sugar_prior_vector_push(sugar_kernel_handle.ready_queue, timer_data_ptr->tcb_ptr);
+        sugar_prior_vector_push(sugar_kernel_handle.ready_queue, timer_data_ptr->tcb_ptr);
+        /* Relese useless resources */
+        memory_free(BANK_OS, user_param);
         /* Exit critical region */
         arch_critical_exit ();
         /**
@@ -252,7 +250,7 @@ rte_error_t sugar_sema_acquire(sugar_semaphore_t sem, tick_unit_t timeout)
 {
     arch_critical_store();
     rte_error_t status = RTE_ERR_UNDEFINE;
-    sem_timer_arg_t timer_arg = {NULL, NULL};
+    sem_timer_arg_t *timer_arg = NULL;
     sugar_tcb_t *curr_tcb_ptr = NULL;
     sugar_sema_impl_t *semaphore_impl = (sugar_sema_impl_t *)sem;
 
@@ -275,7 +273,7 @@ rte_error_t sugar_sema_acquire(sugar_semaphore_t sem, tick_unit_t timeout)
                 /* Check we are actually in thread context */
                 if (curr_tcb_ptr) {
                     /* Add current thread to the suspend list on this semaphore */
-                    status = list_push_tail_value(semaphore_impl->wait_thread_list, curr_tcb_ptr);
+                    status = sugar_prior_llist_push(semaphore_impl->wait_thread_list, curr_tcb_ptr);
                     if (status != RTE_SUCCESS) {
                         /* Exit critical region */
                         arch_critical_exit();
@@ -288,15 +286,16 @@ rte_error_t sugar_sema_acquire(sugar_semaphore_t sem, tick_unit_t timeout)
                         status = RTE_SUCCESS;
                         /* Register a timer callback if requested */
                         if (timeout != SUGAR_WAIT_FOREVER) {
+                            timer_arg = memory_calloc(BANK_OS, sizeof(sem_timer_arg_t));
+                            OS_ASSERT(timer_arg);
                             /* Fill out the data needed by the callback to wake us up */
-                            timer_arg.tcb_ptr = curr_tcb_ptr;
-                            timer_arg.sem_ptr = sem;
-                            timer_arg.position_in_list = list_count(semaphore_impl->wait_thread_list) - 1;
+                            timer_arg->tcb_ptr = curr_tcb_ptr;
+                            timer_arg->sem_ptr = sem;
                             /* Fill out the timer callback request structure */
                             timer_configuration_t config = TIMER_CONFIG_INITIALIZER;
                             config.repeat_period_tick = timeout;
                             config.timer_callback = sugar_sema_timer;
-                            config.parameter = &timer_arg;;
+                            config.parameter = timer_arg;;
                             config.if_reload = false;
                             /**
                              * Store the timer details in the TCB so that we can
@@ -308,9 +307,10 @@ rte_error_t sugar_sema_acquire(sugar_semaphore_t sem, tick_unit_t timeout)
                             if (status != RTE_SUCCESS) {
                                 /* Timer registration failed */
                                 /* Clean up and return to the caller */
-                                OS_ASSERT(list_pop_tail_value (semaphore_impl->wait_thread_list) == curr_tcb_ptr);
+                                sugar_prior_llist_remove(semaphore_impl->wait_thread_list, curr_tcb_ptr);
                                 curr_tcb_ptr->thread_state = SUGAR_THREAD_RUNNING_STATE;
                                 curr_tcb_ptr->suspend_timer = NULL;
+                                memory_free(BANK_OS, timer_arg);
                                 arch_critical_exit();
                                 goto end;
                             }
@@ -418,13 +418,13 @@ rte_error_t sugar_sema_give(sugar_semaphore_t sem)
         /* Protect access to the semaphore object and OS queues */
         arch_critical_enter();
         /* If any threads are blocking on the semaphore, wake up one */
-        if (list_count(semaphore_impl->wait_thread_list)) {
+        if (sugar_prior_llist_if_empty(semaphore_impl->wait_thread_list) == false) {
             /**
              * Threads are woken up in priority order, with a FIFO system
              * used on same priority threads. We always take the head,
              * ordering is taken care of by an ordered list enqueue.
              */
-            tcb_ptr = list_pop_head_value(semaphore_impl->wait_thread_list);
+            tcb_ptr = sugar_prior_llist_pop_highest(semaphore_impl->wait_thread_list);
             if (sugar_prior_vector_push(sugar_kernel_handle.ready_queue, tcb_ptr) != RTE_SUCCESS) {
                 /* Exit critical region */
                 arch_critical_exit();

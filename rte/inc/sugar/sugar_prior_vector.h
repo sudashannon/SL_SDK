@@ -24,7 +24,6 @@ typedef void *sugar_pri_vec_t;
 extern sugar_pri_vec_t sugar_prior_vector_create(void);
 extern sugar_tcb_t *sugar_prior_vector_pop_highest(sugar_pri_vec_t queue);
 extern sugar_tcb_t *sugar_prior_vector_pop_as_priority(sugar_pri_vec_t queue, uint8_t priority);
-extern sugar_tcb_t *sugar_prior_vector_pop(sugar_pri_vec_t queue, sugar_tcb_t *tcb_ptr);
 extern rte_error_t sugar_prior_vector_push(sugar_pri_vec_t queue, sugar_tcb_t *tcb);
 
 #ifdef __cplusplus

@@ -56,7 +56,7 @@ extern "C" {
 #define RTE_USE_SIMPLY_MEMPOOL      0
 
 
-#define rte_max_TIMER_GROUP_SIZE    2
+#define RTE_MAX_TIMER_GROUP_SIZE    2
 
 #ifndef RTE_TIMER_TICK_UNIT
 #define tick_unit_t                 uint32_t

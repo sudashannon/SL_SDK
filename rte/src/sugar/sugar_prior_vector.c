@@ -154,51 +154,6 @@ end:
 }
 
 /**
- * \b sugar_prior_vector_pop
- *
- * This is an internal function not for use by application code.
- *
- * Dequeues a particular TCB from the queue pointed to by \c pri_vec.
- *
- * The TCB will be removed from the queue.
- *
- * \b NOTE: Assumes that the caller is already in a critical section.
- *
- * @param[in,out] queue Pointer to TCB queue pointer
- * @param[in] tcb_ptr Pointer to TCB to dequeue
- *
- * @return Pointer to the dequeued TCB, or NULL if entry wasn't found
- */
-sugar_tcb_t *sugar_prior_vector_pop(sugar_pri_vec_t pri_vec, sugar_tcb_t *tcb_ptr)
-{
-    sugar_pri_vec_rbt_element_t *element = NULL;
-    sugar_pri_vec_impl_t *queue_impl = (sugar_pri_vec_impl_t *)pri_vec;
-    sugar_tcb_t *retval = NULL;
-    rte_error_t result = RTE_ERR_UNDEFINE;
-    if (rte_unlikely(queue_impl == NULL)) {
-        goto end;
-    }
-    rbt_find(queue_impl->tcb_rbt, &(tcb_ptr->priority), sizeof(uint8_t), (void **)&element);
-    if (element == NULL) {
-        goto end;
-    }
-    OS_ASSERT(tcb_ptr->priority == element->priority);
-    result = ds_vector_remove_by_pointer(element->tcb_array, tcb_ptr);
-    if (result != RTE_SUCCESS) {
-        goto end;
-    }
-    if (ds_vector_length(element->tcb_array) == 0 &&
-        element->priority != SUGAR_IDLE_THREAD_PRIORITY &&
-        queue_impl->highest_priority == tcb_ptr->priority) {
-        queue_impl->highest_priority = SUGAR_IDLE_THREAD_PRIORITY;
-        rbt_walk(queue_impl->tcb_rbt, rbt_walk_update_highest_priority, queue_impl);
-    }
-    retval = tcb_ptr;
-end:
-    return retval;
-}
-
-/**
  * \b sugar_prior_vector_push
  *
  * This is an internal function not for use by application code.

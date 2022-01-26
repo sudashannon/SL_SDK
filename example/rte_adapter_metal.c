@@ -38,7 +38,7 @@ void rte_init(void)
     memory_pool(BANK_DEFAULT, NULL, mempool_buffer, sizeof(mempool_buffer));
     memory_pool(BANK_DMA, NULL, dma_buffer, sizeof(dma_buffer));
     log_init(NULL, NULL, HAL_GetTick);
-    timer_init(rte_max_TIMER_GROUP_SIZE);
+    timer_init(RTE_MAX_TIMER_GROUP_SIZE);
     /* Init sugar kernel */
     sugar_kernel_init(NULL, 512, true);
     shell_init();

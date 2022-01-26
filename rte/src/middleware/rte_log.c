@@ -125,7 +125,6 @@ static int log_format_output(const char *format, va_list arg, log_buffer_output_
     bool if_neg = false, if_long = false;
     uint32_t pos = 0, count = 0, base = 0, ui32value = 0;
     uint64_t ui64value = 0, index = 0;
-    static const char * const ascii_map_table = "0123456789abcdef";
     char *temp_str, temp_buf[16], cha_fill;
     // Loop while there are more characters in the string.
     while(*format) {
