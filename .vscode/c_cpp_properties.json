@@ -1,7 +1,7 @@
 {
     "configurations": [
         {
-            "name": "arm_windows",
+            "name": "cortex_m_windows",
             "compilerPath": "C:/UserProfession/GNU Arm Embedded Toolchain/10 2021.10/bin/arm-none-eabi-gcc.exe",
             "includePath": [
                 "${workspaceFolder}/example/armgcc_stm32h7_demo",
@@ -23,6 +23,28 @@
                 "USE_HAL_DRIVER",
                 "__NEWLIB__",
                 "__ARM_ARCH_7M__"
+            ],
+            "cStandard": "gnu99",
+            "cppStandard": "gnu++11",
+            "intelliSenseMode": "${default}"
+        },
+        {
+            "name": "cortex_a_windows",
+            "compilerPath": "C:/UserProfession/gcc-arm-10.3-2021.07-mingw-w64-i686-arm-none-linux-gnueabihf/bin/arm-none-linux-gnueabihf-gcc.exe",
+            "includePath": [
+                "${workspaceFolder}/example/armgcc_v3s_demo",
+                "${workspaceFolder}/sis/casis/core/inc",
+                "${workspaceFolder}/sis/casis/device/general_a7/inc",
+                "${workspaceFolder}/rte/inc",
+                "${workspaceFolder}/hal/inc",
+                "${workspaceFolder}/osal/inc"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE",
+                "__ARM_ARCH_7A__",
+                "CASIS_device_header=\"ARMCA7.h\""
             ],
             "cStandard": "gnu99",
             "cppStandard": "gnu++11",

@@ -58,6 +58,27 @@
                     "ignoreFailures": true
                 }
             ]
+        },
+        {
+            "name": "(gdb for arm_cortex_a) 启动",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/example/armgcc_v3s_demo/build/cross/armv7-a/debug/v3s_boot0",
+            "args": [],
+            "stopAtEntry": true,
+            "cwd": "${fileDirname}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerPath": "C:/UserProfession/gcc-arm-10.3-2021.07-mingw-w64-i686-arm-none-linux-gnueabihf/bin/arm-none-linux-gnueabihf-gdb.exe",
+            "miDebuggerServerAddress": "localhost:2331",
+            "setupCommands": [
+                {
+                    "description": "为 gdb 启用整齐打印",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
         }
     ]
 }

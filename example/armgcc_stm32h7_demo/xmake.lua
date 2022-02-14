@@ -69,7 +69,7 @@ target("stm32h7_demo")
                 {force = true})
 if is_arch("armv7-m") then
     after_build(
-        function(objdump)
+        function(generate_bin)
             os.exec("arm-none-eabi-objcopy.exe -O binary .\\build\\cross\\armv7-m\\debug\\stm32h7_demo .\\stm32h7_demo.bin")
         end
     )
