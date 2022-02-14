@@ -12,5 +12,8 @@ example/mingw_sdl2_demo/bin/Debug/example.exe
 example/mdk_stm32h7_demo/Listings/
 example/mdk_stm32h7_demo/Objects/
 example/embedded_studio_v3s_spl/Output/
+example/armgcc_v3s_demo/.xmake/
+example/armgcc_v3s_demo/build/
+example/armgcc_v3s_demo/*.bin
 
 .vscode/settings.json

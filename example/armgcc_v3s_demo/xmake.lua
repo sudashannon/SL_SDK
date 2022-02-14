@@ -12,10 +12,10 @@ target("v3s_boot0")
     set_warnings("all", "error")
     -- set language: gnu99, gnu++11
     set_languages("gnu99", "gnu++11")
-    add_files("../../sis/casis/core/src/irq_ctrl_gic.c",
+    add_files("../../sis/casis/core/src/*.c",
+                "../../sis/casis/core/src/*.S",
                 "../../sis/casis/device/allwinner_v3s/src/GCC/startup_ARMCA7.c",
-                "../../sis/casis/device/allwinner_v3s/src/system_ARMCA7.c",
-                "../../sis/casis/device/allwinner_v3s/src/mmu_ARMCA7.c")
+                "../../sis/casis/device/allwinner_v3s/src/system_ARMCA7.c")
     add_includedirs("./user_config",
                     "../../sis/casis/core/inc",
                     "../../sis/casis/device/allwinner_v3s/inc",
@@ -35,6 +35,7 @@ target("v3s_boot0")
     -- set ld configurations
     add_ldflags("-Tdefault.ld",
                 "-nostdlib",
+                "-lgcc",
                 "-Wl,--cref",
                 "-Wl,--gc-sections",
                 "-Wl,-Map=build/v3s_boot0.map",
