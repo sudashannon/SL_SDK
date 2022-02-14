@@ -49,7 +49,7 @@ extern void SystemInit (void);
 
    Updates the SystemCoreClock with current core Clock retrieved from cpu registers.
  */
-extern void SystemCoreClockUpdate (void);
+extern void SystemCoreClockUpdate (uint32_t clock);
 
 /**
   \brief  Create Translation Table.

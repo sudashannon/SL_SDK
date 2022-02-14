@@ -117,8 +117,8 @@ void Reset_Handler(void) {
   "CPS    #0x1F                                    \n"
   "LDR    SP, =Image$$SYS_STACK$$ZI$$Limit         \n"
 
-  // // Call SystemInit
-  // "BL     SystemInit                               \n"
+  // Call SystemInit
+  "BL     SystemInit                               \n"
 
   // Unmask interrupts
   "CPSIE  if                                       \n"

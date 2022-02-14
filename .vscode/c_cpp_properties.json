@@ -34,7 +34,7 @@
             "includePath": [
                 "${workspaceFolder}/example/armgcc_v3s_demo",
                 "${workspaceFolder}/sis/casis/core/inc",
-                "${workspaceFolder}/sis/casis/device/general_a7/inc",
+                "${workspaceFolder}/sis/casis/device/allwinner_v3s/inc",
                 "${workspaceFolder}/rte/inc",
                 "${workspaceFolder}/hal/inc",
                 "${workspaceFolder}/osal/inc"
