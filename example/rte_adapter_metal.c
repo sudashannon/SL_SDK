@@ -70,3 +70,65 @@ void SysTick_Handler(void)
 {
     timer_tick_handle();
 }
+
+/*
+ * The fw_platform_init() function is called very early on the boot HART
+ * OpenSBI reference firmwares so that platform specific code get chance
+ * to update "platform" instance before it is used.
+ *
+ * The arguments passed to fw_platform_init() function are boot time state
+ * of A0 to A4 register. The "arg0" will be boot HART id and "arg1" will
+ * be address of FDT passed by previous booting stage.
+ *
+ * The return value of fw_platform_init() function is the FDT location. If
+ * FDT is unchanged (or FDT is modified in-place) then fw_platform_init()
+ * can always return the original FDT location (i.e. 'arg1') unmodified.
+ */
+unsigned long fw_platform_init(unsigned long arg0, unsigned long arg1,
+				unsigned long arg2, unsigned long arg3,
+				unsigned long arg4)
+{
+	const char *model;
+	void *fdt = (void *)arg1;
+	u32 hartid, hart_count = 0;
+	int rc, root_offset, cpus_offset, cpu_offset, len;
+
+	root_offset = fdt_path_offset(fdt, "/");
+	if (root_offset < 0)
+		goto fail;
+
+	fw_platform_lookup_special(fdt, root_offset);
+
+	model = fdt_getprop(fdt, root_offset, "model", &len);
+	if (model)
+		sbi_strncpy(platform.name, model, sizeof(platform.name) - 1);
+
+	if (generic_plat && generic_plat->features)
+		platform.features = generic_plat->features(generic_plat_match);
+
+	cpus_offset = fdt_path_offset(fdt, "/cpus");
+	if (cpus_offset < 0)
+		goto fail;
+
+	fdt_for_each_subnode(cpu_offset, fdt, cpus_offset) {
+		rc = fdt_parse_hart_id(fdt, cpu_offset, &hartid);
+		if (rc)
+			continue;
+
+		if (SBI_HARTMASK_MAX_BITS <= hartid)
+			continue;
+
+		generic_hart_index2id[hart_count++] = hartid;
+	}
+
+	platform.hart_count = hart_count;
+
+	platform_has_mlevel_imsic = fdt_check_imsic_mlevel(fdt);
+
+	/* Return original FDT pointer */
+	return arg1;
+
+fail:
+	while (1)
+		wfi();
+}

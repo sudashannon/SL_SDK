@@ -29,7 +29,7 @@ uint8_t w25qxx_interface_spi_init(void)
  */
 uint8_t w25qxx_interface_spi_deinit(void)
 {
-	if (HAL_SPI_DeInit(&hspi3) != HAL_OK) {
+	if (HAL_SPI_DeInit(&hspi6) != HAL_OK) {
 		RTE_LOGF("Deinit spi failed!");
 	}
     return 0;
@@ -68,25 +68,25 @@ uint8_t w25qxx_interface_spi_write_read(uint8_t instruction, uint8_t instruction
     }
 
     volatile uint8_t res;
-    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_15, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_7, GPIO_PIN_RESET);
 
     if (in_len) {
         res = hal_device_write_async("spi_0", in_buf, in_len, 1000);
         if (res) {
             RTE_LOGI("async_error: %d", res);
-            HAL_GPIO_WritePin(GPIOA, GPIO_PIN_15, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(GPIOD, GPIO_PIN_7, GPIO_PIN_SET);
             return 1;
         }
     }
     if (out_len) {
         res = hal_device_read_async("spi_0", out_buf, &out_len, 1000);
         if (res) {
-            HAL_GPIO_WritePin(GPIOA, GPIO_PIN_15, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(GPIOD, GPIO_PIN_7, GPIO_PIN_SET);
             return 1;
         }
     }
 
-    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_15, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_7, GPIO_PIN_SET);
     return 0;
 }
 

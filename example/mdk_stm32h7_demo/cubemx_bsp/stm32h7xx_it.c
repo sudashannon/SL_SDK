@@ -60,9 +60,7 @@
 extern QSPI_HandleTypeDef hqspi;
 extern DMA_HandleTypeDef hdma_usart1_rx;
 extern DMA_HandleTypeDef hdma_usart1_tx;
-extern SPI_HandleTypeDef hspi3;
-extern DMA_HandleTypeDef hdma_spi3_tx;
-extern DMA_HandleTypeDef hdma_spi3_rx;
+extern SPI_HandleTypeDef hspi6;
 extern UART_HandleTypeDef huart1;
 /* USER CODE BEGIN EV */
 
@@ -180,34 +178,6 @@ void DMA1_Stream1_IRQHandler(void)
 }
 
 /**
-  * @brief This function handles DMA1 stream2 global interrupt.
-  */
-void DMA1_Stream2_IRQHandler(void)
-{
-  /* USER CODE BEGIN DMA1_Stream2_IRQn 0 */
-
-  /* USER CODE END DMA1_Stream2_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_spi3_rx);
-  /* USER CODE BEGIN DMA1_Stream2_IRQn 1 */
-
-  /* USER CODE END DMA1_Stream2_IRQn 1 */
-}
-
-/**
-  * @brief This function handles DMA1 stream3 global interrupt.
-  */
-void DMA1_Stream3_IRQHandler(void)
-{
-  /* USER CODE BEGIN DMA1_Stream3_IRQn 0 */
-
-  /* USER CODE END DMA1_Stream3_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_spi3_tx);
-  /* USER CODE BEGIN DMA1_Stream3_IRQn 1 */
-
-  /* USER CODE END DMA1_Stream3_IRQn 1 */
-}
-
-/**
   * @brief This function handles USART1 global interrupt.
   */
 void USART1_IRQHandler(void)
@@ -238,12 +208,12 @@ void QUADSPI_IRQHandler(void)
 /**
   * @brief This function handles SPI3 global interrupt.
   */
-void SPI3_IRQHandler(void)
+void SPI6_IRQHandler(void)
 {
   /* USER CODE BEGIN SPI2_IRQn 0 */
 
   /* USER CODE END SPI2_IRQn 0 */
-  HAL_SPI_IRQHandler(&hspi3);
+  HAL_SPI_IRQHandler(&hspi6);
   /* USER CODE BEGIN SPI2_IRQn 1 */
 
   /* USER CODE END SPI2_IRQn 1 */

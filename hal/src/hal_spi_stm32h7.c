@@ -22,7 +22,7 @@ typedef struct {
 
 spi_device_t spi_control_handle[spi_N] = {
     {
-        .driver_handle = &hspi3,
+        .driver_handle = &hspi6,
     }
 };
 
