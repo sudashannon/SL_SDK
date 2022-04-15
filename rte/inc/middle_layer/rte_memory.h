@@ -113,7 +113,7 @@ size_t memory_sizeof_max(mem_bank_t bank);
  * @return void*
  */
 void *memory_alloc_max_impl(mem_bank_t bank, size_t *size, const char *func, uint32_t line);
-#define memory_alloc_max(bank, ptr, size)         memory_alloc_max_impl(bank, ptr, size, __func__, __LINE__)
+#define memory_alloc_max(bank, size)         memory_alloc_max_impl(bank, size, __func__, __LINE__)
 /**
  * @brief Demon a bank of memory stack.
  *

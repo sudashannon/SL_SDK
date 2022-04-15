@@ -1038,7 +1038,7 @@ size_t memory_sizeof_max(mem_bank_t bank)
         block = block_next(block);
     }
     MEM_UNLOCK(bank);
-    return maxsize;
+    return adjust_request_size(maxsize, ALIGN_SIZE);;
 }
 /**
  * @brief Malloc a max free size of a memory bank.
@@ -1052,7 +1052,8 @@ void *memory_alloc_max_impl(mem_bank_t bank, size_t *size, const char *func, uin
     MEM_LOCK(bank);
     void *p_retval = NULL;
     /* Protect the critical section... */
-    block_header_t* retval = NULL;
+    block_header_t* maxsize_block = NULL;
+    control_t* control = mem_cast(control_t*, mem_handle[bank].mem);
     block_header_t* block = offset_to_block(mem_handle[bank].pool, -(int)block_header_overhead);
     size_t nowsize = 0;
     size_t maxsize = 0;
@@ -1060,18 +1061,21 @@ void *memory_alloc_max_impl(mem_bank_t bank, size_t *size, const char *func, uin
         nowsize = block_size(block);
         if((nowsize > maxsize)&&block_is_free(block)) {
             maxsize = nowsize;
-            retval = block;
+            maxsize_block = block;
         }
         block = block_next(block);
     }
 #if RTE_MEMPOOL_ENABLE_DEBUG == 1
     *size = maxsize - sizeof(mem_debug_info_t);
+#else
+    *size = maxsize;
 #endif
-    if(maxsize > 0) {
-        block_mark_as_used(retval);
-        p_retval = (void *)block_to_ptr(retval);
+    if(*size > 0) {
+        const size_t adjust = adjust_request_size(*size, ALIGN_SIZE);
+        p_retval = block_prepare_used(control, maxsize_block, adjust);
+        *size = adjust;
     }
-    DEBUG_FILL_INFO(p_retval, block_size(retval), func, line);
+    DEBUG_FILL_INFO(p_retval, block_size(maxsize_block), func, line);
     /* Release the critical section... */
     MEM_UNLOCK(bank);
     return p_retval;

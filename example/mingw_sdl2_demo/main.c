@@ -34,6 +34,13 @@ static int main_thread(void *param)
     test_linklist();
     test_rbtree();
     memory_demon(BANK_DEFAULT);
+    size_t alloc_size = 0;
+    uint8_t *test_buffer = memory_alloc_max(BANK_DEFAULT, &alloc_size);
+    memory_demon(BANK_DEFAULT);
+    RTE_LOGI("max size buffer of pool is %d", alloc_size);
+    memset(test_buffer, 0xde, alloc_size);
+    memory_free(BANK_DEFAULT, test_buffer);
+    memory_demon(BANK_DEFAULT);
     RTE_LOGI("Hello world!");
     SDL_Thread *gui_thread_handle = SDL_CreateThread(gui_thread, "gui_thread", NULL);
     while(running_flag) {
