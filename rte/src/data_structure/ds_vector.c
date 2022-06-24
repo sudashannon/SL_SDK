@@ -198,7 +198,7 @@ rte_error_t ds_vector_expand(ds_vector_t handle, uint32_t new_size)
             else
                 memcpy(&((void **)vector->data)[oldcapacity + vector->head],
                         &((void **)vector->data)[vector->head],
-                        vector->element_size * first_section_size);
+                        vector->element_size * second_section_size);
             // In this case, the head needs to be update.
             vector->head = oldcapacity + vector->head;
         }
@@ -399,6 +399,7 @@ rte_error_t ds_vector_remove_by_index(ds_vector_t handle, uint32_t index)
         }
     }
     vector->length--;
+    VECTOR_UNLOCK(vector);
     return RTE_SUCCESS;
 }
 /**
