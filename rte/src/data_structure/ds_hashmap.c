@@ -270,7 +270,6 @@ static void ht_grow_internal(hashtable_impl_t *table)
     table->buckets_count = table->buckets_count << 1;
     rte_free(table->buckets_array);
     table->buckets_array = rte_calloc(sizeof(hashtable_bucket_t *) * table->buckets_count);
-    HT_UNLOCK(table);
 
     uint32_t index = 0;
     hashtable_bucket_t *hashchain = NULL;
@@ -280,6 +279,7 @@ static void ht_grow_internal(hashtable_impl_t *table)
         table->buckets_array[hashchain->hash & (table->buckets_count - 1)] = hashchain;
     }
     ds_vector_unlock(table->chains_array);
+    HT_UNLOCK(table);
 }
 
 static rte_error_t ht_set_internal(
